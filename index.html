@@ -1,0 +1,3218 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plant Master Checklist & Real-time Dashboard Enterprise</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Prompt', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- SheetJS (xlsx export) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    body { font-family: 'Prompt', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .badge-in-spec { background-color: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-out-of-spec { background-color: rgba(244, 63, 94, 0.2); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.4); }
+
+    .glow-pulse {
+      animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .75; transform: scale(0.98); }
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-lg">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Brand & Logo -->
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('inspection')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20 ring-1 ring-white/20">
+            <i class="fa-solid fa-clipboard-check text-xl text-white"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-blue-300 bg-clip-text text-transparent">PLANT MASTER CHECKLIST</span>
+              <span class="px-2 py-0.5 text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full font-mono">v6.0 LIVE</span>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">ระบบบันทึกเช็คลิสต์ & แดชบอร์ดตรวจสอบคุณภาพภาพรวมโรงงาน</p>
+          </div>
+        </div>
+
+        <!-- Live Status & User Profile Info -->
+        <div class="flex items-center space-x-2 sm:space-x-4">
+          <!-- Real-time Clock & Auto-sync badge -->
+          <div class="hidden md:flex flex-col items-end text-right">
+            <div class="flex items-center gap-2 text-xs font-mono text-emerald-400 font-semibold" id="topSyncStatus">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              <span id="liveClockDisplay">00:00:00</span>
+            </div>
+            <div class="text-[11px] text-slate-400 flex items-center gap-1">
+              <span id="syncIndicatorText">🟢 พร้อมใช้งาน</span>
+            </div>
+          </div>
+
+          <!-- Quick Sync Button -->
+          <button onclick="syncWithGoogleSheets(false)" title="ดึงข้อมูลจาก Google Sheets ล่าสุด" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium flex items-center gap-1.5 transition shadow-sm">
+            <i class="fa-solid fa-rotate text-xs" id="syncIcon"></i>
+            <span class="hidden sm:inline">ดึงข้อมูลล่าสุด</span>
+          </button>
+
+          <!-- User Menu Badge -->
+          <div class="relative" id="userMenuContainer">
+            <!-- User pill injected by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Navigation Tabs (TAB 1: INSPECTION FIRST!) -->
+      <nav class="flex space-x-1 sm:space-x-2 overflow-x-auto py-2 border-t border-slate-800/80 text-xs sm:text-sm font-medium scrollbar-none" id="mainTabNav">
+        <!-- Injected dynamically based on permissions -->
+      </nav>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT CONTAINER ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8 space-y-6">
+
+    <!-- ================= TAB 1: INSPECTION ENTRY (หน้ารายการตรวจเช็คลิสต์ - เริ่มต้นหน้าแรก) ================= -->
+    <div id="tab-inspection" class="space-y-6">
+      
+      <!-- Top Department Switcher Header -->
+      <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/50 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+            <h2 class="text-lg sm:text-xl font-bold text-white tracking-tight">บันทึกผลการตรวจเช็คลิสต์หน้างาน (Checklist Entry)</h2>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">
+            เลือกแผนกและกรอกตัวเลขผลการตรวจลงในตารางได้ทันที ระบบจะตรวจเช็คค่าสเป็ค (Standard Spec) ให้แบบ Real-time
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="syncWithGoogleSheets(false)" class="px-3 py-1.5 bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+            <span>รีเฟรชข้อมูลเกณฑ์</span>
+          </button>
+          <button onclick="openQrModalForCurrentDept()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-qrcode text-blue-400"></i>
+            <span>QR ลิ้งก์แผนกนี้</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Department Selector Pills -->
+      <div class="flex flex-wrap gap-2 items-center" id="entryDeptPills">
+        <!-- Generated by JS -->
+      </div>
+
+      <!-- Filter by Frequency Bar -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs" id="entryFreqFilters">
+        <!-- Generated by JS -->
+      </div>
+
+      <!-- Metadata Bar: Inspector & Machine / Order No -->
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800/90 grid grid-cols-1 sm:grid-cols-3 gap-3 shadow-md">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+            <i class="fa-solid fa-user-check text-blue-400 mr-1"></i> ผู้ทำการตรวจเช็ค (Inspector)
+          </label>
+          <input type="text" id="entryInspectorInput" placeholder="ระบุชื่อผู้ตรวจเช็ค..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-medium">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+            <i class="fa-solid fa-hashtag text-indigo-400 mr-1"></i> หมายเลข Order / Lot การผลิต
+          </label>
+          <input type="text" id="entryOrderNoInput" placeholder="เช่น ORD-6902, Lot A..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-mono">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+            <i class="fa-solid fa-gear text-amber-400 mr-1"></i> เครื่องจักรเป้าหมาย (Machine)
+          </label>
+          <select id="entryMachineFilter" onchange="handleMachineFilterChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
+            <option value="ALL">เครื่องจักรทั้งหมดในแผนก</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- CHECKLIST QUICK-ENTRY TABLE (คลิกกรอกค่าได้ทันที พร้อมแจ้งเตือนสี) -->
+      <div class="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
+        
+        <div class="p-4 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-blue-400"></i>
+            <span class="font-bold text-white text-sm sm:text-base" id="entryListHeaderTitle">รายการตรวจเช็คลิสต์</span>
+            <span class="px-2 py-0.5 bg-blue-950 text-blue-300 border border-blue-800 rounded-full text-xs font-mono" id="entryItemCountBadge">0 รายการ</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> ผ่านเกณฑ์ (In-Spec)</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> หลุดสเป็ค (Out-of-Spec)</span>
+          </div>
+        </div>
+
+        <!-- The Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm text-slate-300">
+            <thead class="bg-slate-950/80 text-slate-400 uppercase font-mono text-[11px] border-b border-slate-800 sticky top-0">
+              <tr>
+                <th class="py-3 px-3 sm:px-4 w-12 text-center">ลำดับ</th>
+                <th class="py-3 px-3 sm:px-4">เครื่องจักร / ความถี่</th>
+                <th class="py-3 px-3 sm:px-4 min-w-[200px]">รายการตรวจสอบ & วิธีการ</th>
+                <th class="py-3 px-3 sm:px-4 min-w-[140px]">เกณฑ์มาตรฐาน (STD Spec)</th>
+                <th class="py-3 px-3 sm:px-4 min-w-[160px] text-center">กรอกค่าที่วัดได้ (Measured)</th>
+                <th class="py-3 px-3 sm:px-4 min-w-[90px] text-center">สถานะ</th>
+                <th class="py-3 px-3 sm:px-4 min-w-[100px] text-center">รูปถ่าย / บันทึก</th>
+              </tr>
+            </thead>
+            <tbody id="entryTableBody" class="divide-y divide-slate-800/60 font-sans">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Bottom Action Toolbar -->
+        <div class="p-4 bg-slate-950 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="text-xs text-slate-400 flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-blue-400"></i>
+            <span>ข้อมูลจะบันทึกลงระบบทันที และส่งต่อไปยัง Google Sheets แบบ Real-time</span>
+          </div>
+
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <button onclick="resetEntryForm()" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700">
+              <i class="fa-solid fa-arrow-rotate-left mr-1"></i> ล้างค่าที่กรอก
+            </button>
+            <button onclick="submitInspectionBatch()" class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-900/40 transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-floppy-disk text-base"></i>
+              <span>บันทึกผลการตรวจเช็คทั้งหมด</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ================= TAB 2: EXECUTIVE REAL-TIME DASHBOARD ================= -->
+    <div id="tab-dashboard" class="space-y-6 hidden">
+      
+      <!-- Dashboard Top Filter & Scope Header -->
+      <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-blue-950/40 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+            <h2 class="text-lg sm:text-xl font-bold text-white tracking-tight">ภาพรวมการตรวจเช็คลิสต์โรงงาน (Plant Overview Dashboard)</h2>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-400 mt-0.5" id="dashboardScopeSubtext">
+            เริ่มต้นแสดงผลข้อมูลการตรวจเช็คของ <b>วันปัจจุบัน (Today)</b> เชื่อมโยงทุกแผนกแบบเรียลไทม์
+          </p>
+        </div>
+
+        <!-- Fast Date & Scope Switcher -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex items-center bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5">
+            <i class="fa-solid fa-calendar-day text-blue-400 mr-2 text-xs"></i>
+            <input type="date" id="dashDateFilter" onchange="renderDashboard()" class="bg-transparent text-white text-xs focus:outline-none cursor-pointer font-mono">
+          </div>
+          
+          <button onclick="setDashboardDateToday()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition shadow-sm">
+            📅 วันนี้
+          </button>
+          <button onclick="setDashboardDateAll()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700">
+            🌐 ดูทั้งหมด
+          </button>
+          <button onclick="syncWithGoogleSheets(false)" class="px-3 py-1.5 rounded-xl bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 text-xs font-semibold transition flex items-center gap-1">
+            <i class="fa-solid fa-rotate text-xs"></i>
+            <span>ดึง Google Sheet</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Filter Banner (When Investigation Filter is Applied) -->
+      <div id="dashActiveFilterBanner" class="hidden p-3.5 rounded-2xl bg-indigo-950/40 border border-indigo-500/40 flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-2 text-xs text-indigo-200">
+          <i class="fa-solid fa-filter text-indigo-400"></i>
+          <span id="dashActiveFilterText">กำลังแสดงผลตามช่วงเวลาที่สืบค้น</span>
+        </div>
+        <button onclick="setDashboardDateToday()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm">
+          <i class="fa-solid fa-arrow-rotate-left"></i>
+          <span>คืนค่าเป็นข้อมูลวันนี้ทั้งหมด (Reset to Today)</span>
+        </button>
+      </div>
+
+      <!-- KPI Summary Cards (Auto updates with Sheet data) -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-md flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-400" id="kpiDateLabel">
+              <i class="fa-regular fa-calendar-check text-blue-400 mr-1"></i> ประจำวันนี้
+            </p>
+            <h3 class="text-2xl sm:text-3xl font-bold font-mono text-white mt-1" id="kpiTotalChecked">0</h3>
+            <span class="text-[11px] text-blue-400">รายการที่ตรวจแล้ว</span>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-clipboard-check"></i>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-md flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-400">
+              <i class="fa-solid fa-percent text-emerald-400 mr-1"></i> ผ่านตามสเป็ค (In-Spec)
+            </p>
+            <h3 class="text-2xl sm:text-3xl font-bold font-mono text-emerald-400 mt-1" id="kpiInSpecRate">100%</h3>
+            <span class="text-[11px] text-slate-400">อัตราความสอดคล้อง</span>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-md flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-400">
+              <i class="fa-solid fa-triangle-exclamation text-rose-400 mr-1"></i> ตกสเป็ค (Out-of-Spec)
+            </p>
+            <h3 class="text-2xl sm:text-3xl font-bold font-mono text-rose-400 mt-1" id="kpiOutOfSpecCount">0</h3>
+            <span class="text-[11px] text-rose-400 font-semibold">ต้องแก้ไขด่วน</span>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-md flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-400">
+              <i class="fa-solid fa-layer-group text-purple-400 mr-1"></i> เกณฑ์มาตรฐาน (Master STD)
+            </p>
+            <h3 class="text-2xl sm:text-3xl font-bold font-mono text-white mt-1" id="kpiTotalMasterItems">0</h3>
+            <span class="text-[11px] text-purple-400">พารามิเตอร์ควบคุม</span>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-sliders"></i>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- OUT OF SPEC ALERT BANNER (แจ้งเตือนจุดที่หลุดค่ามาตรฐาน) -->
+      <div id="alertBannerSection" class="hidden p-4 rounded-2xl bg-gradient-to-r from-red-950/80 via-red-900/40 to-slate-900 border border-red-500/50 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-rose-300 font-bold text-sm">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+            <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+            <span>พบรายการตรวจเช็คที่ <span class="text-white underline font-bold">หลุดเกณฑ์มาตรฐาน (Out of Spec)</span></span>
+          </div>
+          <span class="px-2.5 py-0.5 rounded-full bg-rose-500 text-white text-xs font-mono font-bold" id="alertCountBadge">0 จุด</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2" id="alertListPreview">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+      <!-- ================= DEFECT & TIME RANGE INVESTIGATION TOOL (ระบบสืบค้น & วิเคราะห์ของเสียตามช่วงเวลา) ================= -->
+      <div class="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-indigo-900/60 shadow-xl space-y-4">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-sm border border-indigo-500/30">
+              <i class="fa-solid fa-magnifying-glass-chart"></i>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-white">ระบบสืบค้นและวิเคราะห์ของเสียตามช่วงวันและเวลา (Defect & Out-of-Spec Investigation)</h3>
+              <p class="text-[11px] text-slate-400">สืบค้นย้อนหลังเพื่อหาจุดผิดปกติ (Root Cause) ระบุวันที่และเวลาเริ่ม-สิ้นสุดระดับชั่วโมงและนาที (HH:mm)</p>
+            </div>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="text-[10px] text-slate-400 uppercase font-bold mr-1">ปุ่มลัด:</span>
+            <button onclick="setInvestigatePreset('1h')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition">1 ชม. ล่าสุด</button>
+            <button onclick="setInvestigatePreset('2h')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition">2 ชม. ล่าสุด</button>
+            <button onclick="setInvestigatePreset('4h')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition">4 ชม. ล่าสุด</button>
+            <button onclick="setInvestigatePreset('shift')" class="px-2 py-1 rounded bg-indigo-950 hover:bg-indigo-900 text-indigo-300 border border-indigo-800 text-[11px] transition">กะปัจจุบัน</button>
+            <button onclick="setInvestigatePreset('today')" class="px-2 py-1 rounded bg-blue-950 hover:bg-blue-900 text-blue-300 border border-blue-800 text-[11px] transition">วันนี้ทั้งหมด</button>
+          </div>
+        </div>
+
+        <!-- Filter Inputs Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          
+          <!-- Start Date & Time -->
+          <div class="space-y-1">
+            <label class="block text-[11px] font-semibold text-slate-300">
+              <i class="fa-regular fa-calendar-plus text-emerald-400 mr-1"></i> วันที่เริ่มต้น
+            </label>
+            <input type="date" id="invStartDate" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono">
+          </div>
+
+          <div class="space-y-1">
+            <label class="block text-[11px] font-semibold text-slate-300">
+              <i class="fa-regular fa-clock text-emerald-400 mr-1"></i> เวลาเริ่มต้น (HH:mm)
+            </label>
+            <input type="time" id="invStartTime" value="00:00" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono">
+          </div>
+
+          <!-- End Date & Time -->
+          <div class="space-y-1">
+            <label class="block text-[11px] font-semibold text-slate-300">
+              <i class="fa-regular fa-calendar-minus text-rose-400 mr-1"></i> วันที่สิ้นสุด
+            </label>
+            <input type="date" id="invEndDate" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono">
+          </div>
+
+          <div class="space-y-1">
+            <label class="block text-[11px] font-semibold text-slate-300">
+              <i class="fa-regular fa-clock text-rose-400 mr-1"></i> เวลาสิ้นสุด (HH:mm)
+            </label>
+            <input type="time" id="invEndTime" value="23:59" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono">
+          </div>
+
+          <!-- Filter Dept & Action Button -->
+          <div class="space-y-1 flex flex-col justify-end">
+            <label class="block text-[11px] font-semibold text-slate-300">
+              <i class="fa-solid fa-industry text-blue-400 mr-1"></i> แผนกเป้าหมาย
+            </label>
+            <div class="flex gap-1.5">
+              <select id="invDeptFilter" class="w-1/2 bg-slate-950 border border-slate-700 rounded-xl px-2 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                <option value="ALL">ทุกแผนก</option>
+              </select>
+              <select id="invStatusFilter" class="w-1/2 bg-slate-950 border border-slate-700 rounded-xl px-2 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                <option value="ALL">ทุกสถานะ</option>
+                <option value="OUT-OF-SPEC">เฉพาะตกสเป็ค ⚠️</option>
+                <option value="IN-SPEC">เฉพาะปกติ ✔️</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <div class="text-[11px] text-slate-400">
+            <i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i> ระบบจะเปรียบเทียบเวลาที่ตรวจเช็คจริง และสรุปค่าพารามิเตอร์ที่หลุดเกณฑ์ให้ทันที
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="runDefectInvestigation()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-900/40 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>เริ่มค้นหาและวิเคราะห์</span>
+            </button>
+            <button onclick="applyInvestigationToDashboard()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-800/60 font-semibold text-xs transition flex items-center gap-1.5" title="นำช่วงเวลาที่สืบค้นนี้ไปแสดงบนแดชบอร์ดภาพรวมทั้งหมด">
+              <i class="fa-solid fa-chart-pie"></i>
+              <span>แสดงบนแดชบอร์ดหลัก</span>
+            </button>
+            <button onclick="exportInvestigationExcel()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-file-excel"></i>
+              <span>Excel</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Investigation Results Container -->
+        <div id="invResultsSection" class="mt-3 space-y-3">
+          <!-- Dynamically populated -->
+        </div>
+
+      </div>
+
+      <!-- Department Health Cards Grid -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-heart-pulse text-rose-400"></i>
+            <span>สถานะสุขภาพการตรวจเช็คแยกตามแผนก (Department Health Status)</span>
+          </h3>
+          <span class="text-xs text-slate-400">คลิกเพื่อเข้าตรวจหรือดู QR Code</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="deptHealthContainer">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+      <!-- Charts & Matrix Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Compliance Doughnut Chart -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-chart-pie text-blue-400"></i>
+              <span>สัดส่วนความถูกต้อง (Quality Compliance)</span>
+            </h3>
+          </div>
+          <div class="h-56 relative flex items-center justify-center">
+            <canvas id="deptComplianceChart"></canvas>
+          </div>
+          <div class="text-center text-xs text-slate-400 pt-2 border-t border-slate-800">
+            แสดงสัดส่วน In-Spec vs Out-of-Spec ของช่วงเวลาที่เลือก
+          </div>
+        </div>
+
+        <!-- Hourly Inspection Activity Matrix -->
+        <div class="lg:col-span-2 p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between space-y-4">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-table-cells text-indigo-400"></i>
+              <span>ตารางบันทึกผลการตรวจเช็คย้อนหลัง (Recent Inspection Logs)</span>
+            </h3>
+            <select id="matrixDeptSelect" onchange="renderDashboard()" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
+              <option value="ALL">ทุกแผนก (All Depts)</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto max-h-56">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-slate-400 font-mono text-[11px] sticky top-0 border-b border-slate-800">
+                <tr>
+                  <th class="py-2 px-3">เวลา</th>
+                  <th class="py-2 px-3">แผนก</th>
+                  <th class="py-2 px-3">ความถี่</th>
+                  <th class="py-2 px-3">รายการ</th>
+                  <th class="py-2 px-3">เกณฑ์ STD</th>
+                  <th class="py-2 px-3">ค่าที่วัด</th>
+                  <th class="py-2 px-3 text-center">รูป</th>
+                  <th class="py-2 px-3 text-center">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="matrixTableBody" class="divide-y divide-slate-800/60 font-sans">
+                <!-- Injected by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800">
+            <span>แสดง 50 รายการล่าสุด</span>
+            <button onclick="switchTab('history')" class="text-blue-400 hover:text-blue-300 font-medium">ดูประวัติทั้งหมด →</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ================= TAB 3: MASTER STD MANAGEMENT ================= -->
+    <div id="tab-master" class="space-y-6 hidden">
+      
+      <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-purple-950/40 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-purple-500"></span>
+            <h2 class="text-lg sm:text-xl font-bold text-white tracking-tight">จัดการเกณฑ์มาตรฐานเช็คลิสต์ (Master Checklist Standards)</h2>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-400 mt-0.5">
+            กำหนดค่ามาตรฐาน (Min, Max, Target, ความถี่) และบังคับรูปภาพหรือตัวเลขของแต่ละแผนก
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="openMultiRowAddModal()" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+            <i class="fa-solid fa-plus"></i>
+            <span>เพิ่มชุดเช็คลิสต์ใหม่ (หลายแถว)</span>
+          </button>
+          <button onclick="syncWithGoogleSheets(false)" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+            <span>ดึงจาก Google Sheet</span>
+          </button>
+          <button onclick="pushMasterToGoogle(false)" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span>อัปเดตขึ้น Sheet</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Controls & View Switcher -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/80 p-3 rounded-2xl border border-slate-800">
+        <div class="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+          <select id="masterFilterDept" onchange="renderMasterView()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none">
+            <option value="ALL">ทุกแผนก (All Departments)</option>
+          </select>
+          <select id="masterFilterFreq" onchange="renderMasterView()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none">
+            <option value="ALL">ทุกความถี่ (All Frequencies)</option>
+          </select>
+          <div class="relative flex-1 sm:w-64">
+            <input type="text" id="masterSearchInput" oninput="renderMasterView()" placeholder="ค้นหารายการ..." class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-500 text-xs"></i>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 self-end sm:self-auto">
+          <span class="text-xs text-slate-400">มุมมอง:</span>
+          <button onclick="setMasterViewMode('group')" id="btnViewModeGroup" class="px-3 py-1 rounded-lg text-xs font-bold bg-blue-600 text-white transition">จัดกลุ่มชุด</button>
+          <button onclick="setMasterViewMode('flat')" id="btnViewModeFlat" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-400 transition">ตารางรวม</button>
+        </div>
+      </div>
+
+      <!-- Master Items Container (Grouped or Flat) -->
+      <div id="masterItemsContainer" class="space-y-4">
+        <!-- Injected by JS -->
+      </div>
+
+    </div>
+
+    <!-- ================= TAB 4: INSPECTION HISTORY & EXCEL EXPORT ================= -->
+    <div id="tab-history" class="space-y-6 hidden">
+      <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-indigo-500"></span>
+            <h2 class="text-lg sm:text-xl font-bold text-white tracking-tight">ประวัติการตรวจเช็คย้อนหลัง (Inspection History Logs)</h2>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-400 mt-0.5">
+            บันทึกการตรวจเช็คทั้งหมดที่ซิงค์กับ Google Sheets สามารถกรองและดาวน์โหลดเป็น Excel
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="syncWithGoogleSheets(false)" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate"></i>
+            <span>รีเฟรชข้อมูล</span>
+          </button>
+          <button onclick="exportHistoryExcel()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+            <i class="fa-solid fa-file-excel"></i>
+            <span>ส่งออก Excel</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- History Table Container -->
+      <div class="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
+        <div class="p-3 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <select id="histDeptFilter" onchange="renderHistoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
+              <option value="ALL">ทุกแผนก</option>
+            </select>
+            <select id="histStatusFilter" onchange="renderHistoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
+              <option value="ALL">ทุกสถานะ</option>
+              <option value="IN-SPEC">เฉพาะปกติ (In-Spec)</option>
+              <option value="OUT-OF-SPEC">เฉพาะหลุดสเป็ค (Out-of-Spec)</option>
+            </select>
+            <input type="text" id="histSearchInput" oninput="renderHistoryTable()" placeholder="ค้นหาข้อมูล..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-xs text-white focus:outline-none w-48">
+          </div>
+          <span class="text-xs text-slate-400 font-mono" id="histTotalCountBadge">รวม 0 รายการ</span>
+        </div>
+
+        <div class="overflow-x-auto max-h-[500px]">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-950 text-slate-400 font-mono text-[11px] sticky top-0 border-b border-slate-800 uppercase">
+              <tr>
+                <th class="py-2.5 px-3">วัน-เวลา</th>
+                <th class="py-2.5 px-3">แผนก / เครื่อง</th>
+                <th class="py-2.5 px-3">ความถี่</th>
+                <th class="py-2.5 px-3">รายการตรวจ</th>
+                <th class="py-2.5 px-3">เกณฑ์ STD</th>
+                <th class="py-2.5 px-3">ค่าที่วัดได้</th>
+                <th class="py-2.5 px-3 text-center">สถานะ</th>
+                <th class="py-2.5 px-3">ผู้ตรวจ / Lot</th>
+                <th class="py-2.5 px-3 text-center">รูป</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody" class="divide-y divide-slate-800/60 font-sans">
+              <!-- Injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 5: QR CODE & DIRECT LINKS HUB ================= -->
+    <div id="tab-qr_hub" class="space-y-6 hidden">
+      <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-cyan-950/40 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-cyan-500"></span>
+            <h2 class="text-lg sm:text-xl font-bold text-white tracking-tight">ศูนย์รวม QR Code & ลิ้งก์ตรงแต่ละแผนก (Department QR Hub)</h2>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-400 mt-0.5">
+            พิมพ์หรือส่ง QR Code ให้หน้างานสแกนเข้าตรวจเฉพาะเช็คลิสต์ของแผนกตนเองได้ทันที
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="qrCardsContainer">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+
+    <!-- ================= TAB 6: USERS & DEPARTMENTS MANAGEMENT (ADMIN ONLY) ================= -->
+    <div id="tab-users_depts" class="space-y-6 hidden">
+      
+      <!-- Departments Management Section -->
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-building-user text-blue-400"></i>
+              <span>จัดการรายชื่อแผนกในโรงงาน (Plant Departments)</span>
+            </h3>
+            <p class="text-xs text-slate-400">เพิ่ม ลบ หรือแก้ไขแผนกที่จะใช้ตรวจเช็คลิสต์</p>
+          </div>
+          <button onclick="openAddDeptModal()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i>
+            <span>เพิ่มแผนกใหม่</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="departmentsListContainer">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+      <!-- Users & Permission Management Section -->
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-users-gear text-indigo-400"></i>
+              <span>จัดการผู้ใช้งาน & สิทธิ์การเข้าถึงเมนู (Users & Permissions)</span>
+            </h3>
+            <p class="text-xs text-slate-400">กำหนด Username, Password, บทบาท และหน้าที่ได้รับอนุญาต</p>
+          </div>
+          <button onclick="openAddUserModal()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>สร้างยูสเซอร์ใหม่</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-950 text-slate-400 font-mono text-[11px] border-b border-slate-800 uppercase">
+              <tr>
+                <th class="py-2.5 px-3">ชื่อ-นามสกุล / ผู้ใช้งาน</th>
+                <th class="py-2.5 px-3">Username</th>
+                <th class="py-2.5 px-3">บทบาท (Role)</th>
+                <th class="py-2.5 px-3">แผนก</th>
+                <th class="py-2.5 px-3">หน้าที่เข้าถึงได้ (Allowed Tabs)</th>
+                <th class="py-2.5 px-3 text-center">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody" class="divide-y divide-slate-800/60 font-sans">
+              <!-- Injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= TAB 7: SETTINGS & GOOGLE APPS SCRIPT SYNC ================= -->
+    <div id="tab-settings" class="space-y-6 hidden">
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-6 max-w-4xl mx-auto">
+        
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-brands fa-google text-blue-400"></i>
+              <span>การเชื่อมต่อ Google Sheets Backend (Apps Script)</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">รวมศูนย์ข้อมูลเช็คลิสต์จากทุกเครื่อง ทุกแผนก เข้าสู่ Google Sheets อัตโนมัติ</p>
+          </div>
+          <button onclick="syncWithGoogleSheets(false)" class="px-4 py-2 bg-blue-900/40 hover:bg-blue-800/60 text-blue-300 border border-blue-700/50 rounded-xl text-xs font-semibold transition flex items-center gap-2">
+            <i class="fa-solid fa-rotate"></i>
+            <span>ทดสอบดึงข้อมูล</span>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">
+              Google Apps Script Web App URL:
+            </label>
+            <div class="flex gap-2">
+              <input type="text" id="gasWebAppUrl" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-mono">
+              <button onclick="saveGasUrlSettings()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition shadow-md">
+                บันทึก URL
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1.5">
+              *เมื่อระบุ URL แล้ว ระบบจะเชื่อมโยงฐานข้อมูลเช็คลิสต์และเกณฑ์มาตรฐานแบบ Real-time ทันที
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-code text-indigo-400"></i>
+                <span>โค้ด Google Apps Script (เวอร์ชัน 6.0)</span>
+              </span>
+              <button onclick="copyGasCodeToClipboard()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition">
+                <i class="fa-solid fa-copy mr-1"></i> คัดลอกโค้ด
+              </button>
+            </div>
+            <p class="text-slate-400 text-[11px]">
+              นำโค้ดด้านล่างไปวางใน Google Sheets &gt; ส่วนขยาย (Extensions) &gt; Apps Script แล้วกด Deploy &gt; New deployment &gt; Web app (เลือก Who has access: Anyone)
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= MODALS & POPUPS ================= -->
+  
+  <!-- 1. Multi-Row Checklist Standard Modal -->
+  <div id="multiRowModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-layer-group"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white" id="multiRowModalTitle">เพิ่มชุดเกณฑ์มาตรฐานเช็คลิสต์ใหม่ (Multi-row Setup)</h3>
+            <p class="text-xs text-slate-400">กำหนดกลุ่ม และเพิ่มหลายรายการได้พร้อมกัน</p>
+          </div>
+        </div>
+        <button onclick="closeMultiRowModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Form) -->
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1">
+        
+        <!-- Header Config: Group, Dept, Machine, Freq -->
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">
+              <span class="text-red-400">*</span> ชื่อชุดเช็คลิสต์ (Group Title)
+            </label>
+            <input type="text" id="modalGroupTitle" placeholder="เช่น รายการเช็คเครื่องตัด..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-medium">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">
+              <span class="text-red-400">*</span> แผนกที่รับผิดชอบ
+            </label>
+            <select id="modalDeptSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+              <!-- Injected by JS -->
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">
+              เครื่องจักร / พื้นที่
+            </label>
+            <input type="text" id="modalMachineInput" placeholder="เช่น BHS Corrugator..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-medium">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">
+              ความถี่ในการตรวจเช็ค
+            </label>
+            <select id="modalFreqSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+              <option value="ทุก 1 ชั่วโมง">ทุก 1 ชั่วโมง</option>
+              <option value="ทุก 2 ชั่วโมง">ทุก 2 ชั่วโมง</option>
+              <option value="ทุก 4 ชั่วโมง">ทุก 4 ชั่วโมง</option>
+              <option value="ทุก 6 ชั่วโมง">ทุก 6 ชั่วโมง</option>
+              <option value="ทุก 8 ชั่วโมง">ทุก 8 ชั่วโมง (ทุกกะ)</option>
+              <option value="ทุก 12 ชั่วโมง">ทุก 12 ชั่วโมง</option>
+              <option value="รายวัน (1 วัน)">รายวัน (1 วัน)</option>
+              <option value="ราย 7 วัน">ราย 7 วัน (รายสัปดาห์)</option>
+              <option value="ราย 14 วัน">ราย 14 วัน</option>
+              <option value="ราย 30 วัน">ราย 30 วัน (รายเดือน)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Rows Container -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-list-ol text-blue-400"></i>
+              <span>รายการตรวจเช็คและเกณฑ์มาตรฐาน (Checklist Items):</span>
+            </span>
+            <button onclick="addMultiRowItem()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1">
+              <i class="fa-solid fa-plus text-[10px]"></i>
+              <span>เพิ่มแถว</span>
+            </button>
+          </div>
+
+          <div class="border border-slate-800 rounded-xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-950 text-slate-400 font-mono text-[11px] border-b border-slate-800 uppercase">
+                  <tr>
+                    <th class="py-2.5 px-3 w-10 text-center">ย้าย</th>
+                    <th class="py-2.5 px-3 min-w-[180px]">ชื่อรายการตรวจเช็ค *</th>
+                    <th class="py-2.5 px-3 min-w-[100px]">ประเภทเกณฑ์</th>
+                    <th class="py-2.5 px-3 min-w-[80px]">Min</th>
+                    <th class="py-2.5 px-3 min-w-[80px]">Max</th>
+                    <th class="py-2.5 px-3 min-w-[60px]">หน่วย</th>
+                    <th class="py-2.5 px-3 min-w-[70px] text-center">บังคับค่า</th>
+                    <th class="py-2.5 px-3 min-w-[70px] text-center">บังคับรูป</th>
+                    <th class="py-2.5 px-3 w-16 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="multiRowTableBody" class="divide-y divide-slate-800/60 font-sans">
+                  <!-- Injected by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
+        <span class="text-xs text-slate-400" id="multiRowCountIndicator">0 แถว</span>
+        <div class="flex items-center gap-2">
+          <button onclick="closeMultiRowModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">ยกเลิก</button>
+          <button onclick="saveMultiRowChecklist()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-900/40 flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>บันทึกชุดเช็คลิสต์</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 2. QR Code Display Modal -->
+  <div id="qrModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 flex flex-col items-center text-center space-y-4 shadow-2xl">
+      <div class="w-12 h-12 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center text-xl">
+        <i class="fa-solid fa-qrcode"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-white" id="qrModalTitle">QR Code เช็คลิสต์</h3>
+        <p class="text-xs text-slate-400 mt-1" id="qrModalSubtitle">สแกนเพื่อเข้าตรวจเช็คแผนกนี้โดยตรง</p>
+      </div>
+
+      <div class="p-4 bg-white rounded-2xl shadow-inner flex items-center justify-center" id="qrCanvasContainer">
+        <!-- QR Code rendered here -->
+      </div>
+
+      <div class="w-full space-y-2">
+        <input type="text" id="qrModalUrlInput" readonly class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 text-center font-mono">
+        <div class="flex gap-2">
+          <button onclick="copyQrLink()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-link mr-1"></i> ก็อปปี้ลิ้งก์
+          </button>
+          <button onclick="closeQrModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
+            ปิด
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Photo Proof Viewer Modal -->
+  <div id="photoViewerModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-4 space-y-3 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <h4 class="text-xs font-bold text-white flex items-center gap-1.5" id="photoViewerTitle">
+          <i class="fa-solid fa-image text-blue-400"></i>
+          <span>รูปภาพหลักฐานการตรวจเช็ค</span>
+        </h4>
+        <button onclick="closePhotoViewer()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="flex items-center justify-center bg-slate-950 rounded-xl overflow-hidden max-h-[70vh]">
+        <img id="photoViewerImg" src="" alt="Proof Photo" class="max-h-full max-w-full object-contain">
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. User Login / Switch Modal -->
+  <div id="loginModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <h3 class="text-sm font-bold text-white">เข้าสู่ระบบ (Login)</h3>
+        </div>
+        <button onclick="closeLoginModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">ชื่อผู้ใช้ (Username)</label>
+          <input type="text" id="loginUsername" placeholder="เช่น admin, pd_user..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 font-medium">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">รหัสผ่าน (Password)</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+        </div>
+        <button onclick="performLogin()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition shadow-md mt-2">
+          เข้าสู่ระบบ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT APPLICATION CORE ================= -->
+  <script>
+    // ================= GLOBAL STATE =================
+    const DEFAULT_MASTER = [{"id": "STD_001", "dept": "PD", "machine": "General / All", "item": "PAPER TEMPERATURE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "Double MC BL/Spec 60-80 ℃", "spec_type": "range", "min_val": 60.0, "max_val": 80.0, "unit": "°C", "target": "60.0 - 80.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_002", "dept": "QC", "machine": "General / All", "item": "PAPER TEMPERATURE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "Double MC BL/Spec 60-80 ℃", "spec_type": "range", "min_val": 60.0, "max_val": 80.0, "unit": "°C", "target": "60.0 - 80.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_003", "dept": "PD", "machine": "YUELI", "item": "PAPER TEMPERATURE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "Double MC BL/Spec 60-90 ℃", "spec_type": "range", "min_val": 60.0, "max_val": 90.0, "unit": "°C", "target": "60.0 - 90.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_004", "dept": "QC", "machine": "YUELI", "item": "PAPER TEMPERATURE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "Double MC BL/Spec 60-90 ℃", "spec_type": "range", "min_val": 60.0, "max_val": 90.0, "unit": "°C", "target": "60.0 - 90.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_005", "dept": "PD", "machine": "General / All", "item": "Speed", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_006", "dept": "QC", "machine": "General / All", "item": "Speed", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_007", "dept": "PD", "machine": "General / All", "item": "Gap Glue", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "ตามแกรม", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามแกรม", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_008", "dept": "QC", "machine": "General / All", "item": "Gap Glue", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "ตามแกรม", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามแกรม", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_009", "dept": "PD", "machine": "YUELI", "item": "GAP GLUE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "ตามแกรม", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามแกรม", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_010", "dept": "QC", "machine": "YUELI", "item": "GAP GLUE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "ตามแกรม", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามแกรม", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_011", "dept": "PD", "machine": "General / All", "item": "Iodind tast A Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_012", "dept": "QC", "machine": "General / All", "item": "Iodind tast A Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_013", "dept": "PD", "machine": "General / All", "item": "Iodind tast B Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_014", "dept": "QC", "machine": "General / All", "item": "Iodind tast B Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_015", "dept": "PD", "machine": "General / All", "item": "Iodind tast C Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_016", "dept": "QC", "machine": "General / All", "item": "Iodind tast C Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_017", "dept": "PD", "machine": "General / All", "item": "Iodind tast A Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_018", "dept": "QC", "machine": "General / All", "item": "Iodind tast A Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_019", "dept": "PD", "machine": "General / All", "item": "Iodind tast B Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_020", "dept": "QC", "machine": "General / All", "item": "Iodind tast B Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_021", "dept": "PD", "machine": "General / All", "item": "Iodind tast C Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_022", "dept": "QC", "machine": "General / All", "item": "Iodind tast C Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_023", "dept": "PD", "machine": "General / All", "item": "Iodind tast A Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_024", "dept": "QC", "machine": "General / All", "item": "Iodind tast A Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_025", "dept": "PD", "machine": "General / All", "item": "Iodind tast B Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_026", "dept": "QC", "machine": "General / All", "item": "Iodind tast B Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_027", "dept": "PD", "machine": "General / All", "item": "Iodind tast C Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_028", "dept": "QC", "machine": "General / All", "item": "Iodind tast C Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_029", "dept": "PD", "machine": "General / All", "item": "Iodind tast A Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_030", "dept": "QC", "machine": "General / All", "item": "Iodind tast A Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_031", "dept": "PD", "machine": "General / All", "item": "Iodind tast B Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_032", "dept": "QC", "machine": "General / All", "item": "Iodind tast B Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_033", "dept": "PD", "machine": "General / All", "item": "Iodind tast C Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_034", "dept": "QC", "machine": "General / All", "item": "Iodind tast C Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_035", "dept": "PD", "machine": "General / All", "item": "TEMP HOT PLATE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "100-150 ℃", "spec_type": "range", "min_val": 100.0, "max_val": 150.0, "unit": "°C", "target": "100.0 - 150.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_036", "dept": "QC", "machine": "General / All", "item": "TEMP HOT PLATE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "100-150 ℃", "spec_type": "range", "min_val": 100.0, "max_val": 150.0, "unit": "°C", "target": "100.0 - 150.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_037", "dept": "PD", "machine": "General / All", "item": "TEMP GLUE Single C", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_038", "dept": "QC", "machine": "General / All", "item": "TEMP GLUE Single C", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_039", "dept": "PD", "machine": "General / All", "item": "TEMP GLUE Single B", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_040", "dept": "QC", "machine": "General / All", "item": "TEMP GLUE Single B", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_041", "dept": "PD", "machine": "General / All", "item": "TEMP GLUE Double", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_042", "dept": "QC", "machine": "General / All", "item": "TEMP GLUE Double", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_043", "dept": "PD", "machine": "General / All", "item": "Viscosity Single B", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_044", "dept": "QC", "machine": "General / All", "item": "Viscosity Single B", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_045", "dept": "PD", "machine": "General / All", "item": "Viscosity Single C", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_046", "dept": "QC", "machine": "General / All", "item": "Viscosity Single C", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_047", "dept": "PD", "machine": "General / All", "item": "Viscosity Double", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_048", "dept": "QC", "machine": "General / All", "item": "Viscosity Double", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_049", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Single C Liner", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_050", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Single C Liner", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_051", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Single C Medium", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_052", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Single C Medium", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_053", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Single B Liner", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_054", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Single B Liner", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_055", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Single B Medium", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_056", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Single B Medium", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_057", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Double", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_058", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Double", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_059", "dept": "PD", "machine": "General / All", "item": "ความถูกต้องของม้วนตามแผน", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "1", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "1", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_060", "dept": "QC", "machine": "General / All", "item": "ความถูกต้องของม้วนตามแผน", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "1", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "1", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_061", "dept": "GLUE", "machine": "General / All", "item": "Viscosity Single B", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_062", "dept": "GLUE", "machine": "General / All", "item": "Viscosity Single C", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_063", "dept": "GLUE", "machine": "General / All", "item": "Viscosity Double", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_064", "dept": "GLUE", "machine": "General / All", "item": "TEMP GLUE Single C", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_065", "dept": "GLUE", "machine": "General / All", "item": "TEMP GLUE Single B", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_066", "dept": "GLUE", "machine": "General / All", "item": "TEMP GLUE Double", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_067", "dept": "Boiler", "machine": "General / All", "item": "Pressure stream Gauge Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 8 Bar หรือ 175 องศา", "spec_type": "gte", "min_val": 8.0, "max_val": null, "unit": "Bar", "target": "≥ 8.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_068", "dept": "Boiler", "machine": "General / All", "item": "Pressure stream Gauge Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 8 Bar หรือ 175 องศา", "spec_type": "gte", "min_val": 8.0, "max_val": null, "unit": "Bar", "target": "≥ 8.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_069", "dept": "Boiler", "machine": "General / All", "item": "Pressure stream Gauge Double", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 8 Bar หรือ 175 องศา", "spec_type": "gte", "min_val": 8.0, "max_val": null, "unit": "Bar", "target": "≥ 8.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_070", "dept": "Boiler", "machine": "BHS", "item": "Steam Trap เข้า 19 จุด BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 140 อาศา", "spec_type": "gte", "min_val": 140.0, "max_val": null, "unit": "", "target": "≥ 140.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_071", "dept": "Boiler", "machine": "BHS", "item": "Steam Trap ออก 19 จุด BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 80 อาศา", "spec_type": "gte", "min_val": 80.0, "max_val": null, "unit": "", "target": "≥ 80.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_072", "dept": "Boiler", "machine": "General / All", "item": "Steam Trap เข้า 25 จุด ISWOA", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 140 อาศา", "spec_type": "gte", "min_val": 140.0, "max_val": null, "unit": "", "target": "≥ 140.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_073", "dept": "Boiler", "machine": "ISOWA", "item": "Steam Trap ออก 25 จุด ISOWA", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 80 อาศา", "spec_type": "gte", "min_val": 80.0, "max_val": null, "unit": "", "target": "≥ 80.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_074", "dept": "Boiler", "machine": "General / All", "item": "Steam Trap เข้า 18 จุด YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 140 อาศา", "spec_type": "gte", "min_val": 140.0, "max_val": null, "unit": "", "target": "≥ 140.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_075", "dept": "Boiler", "machine": "General / All", "item": "Steam Trap ออก 18 จุด YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 80 อาศา", "spec_type": "gte", "min_val": 80.0, "max_val": null, "unit": "", "target": "≥ 80.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_076", "dept": "Boiler", "machine": "BHS", "item": "Pressure ลมGauge ถังพักหลัง BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 7 Bar", "spec_type": "gte", "min_val": 7.0, "max_val": null, "unit": "Bar", "target": "≥ 7.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_077", "dept": "Boiler", "machine": "BHS", "item": "Pressure ลมGauge ถังพักหน้า BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 7 Bar", "spec_type": "gte", "min_val": 7.0, "max_val": null, "unit": "Bar", "target": "≥ 7.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_078", "dept": "Boiler", "machine": "General / All", "item": "Pressure ลมGauge ถังพัก YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 7 Bar", "spec_type": "gte", "min_val": 7.0, "max_val": null, "unit": "Bar", "target": "≥ 7.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_079", "dept": "Boiler", "machine": "BHS", "item": "Auto Drain ลมถังพักหลัง BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "ต้องไม่มีน้ำค้างในระบบ", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ต้องไม่มีน้ำค้างในระบบ", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_080", "dept": "Boiler", "machine": "BHS", "item": "Auto Drain ลมถังพักหน้า BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "ต้องไม่มีน้ำค้างในระบบ", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ต้องไม่มีน้ำค้างในระบบ", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_081", "dept": "Boiler", "machine": "General / All", "item": "Auto Drain ลมถังพัก YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "ต้องไม่มีน้ำค้างในระบบ", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ต้องไม่มีน้ำค้างในระบบ", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_082", "dept": "Boiler", "machine": "BHS", "item": "อัตราการไหล ลม BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_083", "dept": "Boiler", "machine": "General / All", "item": "อัตราการไหล ลม YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_084", "dept": "Boiler", "machine": "ISOWA", "item": "อัตราการไหล ลม ISOWA", "freq": "1 วัน (รายวัน)", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_085", "dept": "LAB", "machine": "General / All", "item": "กระดาษลูกฟูก", "freq": "ตามแผน", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_086", "dept": "LAB", "machine": "General / All", "item": "ม้วน", "freq": "ตามแผน", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_087", "dept": "LAB", "machine": "General / All", "item": "แป้ง ความหนืด แป้งมัน", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "5 นาที 25-29 Sec.10 นาที 30-34 Sec.15 นาที 35-40 Sec.", "spec_type": "range", "min_val": 25.0, "max_val": 29.0, "unit": "s", "target": "25.0 - 29.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_088", "dept": "LAB", "machine": "General / All", "item": "แป้ง ความหนืด สังเคราะห์", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "5 นาที 16-22 Sec.10 นาที 16-22 Sec.15 นาที 16-22 Sec.", "spec_type": "range", "min_val": 16.0, "max_val": 22.0, "unit": "s", "target": "16.0 - 22.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_089", "dept": "LAB", "machine": "General / All", "item": "แป้ง ทนด่าง", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "≤ 50 ml.", "spec_type": "lte", "min_val": null, "max_val": 50.0, "unit": "ml", "target": "≤ 50.0 ml", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_090", "dept": "LAB", "machine": "General / All", "item": "แป้ง PH", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "5.0-7.0", "spec_type": "range", "min_val": 5.0, "max_val": 7.0, "unit": "", "target": "5.0 - 7.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_091", "dept": "LAB", "machine": "General / All", "item": "ถ่านหิน ความชื้น เกรด 4200", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "35-40%", "spec_type": "range", "min_val": 35.0, "max_val": 40.0, "unit": "%", "target": "35.0 - 40.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_092", "dept": "LAB", "machine": "General / All", "item": "ถ่านหิน ความชื้น เกรด 3500", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "38-42%", "spec_type": "range", "min_val": 38.0, "max_val": 42.0, "unit": "%", "target": "38.0 - 42.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_093", "dept": "LAB", "machine": "General / All", "item": "โซดาไฟ", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "0.5", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "0.5", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_094", "dept": "LAB", "machine": "General / All", "item": "บอแรกซ์", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "COA", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "COA", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_095", "dept": "LAB", "machine": "General / All", "item": "Solid Single", "freq": "1 วัน (รายวัน)", "spec_raw": "20.5-22", "spec_type": "range", "min_val": 20.5, "max_val": 22.0, "unit": "", "target": "20.5 - 22.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_096", "dept": "LAB", "machine": "General / All", "item": "Solid Double", "freq": "1 วัน (รายวัน)", "spec_raw": "20.5-22", "spec_type": "range", "min_val": 20.5, "max_val": 22.0, "unit": "", "target": "20.5 - 22.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_097", "dept": "LAB", "machine": "General / All", "item": "Gel point Single", "freq": "1 วัน (รายวัน)", "spec_raw": "58-60 องศา", "spec_type": "range", "min_val": 58.0, "max_val": 60.0, "unit": "°C", "target": "58.0 - 60.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_098", "dept": "LAB", "machine": "General / All", "item": "Gel point Double", "freq": "1 วัน (รายวัน)", "spec_raw": "58-60 องศา", "spec_type": "range", "min_val": 58.0, "max_val": 60.0, "unit": "°C", "target": "58.0 - 60.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_099", "dept": "IQC", "machine": "General / All", "item": "สภาพทั่วไป", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "ต้องไม่ฉีกขาด ไม่กระแทก จุดดำ แกนไม่บี้", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ต้องไม่ฉีกขาด ไม่กระแทก จุดดำ แกนไม่บี้", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_100", "dept": "IQC", "machine": "General / All", "item": "ความชื้น", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_101", "dept": "IQC", "machine": "General / All", "item": "สี Liner", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "ตามข้อตกลง Upper Lower", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามข้อตกลง Upper Lower", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_102", "dept": "IQC", "machine": "General / All", "item": "หน้ากว้าง", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "+5 -0 mm.", "spec_type": "range", "min_val": 5.0, "max_val": 0.0, "unit": "mm", "target": "5.0 - 0.0 mm", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_103", "dept": "IQC", "machine": "General / All", "item": "น้ำหนัก", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "± 5%", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "± 5%", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}];
+    const DEFAULT_LOGS = [];
+    const DEFAULT_DEPTS = [{"id": "dept_pd", "code": "PD", "name": "PD (ฝ่ายผลิต)", "icon": "fa-industry", "color": "blue", "desc": "สายการผลิตลูกฟูก BHS / YUELI / ISOWA"}, {"id": "dept_qc", "code": "QC", "name": "QC (ควบคุมคุณภาพ)", "icon": "fa-check-double", "color": "indigo", "desc": "ตรวจสอบคุณภาพระหว่างผลิตและแผ่นลูกฟูก"}, {"id": "dept_glue", "code": "GLUE", "name": "GLUE (หน่วยงานกาว)", "icon": "fa-flask-vial", "color": "amber", "desc": "การผสมกาว ความหนืด อุณหภูมิ และจุดเจล"}, {"id": "dept_boiler", "code": "Boiler", "name": "Boiler & Utility (หม้อต้ม/ลม)", "icon": "fa-fire-burner", "color": "rose", "desc": "สตีมแทร็ป แรงดันไอน้ำ และระบบลมอัด"}, {"id": "dept_lab", "code": "LAB", "name": "LAB (ห้องปฏิบัติการ)", "icon": "fa-microscope", "color": "teal", "desc": "Solid Content, ความชื้นถ่านหิน, แป้งและสารเคมี"}, {"id": "dept_iqc", "code": "IQC", "name": "IQC (ตรวจรับวัตถุดิบ/ม้วน)", "icon": "fa-truck-ramp-box", "color": "purple", "desc": "ตรวจสอบม้วนกระดาษรับเข้า หน้ากว้าง ความชื้น นน."}];
+    const DEFAULT_USERS = [{"id": "usr_admin", "username": "admin", "password": "admin1234", "name": "ผู้ดูแลระบบสูงสุด (Admin)", "role": "admin", "dept": "ALL", "allowed_tabs": ["inspection", "dashboard", "master", "history", "qr_hub", "users_depts", "settings"]}, {"id": "usr_pd", "username": "pd_user", "password": "pd1234", "name": "ทีมงานฝ่ายผลิต (PD)", "role": "operator", "dept": "PD", "allowed_tabs": ["inspection", "dashboard", "history", "qr_hub"]}, {"id": "usr_qc", "username": "qc_user", "password": "qc1234", "name": "เจ้าหน้าที่ตรวจสอบ (QC)", "role": "inspector", "dept": "QC", "allowed_tabs": ["inspection", "dashboard", "history", "qr_hub"]}];
+
+    // Active Application State
+    let appState = {
+      master: JSON.parse(localStorage.getItem('PLANT_MASTER_STD_V6') || 'null') || DEFAULT_MASTER,
+      logs: JSON.parse(localStorage.getItem('PLANT_INSPECTION_LOGS_V6') || 'null') || DEFAULT_LOGS,
+      depts: JSON.parse(localStorage.getItem('PLANT_DEPTS_V6') || 'null') || DEFAULT_DEPTS,
+      users: JSON.parse(localStorage.getItem('PLANT_USERS_V6') || 'null') || DEFAULT_USERS,
+      currentUser: JSON.parse(localStorage.getItem('PLANT_CURRENT_USER_V6') || 'null') || DEFAULT_USERS[0],
+      gasUrl: localStorage.getItem('PLANT_GAS_URL') || '',
+      currentTab: 'inspection', // TAB 1 FIRST
+      dashboardScopeMode: 'today', // 'today', 'investigation', 'all'
+      dashboardSelectedDate: getTodayDateString(),
+      masterViewMode: 'group', // 'group' or 'flat'
+      selectedDept: 'PD',
+      selectedFreq: 'ALL',
+      selectedMachine: 'ALL',
+      entryPhotos: {},
+      entryValues: {},
+      lastInvestigationResults: [],
+      complianceChart: null
+    };
+
+    // ================= DATE & TIME NORMALIZERS =================
+    function getTodayDateString() {
+      const d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function getNowTimeString() {
+      const d = new Date();
+      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+
+    function normalizeDateStr(val) {
+      if (!val) return '';
+      if (val instanceof Date) {
+        return val.getFullYear() + '-' + String(val.getMonth() + 1).padStart(2, '0') + '-' + String(val.getDate()).padStart(2, '0');
+      }
+      let str = String(val).trim();
+      if (!str) return '';
+
+      // If ISO format like 2026-10-07T07:15:00.000Z
+      if (str.includes('T')) {
+        const d = new Date(str);
+        if (!isNaN(d.getTime())) {
+          return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+      }
+
+      // Check GMT / Date String like Wed Oct 07 2026...
+      if (str.includes('GMT') || (isNaN(str) && !isNaN(Date.parse(str)) && !str.match(/^\d{4}-\d{2}-\d{2}$/))) {
+        const d = new Date(str);
+        if (!isNaN(d.getTime())) {
+          return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+      }
+
+      // DD/MM/YYYY or DD-MM-YYYY
+      const dmY = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+      if (dmY) {
+        let year = parseInt(dmY[3]);
+        if (year > 2500) year -= 543;
+        return year + '-' + String(dmY[2]).padStart(2, '0') + '-' + String(dmY[1]).padStart(2, '0');
+      }
+
+      // YYYY-MM-DD
+      const ymd = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+      if (ymd) {
+        let year = parseInt(ymd[1]);
+        if (year > 2500) year -= 543;
+        return year + '-' + String(ymd[2]).padStart(2, '0') + '-' + String(ymd[3]).padStart(2, '0');
+      }
+
+      return str;
+    }
+
+    function normalizeTimeStr(val) {
+      if (!val) return '00:00';
+      let str = String(val).trim();
+      const hm = str.match(/(\d{1,2}):(\d{1,2})/);
+      if (hm) {
+        return String(hm[1]).padStart(2, '0') + ':' + String(hm[2]).padStart(2, '0');
+      }
+      return str.substring(0, 5) || '00:00';
+    }
+
+    function parseToComparableTimestamp(dateStr, timeStr) {
+      const normD = normalizeDateStr(dateStr);
+      const normT = normalizeTimeStr(timeStr);
+      if (!normD) return 0;
+      const partsD = normD.split('-');
+      const partsT = normT.split(':');
+      const y = parseInt(partsD[0]);
+      const m = parseInt(partsD[1]) - 1;
+      const d = parseInt(partsD[2]);
+      const hh = parseInt(partsT[0]) || 0;
+      const mm = parseInt(partsT[1]) || 0;
+      return new Date(y, m, d, hh, mm, 0).getTime();
+    }
+
+    function normalizeLogItem(rec) {
+      const d = normalizeDateStr(rec.date || (rec.timestamp ? rec.timestamp.split(' ')[0] : ''));
+      const t = normalizeTimeStr(rec.time || (rec.timestamp ? rec.timestamp.split(' ')[1] : ''));
+      const ts = rec.timestamp || (d + ' ' + t + ':00');
+      return {
+        id: rec.id || ('LOG-' + Date.now() + '-' + Math.floor(Math.random()*1000)),
+        timestamp: ts,
+        date: d,
+        time: t,
+        dept: rec.dept || '',
+        machine: rec.machine || '',
+        freq: rec.freq || '',
+        item: rec.item || '',
+        std_spec: rec.std_spec || '',
+        measured_value: rec.measured_value !== undefined && rec.measured_value !== null ? rec.measured_value : '-',
+        unit: rec.unit || '',
+        status: rec.status || 'IN-SPEC',
+        inspector: rec.inspector || '',
+        order_no: rec.order_no || '',
+        photo: rec.photo || '',
+        notes: rec.notes || ''
+      };
+    }
+
+    // Save state helper
+    function saveState() {
+      localStorage.setItem('PLANT_MASTER_STD_V6', JSON.stringify(appState.master));
+      localStorage.setItem('PLANT_INSPECTION_LOGS_V6', JSON.stringify(appState.logs));
+      localStorage.setItem('PLANT_DEPTS_V6', JSON.stringify(appState.depts));
+      localStorage.setItem('PLANT_USERS_V6', JSON.stringify(appState.users));
+      localStorage.setItem('PLANT_CURRENT_USER_V6', JSON.stringify(appState.currentUser));
+      if (appState.gasUrl) {
+        localStorage.setItem('PLANT_GAS_URL', appState.gasUrl);
+      }
+    }
+
+    // Initialization on DOM Load
+    document.addEventListener('DOMContentLoaded', async () => {
+      checkUrlParamsForDirectDeptAndGasUrl();
+      startLiveClock();
+      loadSettings();
+      renderUserProfileBar();
+      renderTabNav();
+      populateDeptDropdowns();
+      
+      // Set Today in Dashboard & Investigation inputs
+      const today = getTodayDateString();
+      const dashDateInput = document.getElementById('dashDateFilter');
+      if (dashDateInput) dashDateInput.value = today;
+      
+      const invStart = document.getElementById('invStartDate');
+      const invEnd = document.getElementById('invEndDate');
+      if (invStart) invStart.value = today;
+      if (invEnd) invEnd.value = today;
+
+      // Render First Page: Inspection Checklist Entry
+      renderEntryDeptButtons();
+      renderEntryFreqFilters();
+      populateEntryMachineDropdown();
+      renderEntryForm();
+      
+      renderDashboard();
+      runDefectInvestigation();
+      renderMasterView();
+      renderHistoryTable();
+      renderQrHub();
+      renderUsersTable();
+      renderDepartmentsTable();
+
+      // Silent sync with Google Sheets on start to get latest master STD and logs
+      if (appState.gasUrl) {
+        await syncWithGoogleSheets(true);
+      }
+
+      // Background auto-sync interval every 30 seconds
+      setInterval(() => {
+        if (appState.gasUrl && (appState.currentTab === 'dashboard' || appState.currentTab === 'history')) {
+          syncWithGoogleSheets(true);
+        }
+      }, 30000);
+    });
+
+    // Check direct link params like ?dept=PD&gasUrl=...
+    function checkUrlParamsForDirectDeptAndGasUrl() {
+      const params = new URLSearchParams(window.location.search);
+      
+      // Auto-inherit Google Apps Script Web App URL from QR Code / Direct Link
+      const paramGasUrl = params.get('gasUrl') || params.get('api');
+      if (paramGasUrl) {
+        appState.gasUrl = decodeURIComponent(paramGasUrl);
+        localStorage.setItem('PLANT_GAS_URL', appState.gasUrl);
+      }
+
+      // Dept selection
+      const deptParam = params.get('dept') || window.location.hash.replace('#dept=', '');
+      if (deptParam) {
+        const found = appState.depts.find(d => d.code === deptParam);
+        if (found) {
+          appState.selectedDept = found.code;
+        }
+      }
+    }
+
+    // Build sharable direct link containing dept and gasUrl
+    function getSharableDeptUrl(deptCode) {
+      const baseUrl = window.location.href.split('?')[0].split('#')[0];
+      let url = `${baseUrl}?dept=${deptCode}`;
+      if (appState.gasUrl) {
+        url += `&gasUrl=${encodeURIComponent(appState.gasUrl)}`;
+      }
+      return url;
+    }
+
+    // Live clock
+    function startLiveClock() {
+      setInterval(() => {
+        const d = new Date();
+        const str = d.toLocaleTimeString('th-TH');
+        const el = document.getElementById('liveClockDisplay');
+        if (el) el.innerText = str;
+      }, 1000);
+    }
+
+    // Load Settings
+    function loadSettings() {
+      const gasInput = document.getElementById('gasWebAppUrl');
+      if (gasInput && appState.gasUrl) {
+        gasInput.value = appState.gasUrl;
+      }
+    }
+
+    function saveGasUrlSettings() {
+      const url = document.getElementById('gasWebAppUrl').value.trim();
+      appState.gasUrl = url;
+      localStorage.setItem('PLANT_GAS_URL', url);
+      Swal.fire({
+        icon: 'success',
+        title: 'บันทึก Google Apps Script URL เรียบร้อย!',
+        text: 'ระบบจะเริ่มซิงค์ข้อมูลกับ Google Sheets ทันที',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      syncWithGoogleSheets(false);
+    }
+
+    // ================= USER & NAVIGATION MANAGEMENT =================
+    function renderUserProfileBar() {
+      const container = document.getElementById('userMenuContainer');
+      const user = appState.currentUser;
+      
+      container.innerHTML = `
+        <div class="flex items-center gap-2 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-1.5 shadow-sm">
+          <div class="w-6 h-6 rounded-lg bg-blue-600/30 text-blue-400 flex items-center justify-center text-xs font-bold">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="text-left hidden sm:block">
+            <div class="text-xs font-bold text-slate-200 leading-tight">${user.name}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${user.role.toUpperCase()} (${user.dept})</div>
+          </div>
+          <button onclick="openLoginModal()" title="สลับผู้ใช้ / เข้าสู่ระบบ" class="text-slate-400 hover:text-white text-xs pl-1">
+            <i class="fa-solid fa-right-left"></i>
+          </button>
+        </div>
+      `;
+    }
+
+    function renderTabNav() {
+      const nav = document.getElementById('mainTabNav');
+      const allowed = appState.currentUser.allowed_tabs || ['inspection', 'dashboard', 'history'];
+
+      const allTabs = [
+        { id: 'inspection', name: 'รายการตรวจเช็คลิสต์', icon: 'fa-clipboard-check', badge: 'เริ่มตรวจ' },
+        { id: 'dashboard', name: 'แดชบอร์ดภาพรวม', icon: 'fa-chart-pie' },
+        { id: 'master', name: 'เกณฑ์มาตรฐานเช็คลิสต์', icon: 'fa-sliders' },
+        { id: 'history', name: 'ประวัติการตรวจ', icon: 'fa-clock-rotate-left' },
+        { id: 'qr_hub', name: 'QR Code แผนก', icon: 'fa-qrcode' },
+        { id: 'users_depts', name: 'จัดการยูสเซอร์ & แผนก', icon: 'fa-users-gear' },
+        { id: 'settings', name: 'ตั้งค่า Google Sheets', icon: 'fa-gear' }
+      ];
+
+      nav.innerHTML = allTabs.filter(t => allowed.includes(t.id)).map(t => {
+        const isActive = appState.currentTab === t.id;
+        return `
+          <button onclick="switchTab('${t.id}')" id="tab-btn-${t.id}" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 whitespace-nowrap transition ${isActive ? 'bg-blue-600 text-white shadow-md shadow-blue-900/30' : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800 hover:text-white'}">
+            <i class="fa-solid ${t.icon} text-xs ${isActive ? 'text-white' : 'text-blue-400'}"></i>
+            <span>${t.name}</span>
+            ${t.badge ? `<span class="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 text-[9px] font-bold rounded-full border border-emerald-500/30">${t.badge}</span>` : ''}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function switchTab(tabId) {
+      appState.currentTab = tabId;
+      document.querySelectorAll('[id^="tab-"]').forEach(el => {
+        if (el.id.startsWith('tab-btn-')) return;
+        el.classList.add('hidden');
+      });
+
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('active', 'bg-blue-600', 'text-white');
+        el.classList.add('bg-slate-900/80', 'text-slate-300');
+      });
+
+      const activePane = document.getElementById('tab-' + tabId);
+      if (activePane) activePane.classList.remove('hidden');
+
+      const activeBtn = document.getElementById('tab-btn-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-blue-600', 'text-white');
+        activeBtn.classList.remove('bg-slate-900/80', 'text-slate-300');
+      }
+
+      if (tabId === 'inspection') {
+        renderEntryDeptButtons();
+        renderEntryFreqFilters();
+        populateEntryMachineDropdown();
+        renderEntryForm();
+      }
+      if (tabId === 'dashboard') {
+        renderDashboard();
+        runDefectInvestigation();
+        if (appState.gasUrl) syncWithGoogleSheets(true);
+      }
+      if (tabId === 'master') renderMasterView();
+      if (tabId === 'history') {
+        renderHistoryTable();
+        if (appState.gasUrl) syncWithGoogleSheets(true);
+      }
+      if (tabId === 'qr_hub') renderQrHub();
+      if (tabId === 'users_depts') {
+        renderUsersTable();
+        renderDepartmentsTable();
+      }
+    }
+
+    // Populate Department Dropdowns across system
+    function populateDeptDropdowns() {
+      const depts = appState.depts;
+      
+      // Master filter dept
+      const masterFilter = document.getElementById('masterFilterDept');
+      if (masterFilter) {
+        masterFilter.innerHTML = '<option value="ALL">ทุกแผนก (All Departments)</option>' + 
+          depts.map(d => `<option value="${d.code}">${d.code} (${d.name})</option>`).join('');
+      }
+
+      // Modal Dept Select
+      const modalDept = document.getElementById('modalDeptSelect');
+      if (modalDept) {
+        modalDept.innerHTML = depts.map(d => `<option value="${d.code}">${d.code} - ${d.name}</option>`).join('');
+      }
+
+      // History Dept filter
+      const histDept = document.getElementById('histDeptFilter');
+      if (histDept) {
+        histDept.innerHTML = '<option value="ALL">ทุกแผนก</option>' + 
+          depts.map(d => `<option value="${d.code}">${d.code}</option>`).join('');
+      }
+
+      // Matrix Dept select
+      const matDept = document.getElementById('matrixDeptSelect');
+      if (matDept) {
+        matDept.innerHTML = '<option value="ALL">ทุกแผนก (All Depts)</option>' + 
+          depts.map(d => `<option value="${d.code}">${d.code}</option>`).join('');
+      }
+
+      // Investigation Dept select
+      const invDept = document.getElementById('invDeptFilter');
+      if (invDept) {
+        invDept.innerHTML = '<option value="ALL">ทุกแผนก</option>' + 
+          depts.map(d => `<option value="${d.code}">${d.code}</option>`).join('');
+      }
+    }
+
+    // ================= TAB 1: INSPECTION ENTRY LOGIC =================
+    function renderEntryDeptButtons() {
+      const container = document.getElementById('entryDeptPills');
+      const depts = appState.depts;
+
+      container.innerHTML = depts.map(d => {
+        const isSelected = appState.selectedDept === d.code;
+        const color = d.color || 'blue';
+        return `
+          <button onclick="selectEntryDept('${d.code}')" class="px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-2 transition ${isSelected ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-900/40 ring-2 ring-blue-400/40' : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'}">
+            <i class="fa-solid ${d.icon || 'fa-industry'} text-${color}-400"></i>
+            <span>${d.name}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectEntryDept(deptCode) {
+      appState.selectedDept = deptCode;
+      appState.selectedMachine = 'ALL';
+      renderEntryDeptButtons();
+      renderEntryFreqFilters();
+      populateEntryMachineDropdown();
+      renderEntryForm();
+    }
+
+    function renderEntryFreqFilters() {
+      const container = document.getElementById('entryFreqFilters');
+      const freqs = [
+        'ALL', 'ทุก 1 ชั่วโมง', 'ทุก 2 ชั่วโมง', 'ทุก 4 ชั่วโมง', 'ทุก 6 ชั่วโมง', 
+        'ทุก 8 ชั่วโมง', 'ทุก 12 ชั่วโมง', 'รายวัน (1 วัน)', 'ราย 7 วัน', 'ราย 14 วัน', 'ราย 30 วัน'
+      ];
+
+      container.innerHTML = freqs.map(f => {
+        const isSelected = appState.selectedFreq === f;
+        const label = f === 'ALL' ? 'ทุกความถี่' : f;
+        return `
+          <button onclick="selectEntryFreq('${f}')" class="px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition ${isSelected ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800'}">
+            ${label}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectEntryFreq(freq) {
+      appState.selectedFreq = freq;
+      renderEntryFreqFilters();
+      renderEntryForm();
+    }
+
+    function handleMachineFilterChange(val) {
+      appState.selectedMachine = val;
+      renderEntryForm();
+    }
+
+    function populateEntryMachineDropdown() {
+      const select = document.getElementById('entryMachineFilter');
+      if (!select) return;
+      const currentVal = appState.selectedMachine || select.value || 'ALL';
+      const items = appState.master.filter(it => it.dept === appState.selectedDept && it.active !== false);
+      const machines = [...new Set(items.map(it => it.machine || 'General').filter(m => m && m.trim() !== ''))];
+
+      let optionsHtml = '<option value="ALL">เครื่องจักรทั้งหมดในแผนก</option>';
+      machines.forEach(m => {
+        optionsHtml += `<option value="${m}" ${m === currentVal ? 'selected' : ''}>${m}</option>`;
+      });
+      select.innerHTML = optionsHtml;
+
+      if (currentVal !== 'ALL' && !machines.includes(currentVal)) {
+        select.value = 'ALL';
+        appState.selectedMachine = 'ALL';
+      } else {
+        select.value = currentVal;
+        appState.selectedMachine = currentVal;
+      }
+    }
+
+    function renderEntryForm() {
+      const tbody = document.getElementById('entryTableBody');
+      const countBadge = document.getElementById('entryItemCountBadge');
+      const machineFilter = appState.selectedMachine || (document.getElementById('entryMachineFilter') ? document.getElementById('entryMachineFilter').value : 'ALL');
+
+      let items = appState.master.filter(it => it.dept === appState.selectedDept && it.active !== false);
+
+      if (appState.selectedFreq !== 'ALL') {
+        items = items.filter(it => it.freq === appState.selectedFreq);
+      }
+
+      if (machineFilter !== 'ALL') {
+        items = items.filter(it => (it.machine || 'General') === machineFilter);
+      }
+
+      countBadge.innerText = `${items.length} รายการ`;
+      document.getElementById('entryListHeaderTitle').innerText = `รายการเช็คลิสต์: แผนก ${appState.selectedDept} (${appState.selectedFreq === 'ALL' ? 'ทุกความถี่' : appState.selectedFreq})${machineFilter !== 'ALL' ? ' - ' + machineFilter : ''}`;
+
+      if (items.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="py-12 text-center text-slate-500 font-sans">
+              <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-600"></i>
+              <p class="text-sm font-semibold">ยังไม่มีรายการเช็คลิสต์ในเงื่อนไขนี้</p>
+              <p class="text-xs text-slate-600 mt-1">สามารถเพิ่มรายการเช็คลิสต์ใหม่ได้ที่แท็บ "เกณฑ์มาตรฐานเช็คลิสต์"</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = items.map((it, idx) => {
+        const val = appState.entryValues[it.id] !== undefined ? appState.entryValues[it.id] : '';
+        const photoAttached = !!appState.entryPhotos[it.id];
+        
+        let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-500 border border-slate-700">รอใส่ค่า</span>`;
+        let inputBorderClass = 'border-slate-700 bg-slate-950 focus:border-blue-500';
+
+        if (val !== '') {
+          const numVal = parseFloat(val);
+          let isPass = true;
+          if (it.spec_type === 'range') {
+            if (it.min_val !== null && numVal < itemMin(it)) isPass = false;
+            if (it.max_val !== null && numVal > itemMax(it)) isPass = false;
+          } else if (it.spec_type === 'gte') {
+            if (it.min_val !== null && numVal < it.min_val) isPass = false;
+          } else if (it.spec_type === 'lte') {
+            if (it.max_val !== null && numVal > itemMax(it)) isPass = false;
+          }
+
+          if (isPass) {
+            statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold badge-in-spec"><i class="fa-solid fa-check mr-1"></i> ได้สเป็ค</span>`;
+            inputBorderClass = 'border-emerald-500/80 bg-emerald-950/20 text-emerald-300 ring-1 ring-emerald-500/50';
+          } else {
+            statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold badge-out-of-spec"><i class="fa-solid fa-xmark mr-1"></i> ตกสเป็ค</span>`;
+            inputBorderClass = 'border-rose-500/80 bg-rose-950/30 text-rose-300 ring-1 ring-rose-500/50 font-bold';
+          }
+        }
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <!-- Col 1: Index -->
+            <td class="py-3 px-3 text-center font-mono text-slate-500 text-xs">${idx + 1}</td>
+            
+            <!-- Col 2: Machine & Frequency -->
+            <td class="py-3 px-3">
+              <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 font-bold text-[11px] border border-slate-700 font-mono">${it.machine || 'General'}</span>
+              <div class="text-[10px] text-indigo-400 mt-1 font-mono">${it.freq || 'ทุก 1 ชม.'}</div>
+            </td>
+
+            <!-- Col 3: Item Title & Rules -->
+            <td class="py-3 px-3">
+              <div class="font-semibold text-white text-xs sm:text-sm">${it.item}</div>
+              <div class="flex items-center gap-1.5 mt-1">
+                ${it.require_val ? `<span class="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 text-[9px] font-bold">บังคับค่า</span>` : ''}
+                ${it.require_photo ? `<span class="px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 text-[9px] font-bold">บังคับรูป</span>` : ''}
+              </div>
+            </td>
+
+            <!-- Col 4: Standard Spec Display -->
+            <td class="py-3 px-3 font-mono">
+              <div class="text-xs font-bold text-amber-300 bg-amber-950/30 px-2 py-1 rounded border border-amber-800/40 inline-block">
+                ${it.spec_raw || it.target || '-'} ${it.unit || ''}
+              </div>
+            </td>
+
+            <!-- Col 5: Measured Value Input (CLICK & TYPE IMMEDIATELY) -->
+            <td class="py-3 px-3 text-center">
+              <div class="relative max-w-[140px] mx-auto">
+                <input 
+                  type="number" 
+                  step="any" 
+                  id="input-val-${it.id}" 
+                  value="${val}" 
+                  oninput="handleEntryValueChange('${it.id}', this.value)" 
+                  placeholder="กรอกค่า..." 
+                  class="w-full text-center border rounded-xl px-2 py-1.5 text-xs sm:text-sm font-mono font-bold focus:outline-none transition ${inputBorderClass}"
+                >
+                ${it.unit ? `<span class="absolute right-2 top-2 text-[10px] text-slate-500 pointer-events-none">${it.unit}</span>` : ''}
+              </div>
+            </td>
+
+            <!-- Col 6: Real-time Status Badge -->
+            <td class="py-3 px-3 text-center" id="status-cell-${it.id}">
+              ${statusBadge}
+            </td>
+
+            <!-- Col 7: Photo & Note -->
+            <td class="py-3 px-3 text-center">
+              <div class="flex items-center justify-center gap-1.5">
+                <label for="photo-file-${it.id}" class="cursor-pointer px-2 py-1 rounded-lg ${photoAttached ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'} text-xs transition" title="ถ่ายรูป / แนบรูป">
+                  <i class="fa-solid fa-camera"></i>
+                </label>
+                <input type="file" id="photo-file-${it.id}" accept="image/*" capture="environment" onchange="handleEntryPhotoUpload('${it.id}', this)" class="hidden">
+                
+                <input type="text" id="input-note-${it.id}" placeholder="โน้ต..." class="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-[11px] text-slate-300 w-20 sm:w-24 focus:outline-none focus:border-blue-500">
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function handleEntryValueChange(itemId, value) {
+      appState.entryValues[itemId] = value;
+      const it = appState.master.find(m => m.id === itemId);
+      if (!it) return;
+
+      const input = document.getElementById('input-val-' + itemId);
+      const statusCell = document.getElementById('status-cell-' + itemId);
+
+      if (!input || !statusCell) return;
+
+      if (value.trim() === '') {
+        input.className = 'w-full text-center border rounded-xl px-2 py-1.5 text-xs sm:text-sm font-mono font-bold focus:outline-none transition border-slate-700 bg-slate-950 focus:border-blue-500 text-white';
+        statusCell.innerHTML = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-500 border border-slate-700">รอใส่ค่า</span>`;
+        return;
+      }
+
+      const numVal = parseFloat(value);
+      let isPass = true;
+
+      if (it.spec_type === 'range') {
+        if (it.min_val !== null && numVal < itemMin(it)) isPass = false;
+        if (it.max_val !== null && numVal > itemMax(it)) isPass = false;
+      } else if (it.spec_type === 'gte') {
+        if (it.min_val !== null && numVal < it.min_val) isPass = false;
+      } else if (it.spec_type === 'lte') {
+        if (it.max_val !== null && numVal > itemMax(it)) isPass = false;
+      }
+
+      if (isPass) {
+        input.className = 'w-full text-center border rounded-xl px-2 py-1.5 text-xs sm:text-sm font-mono font-bold focus:outline-none transition border-emerald-500/80 bg-emerald-950/20 text-emerald-300 ring-1 ring-emerald-500/50';
+        statusCell.innerHTML = `<span class="px-2 py-0.5 rounded text-[10px] font-bold badge-in-spec"><i class="fa-solid fa-check mr-1"></i> ได้สเป็ค</span>`;
+      } else {
+        input.className = 'w-full text-center border rounded-xl px-2 py-1.5 text-xs sm:text-sm font-mono font-bold focus:outline-none transition border-rose-500/80 bg-rose-950/30 text-rose-300 ring-1 ring-rose-500/50';
+        statusCell.innerHTML = `<span class="px-2 py-0.5 rounded text-[10px] font-bold badge-out-of-spec"><i class="fa-solid fa-xmark mr-1"></i> ตกสเป็ค</span>`;
+      }
+    }
+
+    function handleEntryPhotoUpload(itemId, inputElement) {
+      if (inputElement.files && inputElement.files[0]) {
+        const file = inputElement.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          appState.entryPhotos[itemId] = e.target.result;
+          Swal.fire({
+            icon: 'success',
+            title: 'แนบรูปภาพแล้ว',
+            text: 'แนบรูปภาพหลักฐานเรียบร้อย',
+            timer: 1000,
+            showConfirmButton: false
+          });
+          renderEntryForm();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Submit Inspection Batch (Instant Save + Background Sync)
+    function submitInspectionBatch() {
+      const inspector = document.getElementById('entryInspectorInput').value.trim() || appState.currentUser.name;
+      const orderNo = document.getElementById('entryOrderNoInput').value.trim();
+      const machine = appState.selectedMachine || (document.getElementById('entryMachineFilter') ? document.getElementById('entryMachineFilter').value : 'ALL');
+      const dept = appState.selectedDept;
+
+      let items = appState.master.filter(it => it.dept === dept && it.active !== false);
+      if (appState.selectedFreq !== 'ALL') items = items.filter(it => it.freq === appState.selectedFreq);
+      if (machine !== 'ALL') items = items.filter(it => (it.machine || 'General') === machine);
+
+      const newRecords = [];
+      const dateStr = getTodayDateString();
+      const timeStr = getNowTimeString();
+
+      for (let it of items) {
+        const input = document.getElementById('input-val-' + it.id);
+        const noteInput = document.getElementById('input-note-' + it.id);
+        const photo = appState.entryPhotos[it.id] || '';
+
+        const valStr = input ? input.value.trim() : (appState.entryValues[it.id] || '');
+
+        if (valStr !== '') {
+          if (it.require_photo === true && !photo) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'บังคับถ่ายรูปหลักฐาน!',
+              text: `รายการ "${it.item}" กำหนดให้ต้องถ่ายรูปหลักฐานก่อนบันทึก`
+            });
+            return;
+          }
+
+          const val = parseFloat(valStr);
+          let isPass = true;
+
+          if (it.spec_type === 'range') {
+            if (it.min_val !== null && val < itemMin(it)) isPass = false;
+            if (it.max_val !== null && val > itemMax(it)) isPass = false;
+          } else if (it.spec_type === 'gte') {
+            if (it.min_val !== null && val < it.min_val) isPass = false;
+          } else if (it.spec_type === 'lte') {
+            if (it.max_val !== null && val > itemMax(it)) isPass = false;
+          }
+
+          newRecords.push({
+            id: 'LOG-' + Date.now() + '-' + Math.floor(Math.random()*10000),
+            timestamp: dateStr + ' ' + timeStr + ':00',
+            date: dateStr,
+            time: timeStr,
+            dept: dept,
+            machine: it.machine || machine,
+            freq: it.freq,
+            item: it.item,
+            std_spec: it.spec_raw || it.target,
+            measured_value: val,
+            unit: it.unit || '',
+            status: isPass ? 'IN-SPEC' : 'OUT-OF-SPEC',
+            inspector: inspector,
+            order_no: orderNo,
+            photo: photo,
+            notes: noteInput ? noteInput.value.trim() : ''
+          });
+        }
+      }
+
+      if (newRecords.length === 0) {
+        Swal.fire({ icon: 'info', title: 'ยังไม่ได้กรอกค่าใดๆ', text: 'กรุณากรอกตัวเลขอย่างน้อย 1 รายการเพื่อบันทึก' });
+        return;
+      }
+
+      // 1. Instant Local Save (0ms delay)
+      appState.logs = [...newRecords, ...appState.logs];
+      appState.entryPhotos = {};
+      appState.entryValues = {};
+      saveState();
+
+      // 2. Non-blocking Background Sync to Google Sheets (Runs quietly in background)
+      if (appState.gasUrl) {
+        sendLogsToGoogleBackground(newRecords);
+      }
+
+      // 3. Instant Toast Notification
+      Swal.fire({
+        icon: 'success',
+        title: 'บันทึกสำเร็จ!',
+        html: `บันทึกข้อมูลเรียบร้อย <b>${newRecords.length}</b> รายการ<br>${appState.gasUrl ? '<span class="text-xs text-emerald-400">🟢 ซิงค์ข้อมูลขึ้น Google Sheets ในพื้นหลัง</span>' : '<span class="text-xs text-amber-400">🟡 บันทึกลงเครื่องเรียบร้อย</span>'}`,
+        timer: 1200,
+        showConfirmButton: false
+      });
+
+      resetEntryForm();
+    }
+
+    function sendLogsToGoogleBackground(records) {
+      setTimeout(async () => {
+        try {
+          await fetch(appState.gasUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'saveLogs',
+              records: records
+            })
+          });
+        } catch (err) {
+          console.warn('Background sync error:', err);
+        }
+      }, 10);
+    }
+
+    function itemMin(it) { return it.min_val !== null && it.min_val !== undefined ? it.min_val : -Infinity; }
+    function itemMax(it) { return it.max_val !== null && it.max_val !== undefined ? it.max_val : Infinity; }
+
+    function resetEntryForm() {
+      document.querySelectorAll('[id^="input-val-"]').forEach(el => el.value = '');
+      document.querySelectorAll('[id^="input-note-"]').forEach(el => el.value = '');
+      appState.entryPhotos = {};
+      appState.entryValues = {};
+      renderEntryForm();
+    }
+
+    // ================= DASHBOARD RENDERING =================
+    function setDashboardDateToday() {
+      const today = getTodayDateString();
+      appState.dashboardScopeMode = 'today';
+      appState.dashboardSelectedDate = today;
+      const input = document.getElementById('dashDateFilter');
+      if (input) input.value = today;
+      
+      const banner = document.getElementById('dashActiveFilterBanner');
+      if (banner) banner.classList.add('hidden');
+      
+      renderDashboard();
+    }
+
+    function setDashboardDateAll() {
+      appState.dashboardScopeMode = 'all';
+      appState.dashboardSelectedDate = 'ALL';
+      const input = document.getElementById('dashDateFilter');
+      if (input) input.value = '';
+      
+      const banner = document.getElementById('dashActiveFilterBanner');
+      if (banner) banner.classList.add('hidden');
+      
+      renderDashboard();
+    }
+
+    function renderDashboard() {
+      const dateInput = document.getElementById('dashDateFilter');
+      const selectedDate = dateInput ? dateInput.value : appState.dashboardSelectedDate;
+      const today = getTodayDateString();
+
+      let logs = appState.logs;
+
+      if (appState.dashboardScopeMode === 'investigation' && appState.lastInvestigationResults) {
+        logs = appState.lastInvestigationResults;
+        document.getElementById('kpiDateLabel').innerHTML = `<i class="fa-solid fa-filter text-indigo-400 mr-1"></i> ตามช่วงเวลาที่สืบค้น`;
+        document.getElementById('dashboardScopeSubtext').innerHTML = `แสดงผลตาม <b>ช่วงเวลาที่สืบค้นและวิเคราะห์</b>`;
+      } else if (selectedDate && selectedDate !== 'ALL') {
+        logs = logs.filter(l => normalizeDateStr(l.date) === selectedDate || normalizeDateStr(l.timestamp) === selectedDate);
+        document.getElementById('kpiDateLabel').innerHTML = `<i class="fa-regular fa-calendar-check text-blue-400 mr-1"></i> ประจำวันที่ ${selectedDate}`;
+        document.getElementById('dashboardScopeSubtext').innerHTML = `แสดงผลข้อมูลการตรวจเช็คของ <b>${selectedDate === today ? 'วันปัจจุบัน (Today)' : selectedDate}</b>`;
+      } else {
+        document.getElementById('kpiDateLabel').innerHTML = `<i class="fa-regular fa-calendar-check text-blue-400 mr-1"></i> รวมทุกวัน`;
+        document.getElementById('dashboardScopeSubtext').innerHTML = `แสดงผลข้อมูลการตรวจเช็ค <b>ทั้งหมดในระบบ</b>`;
+      }
+
+      const totalChecks = logs.length;
+      const outOfSpecLogs = logs.filter(l => l.status === 'OUT-OF-SPEC');
+      const inSpecLogs = logs.filter(l => l.status === 'IN-SPEC');
+      const inSpecRate = totalChecks > 0 ? ((inSpecLogs.length / totalChecks) * 100).toFixed(1) : '100';
+
+      document.getElementById('kpiTotalChecked').innerText = totalChecks;
+      document.getElementById('kpiInSpecRate').innerText = inSpecRate + '%';
+      document.getElementById('kpiOutOfSpecCount').innerText = outOfSpecLogs.length;
+      document.getElementById('kpiTotalMasterItems').innerText = appState.master.length;
+
+      // Alert Banner
+      const alertBanner = document.getElementById('alertBannerSection');
+      if (outOfSpecLogs.length > 0) {
+        alertBanner.classList.remove('hidden');
+        document.getElementById('alertCountBadge').innerText = outOfSpecLogs.length + ' จุด';
+        
+        const previewContainer = document.getElementById('alertListPreview');
+        previewContainer.innerHTML = outOfSpecLogs.slice(0, 8).map(l => `
+          <div class="px-2.5 py-1.5 rounded-lg bg-red-900/60 border border-red-700/60 text-[11px] text-red-200 flex flex-col gap-0.5 font-sans">
+            <div class="flex items-center justify-between font-bold">
+              <span>[${l.dept} / ${l.machine}]</span>
+              <span class="text-slate-400 font-mono text-[10px]">@${l.time}</span>
+            </div>
+            <div class="truncate">${l.item}: <b class="text-red-300 font-mono">${l.measured_value} ${l.unit || ''}</b></div>
+            <div class="text-[10px] text-slate-400 font-mono">STD: ${l.std_spec}</div>
+          </div>
+        `).join('');
+      } else {
+        alertBanner.classList.add('hidden');
+      }
+
+      renderDepartmentHealthCards(logs);
+      renderHourlyMatrix(logs);
+      renderComplianceChart(logs);
+    }
+
+    // Dynamic Department Health Snapshot Cards
+    function renderDepartmentHealthCards(filteredLogs) {
+      const depts = appState.depts;
+      const container = document.getElementById('deptHealthContainer');
+      const logsToUse = filteredLogs || appState.logs;
+
+      container.innerHTML = depts.map(d => {
+        const deptLogs = logsToUse.filter(l => l.dept === d.code);
+        const deptOutOfSpec = deptLogs.filter(l => l.status === 'OUT-OF-SPEC');
+        const isHealthy = deptOutOfSpec.length === 0;
+        const lastLog = deptLogs[0];
+        const lastTime = lastLog ? lastLog.time : 'ยังไม่มีตรวจ';
+
+        return `
+          <div class="p-3.5 rounded-2xl bg-slate-900 border ${isHealthy ? 'border-slate-800' : 'border-red-500/50 bg-red-950/20'} shadow-md flex flex-col justify-between space-y-2.5 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+              <div class="w-7 h-7 rounded-lg bg-${d.color || 'blue'}-500/20 text-${d.color || 'blue'}-400 flex items-center justify-center text-xs">
+                <i class="fa-solid ${d.icon || 'fa-industry'}"></i>
+              </div>
+              <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold ${isHealthy ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500 text-white animate-pulse'}">
+                ${isHealthy ? '● ปกติ' : `▲ หลุด (${deptOutOfSpec.length})`}
+              </span>
+            </div>
+
+            <div>
+              <h4 class="text-xs font-bold text-white truncate" title="${d.name}">${d.name}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 flex items-center justify-between">
+                <span>ล่าสุด:</span>
+                <span class="font-mono font-medium text-slate-200">${lastTime}</span>
+              </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-1 pt-1">
+              <button onclick="quickInspectDept('${d.code}')" class="py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold transition flex items-center justify-center gap-1">
+                <span>ตรวจ</span>
+                <i class="fa-solid fa-arrow-right text-[8px]"></i>
+              </button>
+              <button onclick="openDeptQrModalDirect('${d.code}')" class="py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-medium transition flex items-center justify-center gap-1 border border-slate-700" title="QR Code">
+                <i class="fa-solid fa-qrcode"></i>
+                <span>QR</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function quickInspectDept(deptCode) {
+      selectEntryDept(deptCode);
+      switchTab('inspection');
+    }
+
+    // Hourly Matrix
+    function renderHourlyMatrix(logsToUse) {
+      const deptFilter = document.getElementById('matrixDeptSelect') ? document.getElementById('matrixDeptSelect').value : 'ALL';
+      const tbody = document.getElementById('matrixTableBody');
+      if (!tbody) return;
+      
+      let filteredLogs = logsToUse || appState.logs;
+      if (deptFilter !== 'ALL') {
+        filteredLogs = filteredLogs.filter(l => l.dept === deptFilter);
+      }
+
+      if (filteredLogs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-slate-500 font-sans">ยังไม่มีข้อมูลบันทึกตามเงื่อนไขนี้</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filteredLogs.slice(0, 50).map(l => {
+        const isPass = l.status === 'IN-SPEC';
+        const hasPhoto = !!l.photo;
+        return `
+          <tr class="hover:bg-slate-800/50 transition ${!isPass ? 'bg-red-950/20' : ''}">
+            <td class="py-2 px-3 font-mono text-slate-300 font-semibold">${l.date} ${l.time || '-'}</td>
+            <td class="py-2 px-3">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-200">${l.dept}</span>
+              <span class="text-[10px] text-slate-400 ml-1">${l.machine || ''}</span>
+            </td>
+            <td class="py-2 px-3 text-[10px] text-slate-400 font-mono">${l.freq || '-'}</td>
+            <td class="py-2 px-3 text-slate-200 font-medium">${l.item}</td>
+            <td class="py-2 px-3 text-slate-400 font-mono text-[11px]">${l.std_spec}</td>
+            <td class="py-2 px-3 font-mono font-bold text-sm ${isPass ? 'text-emerald-400' : 'text-rose-400'}">
+              ${l.measured_value} ${l.unit || ''}
+            </td>
+            <td class="py-2 px-3 text-center">
+              ${hasPhoto ? `
+                <button onclick="viewPhoto('${l.photo}', '${l.item}')" class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 text-[10px] font-bold transition">
+                  <i class="fa-solid fa-image mr-1"></i> ดูรูป
+                </button>
+              ` : '<span class="text-slate-600 text-[10px]">-</span>'}
+            </td>
+            <td class="py-2 px-3 text-center">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isPass ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500 text-white'}">
+                ${l.status}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Compliance Chart
+    function renderComplianceChart(logsToUse) {
+      const ctx = document.getElementById('deptComplianceChart');
+      if (!ctx) return;
+
+      const logs = logsToUse || appState.logs;
+
+      if (appState.complianceChart) {
+        appState.complianceChart.destroy();
+      }
+
+      appState.complianceChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['In-Spec (ผ่านเกณฑ์)', 'Out-of-Spec (หลุดสเป็ค)'],
+          datasets: [{
+            data: [
+              logs.filter(l => l.status === 'IN-SPEC').length,
+              logs.filter(l => l.status === 'OUT-OF-SPEC').length
+            ],
+            backgroundColor: ['#10b981', '#f43f5e'],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#94a3b8', font: { family: 'Prompt', size: 11 } }
+            }
+          },
+          cutout: '70%'
+        }
+      });
+    }
+
+    // ================= DEFECT & TIME RANGE INVESTIGATION TOOL =================
+    function setInvestigatePreset(preset) {
+      const now = new Date();
+      const today = getTodayDateString();
+      const pad = n => String(n).padStart(2, '0');
+      
+      const startD = document.getElementById('invStartDate');
+      const startT = document.getElementById('invStartTime');
+      const endD = document.getElementById('invEndDate');
+      const endT = document.getElementById('invEndTime');
+
+      if (!startD || !startT || !endD || !endT) return;
+
+      endD.value = today;
+      endT.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+      if (preset === '1h') {
+        const d1 = new Date(now.getTime() - 60*60*1000);
+        startD.value = normalizeDateStr(d1);
+        startT.value = `${pad(d1.getHours())}:${pad(d1.getMinutes())}`;
+      } else if (preset === '2h') {
+        const d2 = new Date(now.getTime() - 2*60*60*1000);
+        startD.value = normalizeDateStr(d2);
+        startT.value = `${pad(d2.getHours())}:${pad(d2.getMinutes())}`;
+      } else if (preset === '4h') {
+        const d4 = new Date(now.getTime() - 4*60*60*1000);
+        startD.value = normalizeDateStr(d4);
+        startT.value = `${pad(d4.getHours())}:${pad(d4.getMinutes())}`;
+      } else if (preset === 'shift') {
+        const h = now.getHours();
+        startD.value = today;
+        if (h >= 8 && h < 20) {
+          startT.value = '08:00';
+          endT.value = '20:00';
+        } else {
+          startT.value = '20:00';
+          endT.value = '08:00';
+        }
+      } else if (preset === 'today') {
+        startD.value = today;
+        startT.value = '00:00';
+        endT.value = '23:59';
+      }
+
+      runDefectInvestigation();
+    }
+
+    function runDefectInvestigation() {
+      const startD = document.getElementById('invStartDate').value;
+      const startT = document.getElementById('invStartTime').value || '00:00';
+      const endD = document.getElementById('invEndDate').value;
+      const endT = document.getElementById('invEndTime').value || '23:59';
+      const deptFilter = document.getElementById('invDeptFilter') ? document.getElementById('invDeptFilter').value : 'ALL';
+      const statusFilter = document.getElementById('invStatusFilter') ? document.getElementById('invStatusFilter').value : 'ALL';
+      const resultsContainer = document.getElementById('invResultsSection');
+
+      if (!resultsContainer) return;
+
+      if (!startD || !endD) {
+        resultsContainer.innerHTML = '<div class="text-center py-6 text-slate-500 text-xs">กรุณาระบุวันที่และเวลาเริ่มต้น-สิ้นสุด</div>';
+        return;
+      }
+
+      const startMs = parseToComparableTimestamp(startD, startT);
+      const endMs = parseToComparableTimestamp(endD, endT) + (59 * 1000); // Include full end minute
+
+      let matchingLogs = appState.logs.filter(l => {
+        const logMs = parseToComparableTimestamp(l.date, l.time);
+
+        // Date time range check via milliseconds
+        if (logMs < startMs || logMs > endMs) {
+          return false;
+        }
+
+        // Dept check
+        if (deptFilter !== 'ALL' && l.dept !== deptFilter) return false;
+
+        // Status check
+        if (statusFilter !== 'ALL' && l.status !== statusFilter) return false;
+
+        return true;
+      });
+
+      appState.lastInvestigationResults = matchingLogs;
+
+      const totalFound = matchingLogs.length;
+      const outOfSpecFound = matchingLogs.filter(l => l.status === 'OUT-OF-SPEC');
+
+      resultsContainer.innerHTML = `
+        <!-- Summary Stats Banner -->
+        <div class="p-3.5 rounded-xl ${outOfSpecFound.length > 0 ? 'bg-rose-950/40 border border-rose-500/40' : 'bg-slate-950 border border-slate-800'} flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold ${outOfSpecFound.length > 0 ? 'text-rose-300' : 'text-emerald-300'} flex items-center gap-1.5">
+              <i class="fa-solid ${outOfSpecFound.length > 0 ? 'fa-triangle-exclamation text-rose-400 animate-pulse' : 'fa-circle-check text-emerald-400'}"></i>
+              <span>ช่วงเวลา ${startD} ${startT} ถึง ${endD} ${endT}: พบค่าตรวจเช็ค ${totalFound} รายการ (หลุดสเป็ค ${outOfSpecFound.length} จุด)</span>
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="applyInvestigationToDashboard()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1">
+              <i class="fa-solid fa-chart-pie"></i>
+              <span>นำไปแสดงบนแดชบอร์ด</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Out of Spec Parameter Badges -->
+        ${outOfSpecFound.length > 0 ? `
+          <div class="p-3 rounded-xl bg-slate-950/70 border border-rose-900/40 space-y-2">
+            <div class="text-xs font-bold text-rose-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-list-ul"></i>
+              <span>รายการพารามิเตอร์ที่หลุดเกณฑ์มาตรฐานในช่วงเวลานี้ (Root-Cause Parameters):</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              ${outOfSpecFound.map(l => `
+                <div class="p-2 rounded-lg bg-rose-900/50 border border-rose-600/50 text-xs text-rose-100 flex items-center gap-2 font-sans shadow-sm">
+                  <span class="px-1.5 py-0.5 rounded bg-rose-950 text-[10px] font-bold text-rose-300 border border-rose-800">${l.dept} / ${l.machine}</span>
+                  <span class="font-bold">${l.item}:</span>
+                  <span class="font-mono font-bold text-rose-300">${l.measured_value} ${l.unit || ''}</span>
+                  <span class="text-[10px] text-slate-300 font-mono">(STD: ${l.std_spec})</span>
+                  <span class="text-[10px] text-slate-400">@${l.time}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Investigation Audit Table -->
+        <div class="rounded-xl border border-slate-800 overflow-hidden">
+          <div class="overflow-x-auto max-h-[350px]">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-slate-400 uppercase font-mono sticky top-0 border-b border-slate-800 text-[11px]">
+                <tr>
+                  <th class="py-2.5 px-3">วัน-เวลาที่ตรวจ</th>
+                  <th class="py-2.5 px-3">แผนก / เครื่อง</th>
+                  <th class="py-2.5 px-3">รายการตรวจ</th>
+                  <th class="py-2.5 px-3">เกณฑ์มาตรฐาน (STD)</th>
+                  <th class="py-2.5 px-3">ค่าที่วัดได้</th>
+                  <th class="py-2.5 px-3 text-center">สถานะ</th>
+                  <th class="py-2.5 px-3">ผู้ตรวจ / Order</th>
+                  <th class="py-2.5 px-3 text-center">รูป</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60 font-sans">
+                ${matchingLogs.length === 0 ? `
+                  <tr><td colspan="8" class="py-8 text-center text-slate-500">ไม่พบข้อมูลการตรวจเช็คในช่วงเวลาและเงื่อนไขที่ระบุ</td></tr>
+                ` : matchingLogs.map(l => {
+                  const isPass = l.status === 'IN-SPEC';
+                  return `
+                    <tr class="hover:bg-slate-800/40 transition ${!isPass ? 'bg-rose-950/20' : ''}">
+                      <td class="py-2 px-3 font-mono font-semibold text-slate-200">${l.date} ${l.time}</td>
+                      <td class="py-2 px-3">
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-200">${l.dept}</span>
+                        <span class="text-[10px] text-slate-400 ml-1">${l.machine || ''}</span>
+                      </td>
+                      <td class="py-2 px-3 font-medium text-white">${l.item}</td>
+                      <td class="py-2 px-3 text-amber-300 font-mono text-[11px]">${l.std_spec}</td>
+                      <td class="py-2 px-3 font-mono font-bold text-sm ${isPass ? 'text-emerald-400' : 'text-rose-400'}">
+                        ${l.measured_value} ${l.unit || ''}
+                      </td>
+                      <td class="py-2 px-3 text-center">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPass ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500 text-white animate-pulse'}">
+                          ${l.status}
+                        </span>
+                      </td>
+                      <td class="py-2 px-3 text-slate-300 text-xs">
+                        <div>${l.inspector || '-'}</div>
+                        <div class="text-[10px] text-slate-500">${l.order_no || ''}</div>
+                      </td>
+                      <td class="py-2 px-3 text-center">
+                        ${l.photo ? `
+                          <button onclick="viewPhoto('${l.photo}', '${l.item}')" class="text-blue-400 hover:text-blue-300 text-xs" title="ดูรูป">
+                            <i class="fa-solid fa-image"></i>
+                          </button>
+                        ` : '<span class="text-slate-600">-</span>'}
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function applyInvestigationToDashboard() {
+      appState.dashboardScopeMode = 'investigation';
+      const banner = document.getElementById('dashActiveFilterBanner');
+      const startD = document.getElementById('invStartDate').value;
+      const startT = document.getElementById('invStartTime').value || '00:00';
+      const endD = document.getElementById('invEndDate').value;
+      const endT = document.getElementById('invEndTime').value || '23:59';
+      
+      if (banner) {
+        banner.classList.remove('hidden');
+        document.getElementById('dashActiveFilterText').innerHTML = `🔍 กำลังแสดงผลตามช่วงเวลาที่สืบค้น: <b>${startD} ${startT} ถึง ${endD} ${endT}</b> (พบ ${appState.lastInvestigationResults ? appState.lastInvestigationResults.length : 0} รายการ)`;
+      }
+
+      renderDashboard();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function exportInvestigationExcel() {
+      const logs = appState.lastInvestigationResults || [];
+      if (logs.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'ไม่มีข้อมูล', text: 'ไม่พบข้อมูลในช่วงเวลาที่เลือกเพื่อส่งออก' });
+        return;
+      }
+
+      const rows = logs.map(l => ({
+        'Timestamp': l.timestamp,
+        'Date': l.date,
+        'Time': l.time,
+        'Department': l.dept,
+        'Machine': l.machine,
+        'Frequency': l.freq,
+        'Checklist Item': l.item,
+        'Standard Spec': l.std_spec,
+        'Measured Value': l.measured_value,
+        'Unit': l.unit,
+        'Status': l.status,
+        'Inspector': l.inspector,
+        'Order No': l.order_no,
+        'Notes': l.notes
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Investigation_Report');
+      XLSX.writeFile(wb, `Defect_Investigation_${getTodayDateString()}.xlsx`);
+    }
+
+    // ================= TAB 3: MASTER STD MANAGEMENT =================
+    function setMasterViewMode(mode) {
+      appState.masterViewMode = mode;
+      const btnGroup = document.getElementById('btnViewModeGroup');
+      const btnFlat = document.getElementById('btnViewModeFlat');
+      if (mode === 'group') {
+        btnGroup.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-blue-600 text-white transition';
+        btnFlat.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-400 transition';
+      } else {
+        btnGroup.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-400 transition';
+        btnFlat.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-blue-600 text-white transition';
+      }
+      renderMasterView();
+    }
+
+    function renderMasterView() {
+      const container = document.getElementById('masterItemsContainer');
+      const deptFilter = document.getElementById('masterFilterDept') ? document.getElementById('masterFilterDept').value : 'ALL';
+      const freqFilter = document.getElementById('masterFilterFreq') ? document.getElementById('masterFilterFreq').value : 'ALL';
+      const search = document.getElementById('masterSearchInput') ? document.getElementById('masterSearchInput').value.trim().toLowerCase() : '';
+
+      let items = appState.master;
+      if (deptFilter !== 'ALL') items = items.filter(it => it.dept === deptFilter);
+      if (freqFilter !== 'ALL') items = items.filter(it => it.freq === freqFilter);
+      if (search) items = items.filter(it => (it.item && it.item.toLowerCase().includes(search)) || (it.group_title && it.group_title.toLowerCase().includes(search)) || (it.machine && it.machine.toLowerCase().includes(search)));
+
+      if (items.length === 0) {
+        container.innerHTML = `<div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-slate-500 text-xs">ไม่พบเกณฑ์มาตรฐานเช็คลิสต์ตามเงื่อนไข</div>`;
+        return;
+      }
+
+      if (appState.masterViewMode === 'group') {
+        // Group by group_title
+        const groups = {};
+        items.forEach(it => {
+          const gKey = `${it.group_title || 'ชุดเช็คลิสต์ทั่วไป'}__${it.dept}__${it.machine || 'General'}`;
+          if (!groups[gKey]) groups[gKey] = [];
+          groups[gKey].push(it);
+        });
+
+        container.innerHTML = Object.keys(groups).map(gKey => {
+          const gItems = groups[gKey];
+          const first = gItems[0];
+          return `
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-950 text-blue-300 border border-blue-800">${first.dept}</span>
+                  <h3 class="text-sm sm:text-base font-bold text-white">${first.group_title || 'ชุดเช็คลิสต์ทั่วไป'}</h3>
+                  <span class="text-xs text-slate-400 font-mono">(${first.machine || 'General'} / ${first.freq})</span>
+                </div>
+                <div class="flex items-center gap-2 self-end sm:self-auto">
+                  <button onclick="copyChecklistGroup('${first.group_title}', '${first.dept}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs font-semibold transition" title="คัดลอกชุดเช็คลิสต์นี้">
+                    <i class="fa-solid fa-copy mr-1"></i> คัดลอก
+                  </button>
+                  <button onclick="editChecklistGroup('${first.group_title}', '${first.dept}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold transition" title="แก้ไข">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i> แก้ไข
+                  </button>
+                  <button onclick="deleteChecklistGroup('${first.group_title}', '${first.dept}')" class="px-2.5 py-1 bg-rose-900/60 hover:bg-rose-800 text-rose-200 border border-rose-700/60 rounded-lg text-xs font-semibold transition" title="ลบชุดนี้">
+                    <i class="fa-solid fa-trash mr-1"></i> ลบ
+                  </button>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                  <thead class="bg-slate-950 text-slate-400 font-mono text-[11px] border-b border-slate-800">
+                    <tr>
+                      <th class="py-2 px-3 w-8">#</th>
+                      <th class="py-2 px-3">รายการตรวจเช็ค</th>
+                      <th class="py-2 px-3">เกณฑ์มาตรฐาน (STD)</th>
+                      <th class="py-2 px-3">ประเภท</th>
+                      <th class="py-2 px-3">เงื่อนไข</th>
+                      <th class="py-2 px-3 text-center">สถานะ</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-800/60 font-sans">
+                    ${gItems.map((it, idx) => `
+                      <tr class="hover:bg-slate-800/30">
+                        <td class="py-2 px-3 text-slate-500 font-mono">${idx + 1}</td>
+                        <td class="py-2 px-3 font-semibold text-white">${it.item}</td>
+                        <td class="py-2 px-3 font-mono text-amber-300 font-bold">${it.spec_raw || it.target || '-'} ${it.unit || ''}</td>
+                        <td class="py-2 px-3 text-slate-400 font-mono">${it.spec_type}</td>
+                        <td class="py-2 px-3">
+                          <div class="flex items-center gap-1">
+                            ${it.require_val ? `<span class="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 text-[9px]">บังคับค่า</span>` : ''}
+                            ${it.require_photo ? `<span class="px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 text-[9px]">บังคับรูป</span>` : ''}
+                          </div>
+                        </td>
+                        <td class="py-2 px-3 text-center">
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${it.active !== false ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-500'}">
+                            ${it.active !== false ? 'เปิดใช้งาน' : 'ปิด'}
+                          </span>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        // Flat Table
+        container.innerHTML = `
+          <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
+            <div class="overflow-x-auto max-h-[500px]">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-950 text-slate-400 font-mono text-[11px] sticky top-0 border-b border-slate-800 uppercase">
+                  <tr>
+                    <th class="py-2 px-3">แผนก</th>
+                    <th class="py-2 px-3">เครื่องจักร</th>
+                    <th class="py-2 px-3">ชุดเช็คลิสต์</th>
+                    <th class="py-2 px-3">รายการตรวจ</th>
+                    <th class="py-2 px-3">ความถี่</th>
+                    <th class="py-2 px-3">เกณฑ์ STD</th>
+                    <th class="py-2 px-3 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60 font-sans">
+                  ${items.map(it => `
+                    <tr class="hover:bg-slate-800/30">
+                      <td class="py-2 px-3 font-bold text-slate-200">${it.dept}</td>
+                      <td class="py-2 px-3 font-mono">${it.machine || '-'}</td>
+                      <td class="py-2 px-3 text-slate-400">${it.group_title || '-'}</td>
+                      <td class="py-2 px-3 font-semibold text-white">${it.item}</td>
+                      <td class="py-2 px-3 font-mono text-indigo-400">${it.freq}</td>
+                      <td class="py-2 px-3 font-mono text-amber-300 font-bold">${it.spec_raw || it.target || '-'} ${it.unit || ''}</td>
+                      <td class="py-2 px-3 text-center">
+                        <button onclick="editChecklistGroup('${it.group_title}', '${it.dept}')" class="text-blue-400 hover:text-blue-300 text-xs mr-2"><i class="fa-solid fa-pen"></i></button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Modal Multi-Row Add/Edit
+    let multiRowTempItems = [];
+    let editingOriginalGroupTitle = null;
+    let editingOriginalDept = null;
+
+    function openMultiRowAddModal() {
+      editingOriginalGroupTitle = null;
+      editingOriginalDept = null;
+      document.getElementById('multiRowModalTitle').innerText = 'เพิ่มชุดเกณฑ์มาตรฐานเช็คลิสต์ใหม่ (Multi-row Setup)';
+      document.getElementById('modalGroupTitle').value = '';
+      document.getElementById('modalMachineInput').value = '';
+      document.getElementById('modalDeptSelect').value = appState.selectedDept || 'PD';
+      document.getElementById('modalFreqSelect').value = 'ทุก 1 ชั่วโมง';
+
+      multiRowTempItems = [
+        { id: 'NEW_' + Date.now() + '_1', item: '', spec_type: 'range', min_val: '', max_val: '', unit: '', require_val: true, require_photo: false },
+        { id: 'NEW_' + Date.now() + '_2', item: '', spec_type: 'range', min_val: '', max_val: '', unit: '', require_val: true, require_photo: false }
+      ];
+
+      renderMultiRowTable();
+      document.getElementById('multiRowModal').classList.remove('hidden');
+    }
+
+    function closeMultiRowModal() {
+      document.getElementById('multiRowModal').classList.add('hidden');
+    }
+
+    function addMultiRowItem() {
+      multiRowTempItems.push({
+        id: 'NEW_' + Date.now() + '_' + (multiRowTempItems.length + 1),
+        item: '',
+        spec_type: 'range',
+        min_val: '',
+        max_val: '',
+        unit: '',
+        require_val: true,
+        require_photo: false
+      });
+      renderMultiRowTable();
+    }
+
+    function copyMultiRowItem(idx) {
+      const src = multiRowTempItems[idx];
+      const clone = {
+        id: 'NEW_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+        item: src.item ? `${src.item} (สำเนา)` : '',
+        spec_type: src.spec_type || 'range',
+        min_val: src.min_val !== null && src.min_val !== undefined ? src.min_val : '',
+        max_val: src.max_val !== null && src.max_val !== undefined ? src.max_val : '',
+        unit: src.unit || '',
+        require_val: src.require_val !== false,
+        require_photo: src.require_photo === true
+      };
+      multiRowTempItems.splice(idx + 1, 0, clone);
+      renderMultiRowTable();
+      Swal.fire({
+        icon: 'success',
+        title: 'คัดลอกแถวเรียบร้อย',
+        text: `คัดลอกรายการ "${src.item || 'แถวใหม่'}" สำเร็จ`,
+        timer: 800,
+        showConfirmButton: false
+      });
+    }
+
+    function removeMultiRowItem(idx) {
+      if (multiRowTempItems.length <= 1) {
+        Swal.fire({ icon: 'warning', title: 'ต้องมีอย่างน้อย 1 แถว' });
+        return;
+      }
+      multiRowTempItems.splice(idx, 1);
+      renderMultiRowTable();
+    }
+
+    function moveMultiRowItem(idx, direction) {
+      const targetIdx = idx + direction;
+      if (targetIdx < 0 || targetIdx >= multiRowTempItems.length) return;
+      const temp = multiRowTempItems[idx];
+      multiRowTempItems[idx] = multiRowTempItems[targetIdx];
+      multiRowTempItems[targetIdx] = temp;
+      renderMultiRowTable();
+    }
+
+    function renderMultiRowTable() {
+      const tbody = document.getElementById('multiRowTableBody');
+      document.getElementById('multiRowCountIndicator').innerText = `รวม ${multiRowTempItems.length} รายการ`;
+
+      tbody.innerHTML = multiRowTempItems.map((it, idx) => `
+        <tr class="hover:bg-slate-800/30">
+          <td class="py-2 px-2 text-center">
+            <div class="flex flex-col gap-0.5 items-center">
+              <button onclick="moveMultiRowItem(${idx}, -1)" ${idx === 0 ? 'disabled class="text-slate-700"' : 'class="text-slate-400 hover:text-white"'}><i class="fa-solid fa-chevron-up text-[10px]"></i></button>
+              <button onclick="moveMultiRowItem(${idx}, 1)" ${idx === multiRowTempItems.length - 1 ? 'disabled class="text-slate-700"' : 'class="text-slate-400 hover:text-white"'}><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
+            </div>
+          </td>
+          <td class="py-2 px-2">
+            <input type="text" value="${it.item || ''}" oninput="multiRowTempItems[${idx}].item = this.value" placeholder="ระบุชื่อรายการตรวจ..." class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500 font-medium">
+          </td>
+          <td class="py-2 px-2">
+            <select onchange="multiRowTempItems[${idx}].spec_type = this.value" class="w-full bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-xs text-white focus:outline-none">
+              <option value="range" ${it.spec_type === 'range' ? 'selected' : ''}>ช่วงค่า (Min-Max)</option>
+              <option value="gte" ${it.spec_type === 'gte' ? 'selected' : ''}>มากกว่าเท่ากับ (>=)</option>
+              <option value="lte" ${it.spec_type === 'lte' ? 'selected' : ''}>น้อยกว่าเท่ากับ (<=)</option>
+              <option value="text" ${it.spec_type === 'text' ? 'selected' : ''}>ข้อความ/ผ่านไม่ผ่าน</option>
+            </select>
+          </td>
+          <td class="py-2 px-2">
+            <input type="number" step="any" value="${it.min_val !== null && it.min_val !== undefined ? it.min_val : ''}" oninput="multiRowTempItems[${idx}].min_val = this.value !== '' ? parseFloat(this.value) : null" placeholder="Min" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none text-center">
+          </td>
+          <td class="py-2 px-2">
+            <input type="number" step="any" value="${it.max_val !== null && it.max_val !== undefined ? it.max_val : ''}" oninput="multiRowTempItems[${idx}].max_val = this.value !== '' ? parseFloat(this.value) : null" placeholder="Max" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none text-center">
+          </td>
+          <td class="py-2 px-2">
+            <input type="text" value="${it.unit || ''}" oninput="multiRowTempItems[${idx}].unit = this.value" placeholder="°C, bar..." class="w-full bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-xs text-white focus:outline-none font-mono text-center">
+          </td>
+          <td class="py-2 px-2 text-center">
+            <input type="checkbox" ${it.require_val !== false ? 'checked' : ''} onchange="multiRowTempItems[${idx}].require_val = this.checked" class="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0">
+          </td>
+          <td class="py-2 px-2 text-center">
+            <input type="checkbox" ${it.require_photo ? 'checked' : ''} onchange="multiRowTempItems[${idx}].require_photo = this.checked" class="rounded bg-slate-900 border-slate-700 text-cyan-600 focus:ring-0">
+          </td>
+          <td class="py-2 px-2 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <button onclick="copyMultiRowItem(${idx})" class="w-6 h-6 rounded bg-blue-900/40 hover:bg-blue-800/80 text-blue-300 border border-blue-700/50 flex items-center justify-center text-[10px] transition" title="คัดลอกแถวนี้ (Copy Row)">
+                <i class="fa-solid fa-copy"></i>
+              </button>
+              <button onclick="removeMultiRowItem(${idx})" class="w-6 h-6 rounded bg-rose-900/40 hover:bg-rose-800/80 text-rose-300 border border-rose-700/50 flex items-center justify-center text-[10px] transition" title="ลบแถว">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function saveMultiRowChecklist() {
+      const groupTitle = document.getElementById('modalGroupTitle').value.trim();
+      const dept = document.getElementById('modalDeptSelect').value;
+      const machine = document.getElementById('modalMachineInput').value.trim() || 'General';
+      const freq = document.getElementById('modalFreqSelect').value;
+
+      if (!groupTitle) {
+        Swal.fire({ icon: 'warning', title: 'กรุณาระบุชื่อชุดเช็คลิสต์' });
+        return;
+      }
+
+      const validItems = multiRowTempItems.filter(it => it.item && it.item.trim() !== '');
+      if (validItems.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'กรุณาระบุชื่อรายการตรวจเช็คอย่างน้อย 1 รายการ' });
+        return;
+      }
+
+      // If editing, remove old items of this group
+      if (editingOriginalGroupTitle && editingOriginalDept) {
+        appState.master = appState.master.filter(it => !(it.group_title === editingOriginalGroupTitle && it.dept === editingOriginalDept));
+      }
+
+      const formattedNew = validItems.map((it, idx) => {
+        let specRaw = '';
+        if (it.spec_type === 'range') {
+          specRaw = `${it.min_val !== null ? it.min_val : '-'} ~ ${it.max_val !== null ? it.max_val : '-'}`;
+        } else if (it.spec_type === 'gte') {
+          specRaw = `>= ${it.min_val}`;
+        } else if (it.spec_type === 'lte') {
+          specRaw = `<= ${it.max_val}`;
+        } else {
+          specRaw = it.target || 'ปกติ';
+        }
+
+        return {
+          id: it.id && !it.id.startsWith('NEW_') ? it.id : ('STD_' + Date.now() + '_' + idx),
+          group_title: groupTitle,
+          dept: dept,
+          machine: machine,
+          item: it.item.trim(),
+          freq: freq,
+          spec_raw: specRaw,
+          spec_type: it.spec_type,
+          min_val: it.min_val !== '' && it.min_val !== null ? parseFloat(it.min_val) : null,
+          max_val: it.max_val !== '' && it.max_val !== null ? parseFloat(it.max_val) : null,
+          unit: it.unit || '',
+          target: specRaw,
+          require_val: it.require_val !== false,
+          require_photo: it.require_photo === true,
+          active: true
+        };
+      });
+
+      appState.master = [...appState.master, ...formattedNew];
+      saveState();
+
+      if (appState.gasUrl) {
+        pushMasterToGoogle(true);
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'บันทึกสำเร็จ!',
+        text: `บันทึกชุดเช็คลิสต์ "${groupTitle}" (${formattedNew.length} รายการ) เรียบร้อย`,
+        timer: 1500,
+        showConfirmButton: false
+      });
+
+      closeMultiRowModal();
+      renderMasterView();
+      renderEntryForm();
+    }
+
+    function editChecklistGroup(groupTitle, dept) {
+      const gItems = appState.master.filter(it => it.group_title === groupTitle && it.dept === dept);
+      if (gItems.length === 0) return;
+
+      editingOriginalGroupTitle = groupTitle;
+      editingOriginalDept = dept;
+
+      const first = gItems[0];
+      document.getElementById('multiRowModalTitle').innerText = `แก้ไขชุดเช็คลิสต์: ${groupTitle}`;
+      document.getElementById('modalGroupTitle').value = first.group_title;
+      document.getElementById('modalDeptSelect').value = first.dept;
+      document.getElementById('modalMachineInput').value = first.machine || '';
+      document.getElementById('modalFreqSelect').value = first.freq || 'ทุก 1 ชั่วโมง';
+
+      multiRowTempItems = gItems.map(it => ({
+        id: it.id,
+        item: it.item,
+        spec_type: it.spec_type || 'range',
+        min_val: it.min_val !== null ? it.min_val : '',
+        max_val: it.max_val !== null ? it.max_val : '',
+        unit: it.unit || '',
+        require_val: it.require_val !== false,
+        require_photo: it.require_photo === true
+      }));
+
+      renderMultiRowTable();
+      document.getElementById('multiRowModal').classList.remove('hidden');
+    }
+
+    function copyChecklistGroup(groupTitle, dept) {
+      const gItems = appState.master.filter(it => it.group_title === groupTitle && it.dept === dept);
+      if (gItems.length === 0) return;
+
+      editingOriginalGroupTitle = null;
+      editingOriginalDept = null;
+
+      const first = gItems[0];
+      document.getElementById('multiRowModalTitle').innerText = `คัดลอกชุดเช็คลิสต์: ${groupTitle} (สำเนา)`;
+      document.getElementById('modalGroupTitle').value = `${first.group_title} (สำเนา)`;
+      document.getElementById('modalDeptSelect').value = first.dept;
+      document.getElementById('modalMachineInput').value = first.machine || '';
+      document.getElementById('modalFreqSelect').value = first.freq || 'ทุก 1 ชั่วโมง';
+
+      multiRowTempItems = gItems.map(it => ({
+        id: 'NEW_' + Date.now() + '_' + Math.random(),
+        item: it.item,
+        spec_type: it.spec_type || 'range',
+        min_val: it.min_val !== null ? it.min_val : '',
+        max_val: it.max_val !== null ? it.max_val : '',
+        unit: it.unit || '',
+        require_val: it.require_val !== false,
+        require_photo: it.require_photo === true
+      }));
+
+      renderMultiRowTable();
+      document.getElementById('multiRowModal').classList.remove('hidden');
+    }
+
+    function deleteChecklistGroup(groupTitle, dept) {
+      Swal.fire({
+        title: 'ยืนยันการลบ?',
+        html: `ต้องการลบชุดเช็คลิสต์ <b>"${groupTitle}"</b> (${dept}) ใช่หรือไม่?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e11d48',
+        cancelButtonColor: '#334155',
+        confirmButtonText: 'ลบทันที',
+        cancelButtonText: 'ยกเลิก'
+      }).then(res => {
+        if (res.isConfirmed) {
+          appState.master = appState.master.filter(it => !(it.group_title === groupTitle && it.dept === dept));
+          saveState();
+          if (appState.gasUrl) pushMasterToGoogle(true);
+          renderMasterView();
+          renderEntryForm();
+          Swal.fire({ icon: 'success', title: 'ลบเรียบร้อย', timer: 1000, showConfirmButton: false });
+        }
+      });
+    }
+
+    // ================= TAB 4: HISTORY & EXPORT =================
+    function renderHistoryTable() {
+      const tbody = document.getElementById('historyTableBody');
+      const dept = document.getElementById('histDeptFilter') ? document.getElementById('histDeptFilter').value : 'ALL';
+      const status = document.getElementById('histStatusFilter') ? document.getElementById('histStatusFilter').value : 'ALL';
+      const search = document.getElementById('histSearchInput') ? document.getElementById('histSearchInput').value.trim().toLowerCase() : '';
+
+      let logs = appState.logs;
+      if (dept !== 'ALL') logs = logs.filter(l => l.dept === dept);
+      if (status !== 'ALL') logs = logs.filter(l => l.status === status);
+      if (search) logs = logs.filter(l => (l.item && l.item.toLowerCase().includes(search)) || (l.inspector && l.inspector.toLowerCase().includes(search)) || (l.order_no && l.order_no.toLowerCase().includes(search)));
+
+      document.getElementById('histTotalCountBadge').innerText = `รวม ${logs.length} รายการ`;
+
+      if (logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-slate-500">ไม่พบประวัติการตรวจเช็คตามเงื่อนไข</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = logs.slice(0, 100).map(l => {
+        const isPass = l.status === 'IN-SPEC';
+        return `
+          <tr class="hover:bg-slate-800/40 transition ${!isPass ? 'bg-rose-950/20' : ''}">
+            <td class="py-2.5 px-3 font-mono font-semibold text-slate-200">${l.date} ${l.time}</td>
+            <td class="py-2.5 px-3">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-200">${l.dept}</span>
+              <span class="text-[10px] text-slate-400 ml-1">${l.machine || ''}</span>
+            </td>
+            <td class="py-2.5 px-3 font-mono text-slate-400 text-[11px]">${l.freq || '-'}</td>
+            <td class="py-2.5 px-3 font-medium text-white">${l.item}</td>
+            <td class="py-2.5 px-3 text-amber-300 font-mono text-[11px]">${l.std_spec}</td>
+            <td class="py-2.5 px-3 font-mono font-bold text-sm ${isPass ? 'text-emerald-400' : 'text-rose-400'}">
+              ${l.measured_value} ${l.unit || ''}
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPass ? 'badge-in-spec' : 'badge-out-of-spec'}">
+                ${l.status}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 text-slate-300 text-xs">
+              <div>${l.inspector || '-'}</div>
+              <div class="text-[10px] text-slate-500">${l.order_no || ''}</div>
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              ${l.photo ? `
+                <button onclick="viewPhoto('${l.photo}', '${l.item}')" class="text-blue-400 hover:text-blue-300 text-xs" title="ดูรูป">
+                  <i class="fa-solid fa-image"></i>
+                </button>
+              ` : '<span class="text-slate-600">-</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function exportHistoryExcel() {
+      const logs = appState.logs;
+      if (logs.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'ไม่มีข้อมูล', text: 'ยังไม่มีบันทึกข้อมูลการตรวจเช็คในระบบ' });
+        return;
+      }
+
+      const rows = logs.map(l => ({
+        'Timestamp': l.timestamp,
+        'Date': l.date,
+        'Time': l.time,
+        'Department': l.dept,
+        'Machine': l.machine,
+        'Frequency': l.freq,
+        'Item': l.item,
+        'Standard Spec': l.std_spec,
+        'Measured Value': l.measured_value,
+        'Unit': l.unit,
+        'Status': l.status,
+        'Inspector': l.inspector,
+        'Order No': l.order_no,
+        'Notes': l.notes
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Inspection_Logs');
+      XLSX.writeFile(wb, `Inspection_Logs_All_${getTodayDateString()}.xlsx`);
+    }
+
+    // ================= TAB 5: QR HUB =================
+    function renderQrHub() {
+      const container = document.getElementById('qrCardsContainer');
+      const depts = appState.depts;
+
+      container.innerHTML = depts.map(d => {
+        const url = getSharableDeptUrl(d.code);
+        return `
+          <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-${d.color || 'blue'}-500/20 text-${d.color || 'blue'}-400 flex items-center justify-center text-base">
+                  <i class="fa-solid ${d.icon || 'fa-industry'}"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white">${d.name}</h4>
+                  <span class="text-[10px] text-slate-400 font-mono">Code: ${d.code}</span>
+                </div>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-400">${d.desc || 'เช็คลิสต์ตรวจเช็คของแผนก'}</p>
+
+            <div class="flex items-center justify-center p-3 bg-white rounded-xl" id="qr-thumb-${d.code}">
+              <!-- Render mini QR -->
+            </div>
+
+            <div class="space-y-2 pt-2">
+              <input type="text" readonly value="${url}" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-400 font-mono text-center">
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="openQrModalDirect('${d.code}')" class="py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-expand"></i>
+                  <span>ขยาย / พิมพ์</span>
+                </button>
+                <button onclick="copyDeptLink('${d.code}')" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-copy"></i>
+                  <span>ก็อปปี้ลิ้งก์</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Generate QR canvases
+      depts.forEach(d => {
+        const thumb = document.getElementById('qr-thumb-' + d.code);
+        if (thumb) {
+          thumb.innerHTML = '';
+          new QRCode(thumb, {
+            text: getSharableDeptUrl(d.code),
+            width: 110,
+            height: 110,
+            colorDark: "#0f172a",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        }
+      });
+    }
+
+    function openDeptQrModalDirect(deptCode) {
+      const d = appState.depts.find(x => x.code === deptCode);
+      const url = getSharableDeptUrl(deptCode);
+
+      document.getElementById('qrModalTitle').innerText = `QR Code: ${d ? d.name : deptCode}`;
+      document.getElementById('qrModalSubtitle').innerText = `สแกนเพื่อเข้าตรวจเฉพาะเช็คลิสต์แผนก ${deptCode}`;
+      document.getElementById('qrModalUrlInput').value = url;
+
+      const container = document.getElementById('qrCanvasContainer');
+      container.innerHTML = '';
+      new QRCode(container, {
+        text: url,
+        width: 180,
+        height: 180,
+        colorDark: "#0f172a",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      document.getElementById('qrModal').classList.remove('hidden');
+    }
+
+    function openQrModalForCurrentDept() {
+      openDeptQrModalDirect(appState.selectedDept);
+    }
+
+    function closeQrModal() {
+      document.getElementById('qrModal').classList.add('hidden');
+    }
+
+    function copyQrLink() {
+      const input = document.getElementById('qrModalUrlInput');
+      input.select();
+      document.execCommand('copy');
+      Swal.fire({ icon: 'success', title: 'คัดลอกลิ้งก์แล้ว', timer: 1000, showConfirmButton: false });
+    }
+
+    function copyDeptLink(deptCode) {
+      const url = getSharableDeptUrl(deptCode);
+      navigator.clipboard.writeText(url);
+      Swal.fire({ icon: 'success', title: `คัดลอกลิ้งก์แผนก ${deptCode} แล้ว`, timer: 1000, showConfirmButton: false });
+    }
+
+    // ================= TAB 6: USERS & DEPTS =================
+    function renderDepartmentsTable() {
+      const container = document.getElementById('departmentsListContainer');
+      const depts = appState.depts;
+
+      container.innerHTML = depts.map(d => `
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-${d.color || 'blue'}-500/20 text-${d.color || 'blue'}-400 flex items-center justify-center text-sm">
+              <i class="fa-solid ${d.icon || 'fa-industry'}"></i>
+            </div>
+            <div>
+              <div class="font-bold text-white text-xs">${d.name} (${d.code})</div>
+              <div class="text-[10px] text-slate-400 truncate max-w-[150px]">${d.desc || '-'}</div>
+            </div>
+          </div>
+          <button onclick="deleteDept('${d.code}')" class="text-slate-500 hover:text-rose-400 text-xs p-1" title="ลบแผนก">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function openAddDeptModal() {
+      Swal.fire({
+        title: 'เพิ่มแผนกใหม่',
+        html: `
+          <input id="swalDeptCode" class="swal2-input text-xs" placeholder="รหัสแผนก เช่น CUT, PACK">
+          <input id="swalDeptName" class="swal2-input text-xs" placeholder="ชื่อเต็มแผนก เช่น PACK (แผนกบรรจุ)">
+          <input id="swalDeptDesc" class="swal2-input text-xs" placeholder="คำอธิบายแผนก">
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'บันทึก',
+        cancelButtonText: 'ยกเลิก',
+        preConfirm: () => {
+          const code = document.getElementById('swalDeptCode').value.trim().toUpperCase();
+          const name = document.getElementById('swalDeptName').value.trim();
+          const desc = document.getElementById('swalDeptDesc').value.trim();
+          if (!code || !name) {
+            Swal.showValidationMessage('กรุณากรอกรหัสและชื่อแผนก');
+          }
+          return { code, name, desc };
+        }
+      }).then(res => {
+        if (res.isConfirmed) {
+          appState.depts.push({
+            id: 'dept_' + Date.now(),
+            code: res.value.code,
+            name: res.value.name,
+            icon: 'fa-industry',
+            color: 'blue',
+            desc: res.value.desc
+          });
+          saveState();
+          populateDeptDropdowns();
+          renderEntryDeptButtons();
+          renderDepartmentsTable();
+          renderQrHub();
+          Swal.fire({ icon: 'success', title: 'เพิ่มแผนกเรียบร้อย', timer: 1000, showConfirmButton: false });
+        }
+      });
+    }
+
+    function deleteDept(deptCode) {
+      if (appState.depts.length <= 1) {
+        Swal.fire({ icon: 'warning', title: 'ต้องมีอย่างน้อย 1 แผนก' });
+        return;
+      }
+      Swal.fire({
+        title: `ยืนยันลบแผนก ${deptCode}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e11d48',
+        confirmButtonText: 'ลบ',
+        cancelButtonText: 'ยกเลิก'
+      }).then(res => {
+        if (res.isConfirmed) {
+          appState.depts = appState.depts.filter(d => d.code !== deptCode);
+          saveState();
+          populateDeptDropdowns();
+          renderEntryDeptButtons();
+          renderDepartmentsTable();
+          renderQrHub();
+        }
+      });
+    }
+
+    function renderUsersTable() {
+      const tbody = document.getElementById('usersTableBody');
+      const users = appState.users;
+
+      tbody.innerHTML = users.map(u => `
+        <tr class="hover:bg-slate-800/30">
+          <td class="py-2.5 px-3 font-semibold text-white">${u.name}</td>
+          <td class="py-2.5 px-3 font-mono text-slate-400">${u.username}</td>
+          <td class="py-2.5 px-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${u.role === 'admin' ? 'bg-purple-900/60 text-purple-300 border border-purple-700' : 'bg-slate-800 text-slate-300'}">
+              ${u.role.toUpperCase()}
+            </span>
+          </td>
+          <td class="py-2.5 px-3 font-mono text-xs">${u.dept}</td>
+          <td class="py-2.5 px-3">
+            <div class="flex flex-wrap gap-1">
+              ${(u.allowed_tabs || []).map(t => `<span class="px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 text-[9px] font-mono">${t}</span>`).join('')}
+            </div>
+          </td>
+          <td class="py-2.5 px-3 text-center">
+            ${u.username !== 'admin' ? `
+              <button onclick="deleteUser('${u.id}')" class="text-rose-400 hover:text-rose-300 text-xs p-1" title="ลบผู้ใช้"><i class="fa-solid fa-trash"></i></button>
+            ` : '<span class="text-slate-600 text-[10px]">ระบบ</span>'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openAddUserModal() {
+      Swal.fire({
+        title: 'สร้างยูสเซอร์ใหม่',
+        html: `
+          <input id="swalUserName" class="swal2-input text-xs" placeholder="ชื่อ-นามสกุล ผู้ใช้งาน">
+          <input id="swalUserUsername" class="swal2-input text-xs" placeholder="Username สำหรับเข้าสู่ระบบ">
+          <input id="swalUserPassword" type="password" class="swal2-input text-xs" placeholder="Password รหัสผ่าน">
+          <select id="swalUserDept" class="swal2-input text-xs">
+            <option value="ALL">ทุกแผนก (ALL)</option>
+            ${appState.depts.map(d => `<option value="${d.code}">${d.code}</option>`).join('')}
+          </select>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'สร้างยูสเซอร์',
+        cancelButtonText: 'ยกเลิก',
+        preConfirm: () => {
+          const name = document.getElementById('swalUserName').value.trim();
+          const username = document.getElementById('swalUserUsername').value.trim();
+          const password = document.getElementById('swalUserPassword').value.trim();
+          const dept = document.getElementById('swalUserDept').value;
+          if (!name || !username || !password) {
+            Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบทุกช่อง');
+          }
+          return { name, username, password, dept };
+        }
+      }).then(res => {
+        if (res.isConfirmed) {
+          appState.users.push({
+            id: 'usr_' + Date.now(),
+            username: res.value.username,
+            password: res.value.password,
+            name: res.value.name,
+            role: res.value.dept === 'ALL' ? 'admin' : 'operator',
+            dept: res.value.dept,
+            allowed_tabs: res.value.dept === 'ALL' ? 
+              ['inspection', 'dashboard', 'master', 'history', 'qr_hub', 'users_depts', 'settings'] : 
+              ['inspection', 'dashboard', 'history', 'qr_hub']
+          });
+          saveState();
+          renderUsersTable();
+          Swal.fire({ icon: 'success', title: 'สร้างยูสเซอร์สำเร็จ', timer: 1000, showConfirmButton: false });
+        }
+      });
+    }
+
+    function deleteUser(userId) {
+      Swal.fire({
+        title: 'ยืนยันลบผู้ใช้งาน?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e11d48',
+        confirmButtonText: 'ลบ',
+        cancelButtonText: 'ยกเลิก'
+      }).then(res => {
+        if (res.isConfirmed) {
+          appState.users = appState.users.filter(u => u.id !== userId);
+          saveState();
+          renderUsersTable();
+        }
+      });
+    }
+
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.remove('hidden');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    function performLogin() {
+      const u = document.getElementById('loginUsername').value.trim();
+      const p = document.getElementById('loginPassword').value.trim();
+
+      const found = appState.users.find(x => x.username === u && x.password === p);
+      if (found) {
+        appState.currentUser = found;
+        saveState();
+        renderUserProfileBar();
+        renderTabNav();
+        closeLoginModal();
+        Swal.fire({ icon: 'success', title: `ยินดีต้อนรับ ${found.name}`, timer: 1200, showConfirmButton: false });
+      } else {
+        Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบไม่สำเร็จ', text: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
+      }
+    }
+
+    // ================= SYNC WITH GOOGLE SHEETS =================
+    async function syncWithGoogleSheets(isSilent = false) {
+      const icon = document.getElementById('syncIcon');
+      const syncText = document.getElementById('syncIndicatorText');
+      if (icon && !isSilent) icon.classList.add('animate-spin');
+
+      if (!appState.gasUrl) {
+        if (!isSilent) {
+          Swal.fire({
+            icon: 'info',
+            title: 'โหมด Local Storage',
+            text: 'ข้อมูลบันทึกในอุปกรณ์เรียบร้อยแล้ว (สามารถวาง Web App URL ในเมนูตั้งค่าเพื่อรวมศูนย์เข้า Google Sheet)'
+          });
+        }
+        return;
+      }
+
+      try {
+        if (syncText) syncText.innerHTML = '<span class="text-amber-400">🟡 กำลังซิงค์...</span>';
+
+        const res = await fetch(appState.gasUrl + '?action=getAllData');
+        const data = await res.json();
+        if (data.status === 'success') {
+          let updated = false;
+
+          // Merge Master Items from Google Sheet
+          if (data.master && Array.isArray(data.master) && data.master.length > 0) {
+            appState.master = data.master;
+            updated = true;
+          }
+
+          // Merge Logs from Google Sheet (Normalize all dates/times)
+          if (data.logs && Array.isArray(data.logs)) {
+            appState.logs = data.logs.map(normalizeLogItem);
+            updated = true;
+          }
+
+          // Merge Departments if present
+          if (data.depts && Array.isArray(data.depts) && data.depts.length > 0) {
+            appState.depts = data.depts;
+            updated = true;
+          }
+
+          if (updated) {
+            saveState();
+            renderDashboard();
+            runDefectInvestigation();
+            renderMasterView();
+            renderHistoryTable();
+            populateDeptDropdowns();
+            renderEntryDeptButtons();
+            renderEntryFreqFilters();
+            renderEntryForm();
+          }
+
+          if (syncText) {
+            const timeNow = getNowTimeString();
+            syncText.innerHTML = `<span class="text-emerald-400">🟢 Google Sheet: ${appState.logs.length} รายการ (${timeNow})</span>`;
+          }
+
+          if (!isSilent) {
+            Swal.fire({ 
+              icon: 'success', 
+              title: 'ซิงค์ข้อมูลสำเร็จ!', 
+              html: `ดึง Logs จาก Google Sheet <b>${appState.logs.length}</b> รายการ<br>เกณฑ์มาตรฐาน Master: <b>${appState.master.length}</b> รายการ`,
+              timer: 1500, 
+              showConfirmButton: false 
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Sync error:', err);
+        if (syncText) syncText.innerHTML = '<span class="text-slate-400">⚪ ออฟไลน์ (บันทึกลงเครื่อง)</span>';
+      } finally {
+        if (icon && !isSilent) icon.classList.remove('animate-spin');
+      }
+    }
+
+    async function pushMasterToGoogle(isSilent = false) {
+      if (!appState.gasUrl) return;
+
+      if (!isSilent) {
+        Swal.fire({ title: 'กำลังอัปโหลด Master ขึ้น Google Sheet...', didOpen: () => Swal.showLoading() });
+      }
+
+      try {
+        await fetch(appState.gasUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'updateMaster',
+            items: appState.master
+          })
+        });
+        if (!isSilent) {
+          Swal.fire({ icon: 'success', title: `อัปโหลด Master ${appState.master.length} รายการขึ้น Google Sheet เรียบร้อย!`, timer: 1500, showConfirmButton: false });
+        }
+      } catch (err) {
+        console.warn('Master upload error:', err);
+      }
+    }
+
+    function copyGasCodeToClipboard() {
+      const code = `/**
+ * PLANT MASTER CHECKLIST - GOOGLE APPS SCRIPT BACKEND V6.0
+ */
+const SHEET_LOGS = 'INSPECTION_LOGS';
+const SHEET_MASTER = 'CHECKLIST_MASTER';
+const SHEET_DEPTS = 'DEPARTMENTS';
+
+function doGet(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    initSheetsIfNotExist(ss);
+    const action = (e && e.parameter && e.parameter.action) ? e.parameter.action : 'getAllData';
+    if (action === 'saveLogsGet' && e.parameter.data) {
+      const records = JSON.parse(decodeURIComponent(e.parameter.data));
+      const count = appendLogRecords(ss, records);
+      return createJsonResponse({ status: 'success', count: count });
+    }
+    const masterData = readMasterSheet(ss.getSheetByName(SHEET_MASTER));
+    const logsData = readLogsSheet(ss.getSheetByName(SHEET_LOGS));
+    const deptsData = readDeptsSheet(ss.getSheetByName(SHEET_DEPTS));
+    return createJsonResponse({ status: 'success', serverTime: Utilities.formatDate(new Date(), 'GMT+7', 'yyyy-MM-dd HH:mm:ss'), master: masterData, logs: logsData, depts: deptsData });
+  } catch (err) {
+    return createJsonResponse({ status: 'error', message: err.toString() });
+  }
+}
+
+function doPost(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    initSheetsIfNotExist(ss);
+    let payload = {};
+    if (e && e.postData && e.postData.contents) {
+      try { payload = JSON.parse(e.postData.contents); } catch(ex) { payload = e.parameter || {}; }
+    } else if (e && e.parameter) { payload = e.parameter; }
+    const action = payload.action || 'saveLogs';
+    if (action === 'saveLogs') {
+      const records = payload.records || (payload.data ? JSON.parse(payload.data) : []);
+      const count = appendLogRecords(ss, records);
+      return createJsonResponse({ status: 'success', count: count });
+    }
+    if (action === 'updateMaster') {
+      const items = payload.items || [];
+      const updatedCount = overwriteMasterSheet(ss.getSheetByName(SHEET_MASTER), items);
+      return createJsonResponse({ status: 'success', count: updatedCount });
+    }
+    return createJsonResponse({ status: 'error', message: 'Unknown action' });
+  } catch (err) {
+    return createJsonResponse({ status: 'error', message: err.toString() });
+  }
+}`;
+
+      navigator.clipboard.writeText(code);
+      Swal.fire({
+        icon: 'success',
+        title: 'คัดลอกโค้ด Apps Script แล้ว!',
+        text: 'นำไปวางใน Extensions > Apps Script และกด Deploy > New deployment (Web app: Anyone)',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }
+
+    function viewPhoto(photoSrc, itemTitle) {
+      const modal = document.getElementById('photoViewerModal');
+      const img = document.getElementById('photoViewerImg');
+      const title = document.getElementById('photoViewerTitle');
+      if (modal && img) {
+        img.src = photoSrc;
+        if (title) title.innerHTML = `<i class="fa-solid fa-image text-blue-400 mr-1"></i> หลักฐาน: ${itemTitle}`;
+        modal.classList.remove('hidden');
+      }
+    }
+
+    function closePhotoViewer() {
+      document.getElementById('photoViewerModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
