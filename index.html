@@ -772,7 +772,7 @@
               Google Apps Script Web App URL:
             </label>
             <div class="flex gap-2">
-              <input type="text" id="gasWebAppUrl" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-mono">
+              <input type="text" id="gasWebAppUrl" value="https://script.google.com/macros/s/AKfycbzvfpW63eM6WzDw9kLG0kdKIswAYvd-yMLOu5e_lQ6US5fYjic3WVzyHNnk6XubiBE1/exec" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-mono">
               <button onclick="saveGasUrlSettings()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition shadow-md">
                 บันทึก URL
               </button>
@@ -1015,7 +1015,7 @@
       depts: JSON.parse(localStorage.getItem('PLANT_DEPTS_V6') || 'null') || DEFAULT_DEPTS,
       users: JSON.parse(localStorage.getItem('PLANT_USERS_V6') || 'null') || DEFAULT_USERS,
       currentUser: JSON.parse(localStorage.getItem('PLANT_CURRENT_USER_V6') || 'null') || DEFAULT_USERS[0],
-      gasUrl: localStorage.getItem('PLANT_GAS_URL') || '',
+      gasUrl: localStorage.getItem('PLANT_GAS_URL') || 'https://script.google.com/macros/s/AKfycbzvfpW63eM6WzDw9kLG0kdKIswAYvd-yMLOu5e_lQ6US5fYjic3WVzyHNnk6XubiBE1/exec',
       currentTab: 'inspection', // TAB 1 FIRST
       dashboardScopeMode: 'today', // 'today', 'investigation', 'all'
       dashboardSelectedDate: getTodayDateString(),
