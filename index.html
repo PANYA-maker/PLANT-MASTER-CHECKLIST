@@ -555,7 +555,10 @@
               <i class="fa-solid fa-layer-group text-purple-400 mr-1"></i> เกณฑ์มาตรฐาน (Master STD)
             </p>
             <h3 class="text-2xl sm:text-3xl font-bold font-mono text-white mt-1" id="kpiTotalMasterItems">0</h3>
-            <span class="text-[11px] text-purple-400">พารามิเตอร์ควบคุม</span>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="text-[11px] text-purple-400 font-medium">พารามิเตอร์ควบคุม</span>
+              <span class="text-[10px] text-slate-400 font-mono" id="kpiTargetSubtext">(เป้า -- ครั้ง/วัน)</span>
+            </div>
           </div>
           <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl">
             <i class="fa-solid fa-sliders"></i>
@@ -590,13 +593,24 @@
             </h3>
             <p class="text-xs text-slate-400">สรุปจำนวนรายการตรวจทั้งหมดในวัน / เช็คไปแล้วเท่าไร / ยังไม่เช็คเท่าไร</p>
           </div>
-          <div class="flex items-center gap-2 text-xs">
-            <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/40 text-emerald-300 border border-emerald-800/40 font-mono text-[11px]">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> เช็คครบแล้ว
-            </span>
-            <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-950/40 text-amber-300 border border-amber-800/40 font-mono text-[11px]">
-              <span class="w-2 h-2 rounded-full bg-amber-500"></span> ยังมีค้างตรวจ
-            </span>
+          <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded-xl border border-slate-800 shadow-inner">
+              <i class="fa-solid fa-calculator text-blue-400 text-xs"></i>
+              <span class="text-[11px] text-slate-400 font-sans">โหมดคำนวณเป้าหมาย:</span>
+              <select id="dashboardTargetMode" onchange="renderDashboard()" class="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-2 py-0.5 font-mono focus:outline-none focus:border-blue-500 cursor-pointer">
+                <option value="24" selected>เต็มวัน 24 ชม. (2 กะ รวมตามความถี่)</option>
+                <option value="12">ต่อกะ 12 ชม. (กะปัจจุบัน)</option>
+                <option value="items">นับเฉพาะหัวข้อ (Unique Items)</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/40 text-emerald-300 border border-emerald-800/40 font-mono text-[11px]">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> ครบตามเป้า
+              </span>
+              <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-950/40 text-amber-300 border border-amber-800/40 font-mono text-[11px]">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span> ยังค้างตรวจ
+              </span>
+            </div>
           </div>
         </div>
 
@@ -619,10 +633,11 @@
               <thead class="bg-slate-950 text-slate-400 font-mono text-[11px] border-b border-slate-800 uppercase">
                 <tr>
                   <th class="py-2.5 px-3">แผนก</th>
-                  <th class="py-2.5 px-3 text-center">เป้าหมายในวัน</th>
-                  <th class="py-2.5 px-3 text-center">ตรวจแล้ว</th>
-                  <th class="py-2.5 px-3 text-center">ยังไม่ได้ตรวจ</th>
-                  <th class="py-2.5 px-3 min-w-[120px]">ความคืบหน้า (%)</th>
+                  <th class="py-2.5 px-3 text-center">หัวข้อมาตรฐาน</th>
+                  <th class="py-2.5 px-3 text-center">เป้าหมายในวัน (ตามความถี่)</th>
+                  <th class="py-2.5 px-3 text-center">ตรวจแล้วจริง (ครั้ง)</th>
+                  <th class="py-2.5 px-3 text-center">ยังค้างตรวจ (ครั้ง)</th>
+                  <th class="py-2.5 px-3 min-w-[130px]">ความคืบหน้า (%)</th>
                   <th class="py-2.5 px-3 text-center">คุณภาพผลตรวจ</th>
                   <th class="py-2.5 px-3 text-center">เวลาตรวจล่าสุด</th>
                   <th class="py-2.5 px-3 text-center">การจัดการ</th>
@@ -643,15 +658,29 @@
                 <i class="fa-solid fa-timeline"></i>
               </div>
               <div>
-                <h4 class="text-xs sm:text-sm font-bold text-white">ตารางรอบเวลาตรวจเช็คประจำวันตามความถี่ (Hourly Inspection Timeline)</h4>
-                <p class="text-[11px] text-slate-400">ติดตามรอบเวลาตรวจในแต่ละชั่วโมง (08:00 - 20:00 กะกลางวัน / 20:00 - 08:00 กะกลางคืน)</p>
+                <h4 class="text-xs sm:text-sm font-bold text-white">ตารางรอบเวลาตรวจเช็คประจำวันตามความถี่ (Hourly & Shift Timeline)</h4>
+                <p class="text-[11px] text-slate-400">ติดตามรอบเวลาตรวจในแต่ละรอบตามความถี่จริงของแผนก (ชั่วโมงละครั้ง / ทุก 2 ชม. / ทุกกะ / รายวัน)</p>
               </div>
             </div>
-            <div class="flex items-center gap-2 text-[10px] font-mono">
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> ตรวจแล้ว</span>
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> ถึงรอบปัจจุบัน</span>
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> ขาดตรวจ</span>
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-700"></span> รอบถัดไป</span>
+            <div class="flex items-center gap-2 flex-wrap">
+              <div class="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded-xl border border-slate-800 shadow-inner">
+                <span class="text-[11px] text-slate-400">เลือกดูแผนก:</span>
+                <select id="timelineDeptSelect" onchange="renderHourlyTimelineTracker()" class="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-2 py-0.5 font-mono focus:outline-none cursor-pointer">
+                  <option value="ALL" selected>ทุกแผนก (ภาพรวมรายชั่วโมง)</option>
+                  <option value="PD">PD - ฝ่ายผลิต (ทุก 1 ชม.)</option>
+                  <option value="QC">QC - ควบคุมคุณภาพ (ทุก 1-4 ชม.)</option>
+                  <option value="GLUE">GLUE - หน่วยงานกาว (ทุก 2 ชม.)</option>
+                  <option value="Boiler">Boiler - หม้อต้ม/ลม (รายกะ/รายวัน)</option>
+                  <option value="LAB">LAB - ห้องปฏิบัติการ (รายวัน/ตามแผน)</option>
+                  <option value="IQC">IQC - ตรวจรับวัตถุดิบ (ตามรอบ)</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-2 text-[10px] font-mono">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> ตรวจแล้ว</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> ถึงรอบปัจจุบัน</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> ขาดตรวจ</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-700"></span> รอบถัดไป</span>
+              </div>
             </div>
           </div>
 
@@ -1531,6 +1560,7 @@
       renderEntryFreqFilters();
       populateEntryMachineDropdown();
       renderEntryForm();
+      updateInspectionDueBanner();
       
       renderDashboard();
       runDefectInvestigation();
@@ -1591,6 +1621,9 @@
         const str = d.toLocaleTimeString('th-TH');
         const el = document.getElementById('liveClockDisplay');
         if (el) el.innerText = str;
+        if (d.getSeconds() === 0) {
+          updateInspectionDueBanner();
+        }
       }, 1000);
     }
 
@@ -1781,21 +1814,40 @@
       renderEntryFreqFilters();
       populateEntryMachineDropdown();
       renderEntryForm();
+      updateInspectionDueBanner();
     }
 
     function renderEntryFreqFilters() {
       const container = document.getElementById('entryFreqFilters');
-      const freqs = [
-        'ALL', 'ทุก 1 ชั่วโมง', 'ทุก 2 ชั่วโมง', 'ทุก 4 ชั่วโมง', 'ทุก 6 ชั่วโมง', 
-        'ทุก 8 ชั่วโมง', 'ทุก 12 ชั่วโมง', 'รายวัน (1 วัน)', 'ราย 7 วัน', 'ราย 14 วัน', 'ราย 30 วัน'
-      ];
+      if (!container) return;
+
+      const currentDept = appState.selectedDept || 'PD';
+      const deptItems = appState.master.filter(it => it.dept === currentDept && it.active !== false);
+
+      // Collect frequencies actually present in this department
+      const uniqueFreqsInDept = [];
+      deptItems.forEach(it => {
+        const f = (it.freq || '').trim();
+        if (f && !uniqueFreqsInDept.includes(f)) {
+          uniqueFreqsInDept.push(f);
+        }
+      });
+
+      // If selectedFreq is not in current dept, reset to ALL
+      if (appState.selectedFreq !== 'ALL' && !uniqueFreqsInDept.includes(appState.selectedFreq)) {
+        appState.selectedFreq = 'ALL';
+      }
+
+      const freqs = ['ALL', ...uniqueFreqsInDept];
 
       container.innerHTML = freqs.map(f => {
         const isSelected = appState.selectedFreq === f;
+        const count = f === 'ALL' ? deptItems.length : deptItems.filter(it => (it.freq || '').trim() === f).length;
         const label = f === 'ALL' ? 'ทุกความถี่' : f;
         return `
-          <button onclick="selectEntryFreq('${f}')" class="px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition ${isSelected ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800'}">
-            ${label}
+          <button onclick="selectEntryFreq('${f}')" class="px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5 ${isSelected ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400' : 'bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800'}">
+            <span>${label}</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400 font-mono'}">${count}</span>
           </button>
         `;
       }).join('');
@@ -2416,10 +2468,17 @@
       const inSpecLogs = logs.filter(l => l.status === 'IN-SPEC');
       const inSpecRate = totalChecks > 0 ? ((inSpecLogs.length / totalChecks) * 100).toFixed(1) : '100';
 
+      const targetMode = document.getElementById('dashboardTargetMode') ? document.getElementById('dashboardTargetMode').value : '24';
+      const totalDailyRunsTarget = appState.master.reduce((sum, it) => sum + getDailyFrequencyMultiplier(it.freq, targetMode), 0);
+
       document.getElementById('kpiTotalChecked').innerText = totalChecks;
       document.getElementById('kpiInSpecRate').innerText = inSpecRate + '%';
       document.getElementById('kpiOutOfSpecCount').innerText = outOfSpecLogs.length;
       document.getElementById('kpiTotalMasterItems').innerText = appState.master.length;
+      const kpiTargetSub = document.getElementById('kpiTargetSubtext');
+      if (kpiTargetSub) {
+        kpiTargetSub.innerText = `(เป้า ${totalDailyRunsTarget} ครั้ง/${targetMode === '12' ? 'กะ' : 'วัน'})`;
+      }
 
       // Alert Banner
       const alertBanner = document.getElementById('alertBannerSection');
@@ -2447,7 +2506,121 @@
       renderComplianceChart(logs);
     }
 
-    // Dynamic Department Daily Progress & Targets Cards (3 Core Metrics)
+    // Helper to calculate daily inspection multiplier based on frequency string
+    function getDailyFrequencyMultiplier(freqStr, targetMode) {
+      if (!freqStr) return 1;
+      const s = String(freqStr).trim().toLowerCase();
+      
+      const mode = targetMode || (document.getElementById('dashboardTargetMode') ? document.getElementById('dashboardTargetMode').value : '24');
+      if (mode === 'items') return 1;
+
+      const hours = mode === '12' ? 12 : 24;
+
+      if (s.includes('1 ชั่วโมง') || s.includes('1 ชม') || s.includes('1 hour') || s.includes('ทุกชั่วโมง')) {
+        return Math.round(hours / 1); // 24 (or 12)
+      }
+      if (s.includes('2 ชั่วโมง') || s.includes('2 ชม') || s.includes('2 hour')) {
+        return Math.round(hours / 2); // 12 (or 6)
+      }
+      if (s.includes('4 ชั่วโมง') || s.includes('4 ชม') || s.includes('4 hour')) {
+        return Math.round(hours / 4); // 6 (or 3)
+      }
+      if (s.includes('6 ชั่วโมง') || s.includes('6 ชม')) {
+        return Math.round(hours / 6); // 4 (or 2)
+      }
+      if (s.includes('8 ชั่วโมง') || s.includes('8 ชม')) {
+        return Math.round(hours / 8); // 3 (or 2)
+      }
+      if (s.includes('12 ชั่วโมง') || s.includes('12 ชม') || s.includes('กะ') || s.includes('shift')) {
+        return mode === '12' ? 1 : 2; // 2 in full 24h, 1 in 12h
+      }
+      if (s.includes('1 วัน') || s.includes('รายวัน') || s.includes('วันละ') || s.includes('daily')) {
+        return 1;
+      }
+      if (s.includes('7 วัน') || s.includes('สัปดาห์') || s.includes('weekly')) {
+        return 1;
+      }
+      if (s.includes('รอบ') || s.includes('order') || s.includes('lot') || s.includes('batch') || s.includes('แผน')) {
+        return 1; // baseline 1 ต่อวัน
+      }
+      return 1;
+    }
+
+    // Profile detector for department frequency characteristics
+    function getDepartmentFrequencyProfile(deptCode) {
+      const d = appState.depts.find(x => x.code === deptCode);
+      const deptName = d ? d.name : deptCode;
+      const items = appState.master.filter(it => it.dept === deptCode && it.active !== false);
+      
+      if (items.length === 0) {
+        return {
+          type: 'hourly',
+          label: 'ทุก 1 ชั่วโมง',
+          stepHours: 1,
+          deptName: deptName,
+          desc: `แผนก ${deptName}: แนะนำตรวจทุกชั่วโมง`
+        };
+      }
+
+      const freqs = items.map(it => (it.freq || '').trim().toLowerCase());
+      const hasHourly = freqs.some(f => f.includes('1 ชั่วโมง') || f.includes('1 ชม') || f.includes('ทุกชั่วโมง'));
+      const has2Hour = freqs.some(f => f.includes('2 ชั่วโมง') || f.includes('2 ชม'));
+      const has4Hour = freqs.some(f => f.includes('4 ชั่วโมง') || f.includes('4 ชม'));
+      const hasShift = freqs.some(f => f.includes('กะ') || f.includes('12 ชม'));
+      const hasDaily = freqs.some(f => f.includes('1 วัน') || f.includes('รายวัน') || f.includes('วันละ') || f.includes('daily'));
+
+      if (hasHourly) {
+        return {
+          type: 'hourly',
+          label: 'ทุก 1 ชั่วโมง',
+          stepHours: 1,
+          deptName: deptName,
+          desc: `ความถี่หลักแผนก ${deptName}: ตรวจทุก 1 ชั่วโมง (ตรวจช่วงนาทีที่ 00 - 15)`
+        };
+      } else if (has2Hour) {
+        return {
+          type: '2hour',
+          label: 'ทุก 2 ชั่วโมง',
+          stepHours: 2,
+          deptName: deptName,
+          desc: `ความถี่หลักแผนก ${deptName}: ตรวจทุก 2 ชั่วโมง (รอบ 08:00, 10:00, 12:00, 14:00, 16:00, 18:00, 20:00...)`
+        };
+      } else if (has4Hour) {
+        return {
+          type: '4hour',
+          label: 'ทุก 4 ชั่วโมง',
+          stepHours: 4,
+          deptName: deptName,
+          desc: `ความถี่หลักแผนก ${deptName}: ตรวจทุก 4 ชั่วโมง (รอบ 08:00, 12:00, 16:00, 20:00...)`
+        };
+      } else if (hasShift) {
+        return {
+          type: 'shift',
+          label: 'ทุกรอบกะ (12 ชม.)',
+          stepHours: 12,
+          deptName: deptName,
+          desc: `ความถี่หลักแผนก ${deptName}: ตรวจทุกรอบกะ (กะกลางวัน 08:00-20:00 น. / กะกลางคืน 20:00-08:00 น.)`
+        };
+      } else if (hasDaily) {
+        return {
+          type: 'daily',
+          label: '1 วัน (รายวัน)',
+          stepHours: 24,
+          deptName: deptName,
+          desc: `ความถี่หลักแผนก ${deptName}: ตรวจรายวัน (วันละ 1 ครั้ง หรือช่วงเริ่มรอบผลิต)`
+        };
+      } else {
+        return {
+          type: 'lot',
+          label: 'ตามรอบรับเข้า / Lot',
+          stepHours: 0,
+          deptName: deptName,
+          desc: `ความถี่หลักแผนก ${deptName}: ตรวจทุกรอบรับเข้าวัตถุดิบ หรือตาม Lot การผลิต`
+        };
+      }
+    }
+
+    // Dynamic Department Daily Progress & Targets Cards (Frequency Weighted)
     function renderDepartmentHealthCards(filteredLogs) {
       const depts = appState.depts;
       const container = document.getElementById('deptHealthContainer');
@@ -2455,26 +2628,42 @@
 
       if (!container) return;
 
+      const targetMode = document.getElementById('dashboardTargetMode') ? document.getElementById('dashboardTargetMode').value : '24';
+
       container.innerHTML = depts.map(d => {
         // All active checklist items for this department
         const deptItems = appState.master.filter(it => it.dept === d.code && it.active !== false);
         const totalItems = deptItems.length;
 
+        // Daily target runs weighted by frequency (e.g. 10 items * 24 hrs = 240 runs)
+        const totalTargetChecks = deptItems.reduce((sum, it) => sum + getDailyFrequencyMultiplier(it.freq, targetMode), 0);
+
         // Logs of the selected scope for this department
         const deptLogs = logsToUse.filter(l => l.dept === d.code);
+        const actualCheckedRuns = deptLogs.length;
+
         const deptOutOfSpec = deptLogs.filter(l => l.status === 'OUT-OF-SPEC');
         const isHealthy = deptOutOfSpec.length === 0;
         const lastLog = deptLogs[0];
         const lastTime = lastLog ? lastLog.time : 'ยังไม่มีตรวจ';
 
-        // Check which items have been inspected
+        // Check which unique items have been inspected
         const checkedItemNames = new Set(deptLogs.map(l => (l.item || '').trim().toLowerCase()));
-        const checkedCount = deptItems.filter(it => checkedItemNames.has((it.item || '').trim().toLowerCase())).length;
-        const uncheckedCount = Math.max(0, totalItems - checkedCount);
-        const progressPct = totalItems > 0 ? Math.round((checkedCount / totalItems) * 100) : 0;
+        const checkedItemsCount = deptItems.filter(it => checkedItemNames.has((it.item || '').trim().toLowerCase())).length;
+        const uncheckedItemsCount = Math.max(0, totalItems - checkedItemsCount);
+
+        // Remaining runs to reach daily target
+        const remainingTargetChecks = Math.max(0, totalTargetChecks - actualCheckedRuns);
+        
+        // Progress percentage based on target checks
+        const progressPct = totalTargetChecks > 0 ? Math.min(100, Math.round((actualCheckedRuns / totalTargetChecks) * 100)) : 0;
+        const isTargetReached = actualCheckedRuns >= totalTargetChecks && totalTargetChecks > 0;
+
+        // Department frequency profile for quick badge
+        const profile = getDepartmentFrequencyProfile(d.code);
 
         return `
-          <div class="p-4 rounded-2xl bg-slate-900 border ${!isHealthy ? 'border-rose-500/50 bg-rose-950/20 shadow-rose-950/20' : (uncheckedCount === 0 && totalItems > 0 ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-slate-800')} shadow-lg flex flex-col justify-between space-y-3 hover:border-slate-700 transition">
+          <div class="p-4 rounded-2xl bg-slate-900 border ${!isHealthy ? 'border-rose-500/50 bg-rose-950/20 shadow-rose-950/20' : (isTargetReached ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-slate-800')} shadow-lg flex flex-col justify-between space-y-3 hover:border-slate-700 transition">
             
             <!-- Card Header -->
             <div class="flex items-center justify-between">
@@ -2484,7 +2673,10 @@
                 </div>
                 <div>
                   <h4 class="text-xs font-bold text-white truncate max-w-[140px]" title="${d.name}">${d.name}</h4>
-                  <span class="text-[10px] text-slate-400 font-mono font-medium">รหัส: ${d.code}</span>
+                  <div class="flex items-center gap-1.5 mt-0.5">
+                    <span class="text-[10px] text-slate-400 font-mono font-medium">รหัส: ${d.code}</span>
+                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-800/40 font-mono">${profile.label}</span>
+                  </div>
                 </div>
               </div>
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isHealthy ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500 text-white animate-pulse'}">
@@ -2492,29 +2684,32 @@
               </span>
             </div>
 
-            <!-- Progress & 3 Core Metrics -->
+            <!-- Progress & Core Numbers Weighted by Frequency -->
             <div class="space-y-1.5 bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
               <div class="flex items-center justify-between text-[11px]">
-                <span class="text-slate-400">ความคืบหน้าการตรวจ:</span>
+                <span class="text-slate-400">ความคืบหน้าตามเป้าความถี่:</span>
                 <span class="font-mono font-bold ${progressPct === 100 ? 'text-emerald-400' : 'text-blue-400'}">${progressPct}%</span>
               </div>
               <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
                 <div class="bg-gradient-to-r from-blue-500 to-emerald-400 h-1.5 rounded-full transition-all duration-500" style="width: ${progressPct}%"></div>
               </div>
 
-              <!-- 3 Core Numbers: เป้าหมายในวัน / เช็คแล้ว / ยังไม่เช็ค -->
+              <!-- 3 Core Numbers: เป้าหมายในวัน (ตามความถี่) / เช็คแล้ว / ยังไม่ครบเป้า -->
               <div class="grid grid-cols-3 gap-1 pt-1 text-center font-mono text-[11px]">
                 <div class="bg-slate-900/90 p-1.5 rounded-lg border border-slate-800">
                   <div class="text-[9px] text-slate-400 font-sans">เป้าในวัน</div>
-                  <div class="font-bold text-white text-xs sm:text-sm">${totalItems}</div>
+                  <div class="font-bold text-white text-xs sm:text-sm">${totalTargetChecks} <span class="text-[9px] font-normal text-slate-400">ครั้ง</span></div>
+                  <div class="text-[8px] text-slate-500 font-sans">(${totalItems} หัวข้อ)</div>
                 </div>
                 <div class="bg-emerald-950/40 p-1.5 rounded-lg border border-emerald-800/40">
                   <div class="text-[9px] text-emerald-300 font-sans">เช็คแล้ว</div>
-                  <div class="font-bold text-emerald-400 text-xs sm:text-sm">${checkedCount}</div>
+                  <div class="font-bold text-emerald-400 text-xs sm:text-sm">${actualCheckedRuns} <span class="text-[9px] font-normal text-emerald-300">ครั้ง</span></div>
+                  <div class="text-[8px] text-emerald-400/80 font-sans">(${checkedItemsCount}/${totalItems} ข้อ)</div>
                 </div>
                 <div class="bg-amber-950/40 p-1.5 rounded-lg border border-amber-800/40">
                   <div class="text-[9px] text-amber-300 font-sans">ยังไม่เช็ค</div>
-                  <div class="font-bold ${uncheckedCount > 0 ? 'text-amber-400' : 'text-slate-500'} text-xs sm:text-sm">${uncheckedCount}</div>
+                  <div class="font-bold ${remainingTargetChecks > 0 ? 'text-amber-400' : 'text-slate-500'} text-xs sm:text-sm">${remainingTargetChecks} <span class="text-[9px] font-normal text-amber-300">ครั้ง</span></div>
+                  <div class="text-[8px] ${uncheckedItemsCount > 0 ? 'text-amber-400' : 'text-slate-500'} font-sans">(${uncheckedItemsCount} ข้อยังไม่เริ่ม)</div>
                 </div>
               </div>
             </div>
@@ -2531,9 +2726,9 @@
                   <i class="fa-solid fa-clipboard-check text-[10px]"></i>
                   <span>ตรวจทันที</span>
                 </button>
-                <button onclick="showUncheckedItemsModal('${d.code}')" class="py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium transition flex items-center justify-center gap-1 border border-slate-700" title="ดูรายการที่ยังไม่ได้ตรวจ">
-                  <i class="fa-solid fa-list-ul text-[10px] ${uncheckedCount > 0 ? 'text-amber-400' : 'text-slate-400'}"></i>
-                  <span>ดูที่เหลือ (${uncheckedCount})</span>
+                <button onclick="showUncheckedItemsModal('${d.code}')" class="py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium transition flex items-center justify-center gap-1 border border-slate-700" title="ดูรายการที่ยังตรวจไม่ครบ">
+                  <i class="fa-solid fa-list-ul text-[10px] ${remainingTargetChecks > 0 ? 'text-amber-400' : 'text-slate-400'}"></i>
+                  <span>ดูที่ค้าง (${remainingTargetChecks})</span>
                 </button>
               </div>
             </div>
@@ -2546,7 +2741,7 @@
       renderHourlyTimelineTracker(logsToUse);
     }
 
-    // Modal to show which exact checklist items have not been inspected today
+    // Modal to show which exact checklist items have not completed their daily target
     function showUncheckedItemsModal(deptCode) {
       const d = appState.depts.find(x => x.code === deptCode);
       const deptName = d ? d.name : deptCode;
@@ -2554,16 +2749,39 @@
 
       const targetDate = appState.dashboardSelectedDate || getTodayDateString();
       const dayLogs = appState.logs.filter(l => l.date === targetDate && l.dept === deptCode);
-      const checkedNames = new Set(dayLogs.map(l => (l.item || '').trim().toLowerCase()));
 
-      const uncheckedItems = deptItems.filter(it => !checkedNames.has((it.item || '').trim().toLowerCase()));
-      const checkedItems = deptItems.filter(it => checkedNames.has((it.item || '').trim().toLowerCase()));
+      // Count inspections per item today
+      const itemCheckCounts = {};
+      dayLogs.forEach(l => {
+        const key = (l.item || '').trim().toLowerCase();
+        itemCheckCounts[key] = (itemCheckCounts[key] || 0) + 1;
+      });
 
-      if (uncheckedItems.length === 0 && deptItems.length > 0) {
+      const targetMode = document.getElementById('dashboardTargetMode') ? document.getElementById('dashboardTargetMode').value : '24';
+
+      const itemsDetail = deptItems.map(it => {
+        const key = (it.item || '').trim().toLowerCase();
+        const checked = itemCheckCounts[key] || 0;
+        const target = getDailyFrequencyMultiplier(it.freq, targetMode);
+        const remaining = Math.max(0, target - checked);
+        const isComplete = checked >= target;
+        return {
+          ...it,
+          checked,
+          target,
+          remaining,
+          isComplete
+        };
+      });
+
+      const pendingItems = itemsDetail.filter(it => !it.isComplete);
+      const doneItems = itemsDetail.filter(it => it.isComplete);
+
+      if (pendingItems.length === 0 && deptItems.length > 0) {
         Swal.fire({
           icon: 'success',
           title: 'ยอดเยี่ยมมาก! 🎉',
-          html: `แผนก <b>${deptName}</b> ได้ตรวจเช็คครบถ้วนแล้วทุกรายการ (${checkedItems.length}/${deptItems.length} รายการ)`,
+          html: `แผนก <b>${deptName}</b> ได้ตรวจเช็คครบตามเป้าหมายความถี่แล้วทุกรายการ (${doneItems.length}/${deptItems.length} หัวข้อ)`,
           confirmButtonColor: '#2563eb',
           confirmButtonText: 'ตกลง'
         });
@@ -2571,22 +2789,28 @@
       }
 
       Swal.fire({
-        title: `📋 รายการที่ยังไม่ได้ตรวจประจำวัน`,
+        title: `📋 รายการตรวจที่ยังค้างตามเป้าหมายความถี่`,
         html: `
           <div class="space-y-3 text-left">
             <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
               <div>แผนก: <b class="text-white">${deptName}</b></div>
-              <div class="font-mono"><span class="text-amber-400 font-bold">${uncheckedItems.length}</span> / ${deptItems.length} รายการที่ยังค้าง</div>
+              <div class="font-mono">
+                <span class="text-amber-400 font-bold">${pendingItems.length}</span> / ${deptItems.length} หัวข้อที่ยังไม่ครบเป้า
+              </div>
             </div>
             <div class="max-h-72 overflow-y-auto space-y-2 pr-1" id="uncheckedListContainer">
-              ${uncheckedItems.map((it, idx) => `
+              ${pendingItems.map((it, idx) => `
                 <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-2 hover:border-slate-700 transition">
-                  <div>
+                  <div class="min-w-0 flex-1">
                     <div class="font-semibold text-white text-xs leading-snug">${idx + 1}. ${it.item}</div>
-                    <div class="text-[10px] text-slate-400 font-mono mt-0.5">
+                    <div class="text-[10px] text-slate-400 font-mono mt-0.5 flex items-center gap-1.5 flex-wrap">
                       <span class="text-indigo-400 font-semibold">${it.machine || 'General'}</span> | 
-                      <span>${it.freq}</span> | 
+                      <span class="text-slate-300">${it.freq}</span> | 
                       <span class="text-amber-300">STD: ${it.spec_raw || it.target}</span>
+                    </div>
+                    <div class="mt-1 text-[10px] font-mono">
+                      <span class="${it.checked === 0 ? 'text-rose-400 font-bold' : 'text-blue-300'}">ตรวจแล้ว ${it.checked} / ${it.target} ครั้ง</span>
+                      <span class="text-amber-400 ml-1">(ขาดอีก ${it.remaining} ครั้ง)</span>
                     </div>
                   </div>
                   <button onclick="goToInspectItem('${deptCode}', '${it.id}')" class="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold shrink-0 transition shadow-sm">
@@ -2623,20 +2847,29 @@
       const tbody = document.getElementById('deptSummaryTableBody');
       if (!tbody) return;
 
+      const targetMode = document.getElementById('dashboardTargetMode') ? document.getElementById('dashboardTargetMode').value : '24';
+
       tbody.innerHTML = appState.depts.map(d => {
         const deptItems = appState.master.filter(it => it.dept === d.code && it.active !== false);
         const totalItems = deptItems.length;
 
+        // Daily target runs weighted by frequency
+        const totalTargetChecks = deptItems.reduce((sum, it) => sum + getDailyFrequencyMultiplier(it.freq, targetMode), 0);
+
         const deptLogs = logsToUse.filter(l => l.dept === d.code);
+        const actualCheckedRuns = deptLogs.length;
+
         const deptOutOfSpec = deptLogs.filter(l => l.status === 'OUT-OF-SPEC');
         const isHealthy = deptOutOfSpec.length === 0;
         const lastLog = deptLogs[0];
         const lastTime = lastLog ? lastLog.time : '-';
 
         const checkedNames = new Set(deptLogs.map(l => (l.item || '').trim().toLowerCase()));
-        const checkedCount = deptItems.filter(it => checkedNames.has((it.item || '').trim().toLowerCase())).length;
-        const uncheckedCount = Math.max(0, totalItems - checkedCount);
-        const progressPct = totalItems > 0 ? Math.round((checkedCount / totalItems) * 100) : 0;
+        const checkedItemsCount = deptItems.filter(it => checkedNames.has((it.item || '').trim().toLowerCase())).length;
+        const uncheckedItemsCount = Math.max(0, totalItems - checkedItemsCount);
+
+        const remainingTargetChecks = Math.max(0, totalTargetChecks - actualCheckedRuns);
+        const progressPct = totalTargetChecks > 0 ? Math.min(100, Math.round((actualCheckedRuns / totalTargetChecks) * 100)) : 0;
 
         return `
           <tr class="hover:bg-slate-800/40 transition">
@@ -2645,13 +2878,16 @@
                 <span class="w-6 h-6 rounded-lg bg-${d.color || 'blue'}-500/20 text-${d.color || 'blue'}-400 flex items-center justify-center text-xs">
                   <i class="fa-solid ${d.icon || 'fa-industry'}"></i>
                 </span>
-                <span class="font-bold text-white text-xs">${d.name}</span>
-                <span class="text-[10px] text-slate-500 font-mono">(${d.code})</span>
+                <div>
+                  <span class="font-bold text-white text-xs">${d.name}</span>
+                  <span class="text-[10px] text-slate-500 font-mono">(${d.code})</span>
+                </div>
               </div>
             </td>
-            <td class="py-2.5 px-3 text-center font-mono font-bold text-white">${totalItems}</td>
-            <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-400">${checkedCount}</td>
-            <td class="py-2.5 px-3 text-center font-mono font-bold ${uncheckedCount > 0 ? 'text-amber-400' : 'text-slate-500'}">${uncheckedCount}</td>
+            <td class="py-2.5 px-3 text-center font-mono font-bold text-white">${totalItems} <span class="text-[10px] font-normal text-slate-400">ข้อ</span></td>
+            <td class="py-2.5 px-3 text-center font-mono font-bold text-blue-400">${totalTargetChecks} <span class="text-[10px] font-normal text-slate-400">ครั้ง/วัน</span></td>
+            <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-400">${actualCheckedRuns} <span class="text-[10px] font-normal text-emerald-500/80">(${checkedItemsCount}/${totalItems} ข้อ)</span></td>
+            <td class="py-2.5 px-3 text-center font-mono font-bold ${remainingTargetChecks > 0 ? 'text-amber-400' : 'text-slate-500'}">${remainingTargetChecks} <span class="text-[10px] font-normal text-amber-500/80">ครั้ง</span></td>
             <td class="py-2.5 px-3">
               <div class="flex items-center gap-2">
                 <div class="w-20 bg-slate-800 rounded-full h-1.5 overflow-hidden">
@@ -2669,7 +2905,7 @@
             <td class="py-2.5 px-3 text-center">
               <div class="flex items-center justify-center gap-1.5">
                 <button onclick="quickInspectDept('${d.code}')" class="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-[10px] font-bold transition">ตรวจ</button>
-                <button onclick="showUncheckedItemsModal('${d.code}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded text-[10px] font-medium transition" title="ดูรายการที่ค้าง">ดูที่ค้าง (${uncheckedCount})</button>
+                <button onclick="showUncheckedItemsModal('${d.code}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded text-[10px] font-medium transition" title="ดูรายการที่ค้าง">ดูที่ค้าง (${remainingTargetChecks})</button>
               </div>
             </td>
           </tr>
@@ -2677,49 +2913,162 @@
       }).join('');
     }
 
-    // Hourly Timeline Slots Tracker
+    // Hourly & Frequency Timeline Slots Tracker
     function renderHourlyTimelineTracker(logsToUse) {
       const container = document.getElementById('hourlyTimelineSlots');
       if (!container) return;
 
+      const logs = logsToUse || appState.logs;
       const now = new Date();
       const curHour = now.getHours();
 
-      // Standard factory production hours (08:00 to 19:00 day shift)
-      const slots = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+      const selDept = document.getElementById('timelineDeptSelect') ? document.getElementById('timelineDeptSelect').value : 'ALL';
+      const profile = selDept !== 'ALL' ? getDepartmentFrequencyProfile(selDept) : { type: 'hourly' };
 
-      container.innerHTML = slots.map(h => {
-        const hStr = String(h).padStart(2, '0') + ':00';
-        const hPrefix = String(h).padStart(2, '0') + ':';
-        const logsInHour = logsToUse.filter(l => (l.time || '').startsWith(hPrefix));
-        const count = logsInHour.length;
+      const filteredDeptLogs = selDept !== 'ALL' ? logs.filter(l => l.dept === selDept) : logs;
 
-        let statusClass = '';
-        let badgeText = '';
+      if (profile.type === '2hour') {
+        // 2-hour slots for GLUE or 2h depts: 08:00, 10:00, 12:00, 14:00, 16:00, 18:00
+        const twoHourSlots = [8, 10, 12, 14, 16, 18];
+        container.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2';
 
-        if (h === curHour) {
-          statusClass = 'border-amber-400 bg-amber-950/40 text-amber-200 ring-2 ring-amber-500/50 animate-pulse';
-          badgeText = count > 0 ? `ตรวจแล้ว (${count})` : 'ถึงรอบนี้ 🔔';
-        } else if (h < curHour) {
-          if (count > 0) {
-            statusClass = 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300';
-            badgeText = `ตรวจแล้ว (${count})`;
+        container.innerHTML = twoHourSlots.map(h => {
+          const hStr = `${String(h).padStart(2, '0')}:00 - ${String(h + 2).padStart(2, '0')}:00`;
+          const p1 = String(h).padStart(2, '0') + ':';
+          const p2 = String(h + 1).padStart(2, '0') + ':';
+          const logsInSlot = filteredDeptLogs.filter(l => (l.time || '').startsWith(p1) || (l.time || '').startsWith(p2));
+          const count = logsInSlot.length;
+
+          let statusClass = '';
+          let badgeText = '';
+
+          const isCurrentSlot = curHour >= h && curHour < (h + 2);
+          const isPastSlot = curHour >= (h + 2);
+
+          if (isCurrentSlot) {
+            statusClass = 'border-amber-400 bg-amber-950/40 text-amber-200 ring-2 ring-amber-500/50 animate-pulse';
+            badgeText = count > 0 ? `ตรวจแล้ว (${count})` : 'ถึงรอบนี้ 🔔';
+          } else if (isPastSlot) {
+            if (count > 0) {
+              statusClass = 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300';
+              badgeText = `ตรวจแล้ว (${count})`;
+            } else {
+              statusClass = 'border-rose-500/40 bg-rose-950/20 text-rose-300';
+              badgeText = 'ขาดตรวจ ⚠️';
+            }
           } else {
-            statusClass = 'border-rose-500/40 bg-rose-950/20 text-rose-300';
-            badgeText = 'ขาดตรวจ ⚠️';
+            statusClass = 'border-slate-800 bg-slate-950/60 text-slate-500';
+            badgeText = 'รอบถัดไป';
           }
-        } else {
-          statusClass = 'border-slate-800 bg-slate-950/60 text-slate-500';
-          badgeText = 'รอบถัดไป';
-        }
 
-        return `
-          <div class="p-2 rounded-xl border text-center transition ${statusClass}">
-            <div class="font-mono font-bold text-xs">${hStr}</div>
-            <div class="text-[9px] font-semibold mt-1 truncate">${badgeText}</div>
-          </div>
-        `;
-      }).join('');
+          return `
+            <div class="p-2.5 rounded-xl border text-center transition ${statusClass}">
+              <div class="font-mono font-bold text-xs">${hStr}</div>
+              <div class="text-[9px] font-semibold mt-1 truncate">${badgeText}</div>
+            </div>
+          `;
+        }).join('');
+
+      } else if (profile.type === 'shift' || profile.type === 'daily' || profile.type === 'lot') {
+        // Shift and Daily slots
+        container.className = 'grid grid-cols-1 sm:grid-cols-3 gap-2';
+
+        const shiftSlots = [
+          {
+            title: 'กะกลางวัน (08:00 - 20:00 น.)',
+            filter: l => {
+              const h = parseInt((l.time || '00:00').split(':')[0], 10);
+              return h >= 8 && h < 20;
+            },
+            isCurrent: curHour >= 8 && curHour < 20,
+            isPast: curHour >= 20
+          },
+          {
+            title: 'กะกลางคืน (20:00 - 08:00 น.)',
+            filter: l => {
+              const h = parseInt((l.time || '00:00').split(':')[0], 10);
+              return h >= 20 || h < 8;
+            },
+            isCurrent: curHour >= 20 || curHour < 8,
+            isPast: curHour >= 8 && curHour < 20
+          },
+          {
+            title: 'รอบประจำวัน (Daily Run)',
+            filter: l => true,
+            isCurrent: true,
+            isPast: false
+          }
+        ];
+
+        container.innerHTML = shiftSlots.map(s => {
+          const logsInSlot = filteredDeptLogs.filter(s.filter);
+          const count = logsInSlot.length;
+
+          let statusClass = '';
+          let badgeText = '';
+
+          if (s.isCurrent) {
+            statusClass = count > 0 ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300' : 'border-amber-400 bg-amber-950/40 text-amber-200 ring-2 ring-amber-500/50 animate-pulse';
+            badgeText = count > 0 ? `ตรวจแล้ว (${count} รายการ)` : 'รอการบันทึกรอบนี้ 🔔';
+          } else if (s.isPast) {
+            if (count > 0) {
+              statusClass = 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300';
+              badgeText = `ตรวจแล้ว (${count})`;
+            } else {
+              statusClass = 'border-rose-500/40 bg-rose-950/20 text-rose-300';
+              badgeText = 'ขาดตรวจ ⚠️';
+            }
+          } else {
+            statusClass = 'border-slate-800 bg-slate-950/60 text-slate-500';
+            badgeText = 'รอบถัดไป';
+          }
+
+          return `
+            <div class="p-3 rounded-xl border text-center transition ${statusClass}">
+              <div class="font-mono font-bold text-xs">${s.title}</div>
+              <div class="text-[10px] font-semibold mt-1 truncate">${badgeText}</div>
+            </div>
+          `;
+        }).join('');
+
+      } else {
+        // Standard 12 hourly slots (08:00 to 19:00)
+        container.className = 'grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2';
+        const slots = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+
+        container.innerHTML = slots.map(h => {
+          const hStr = String(h).padStart(2, '0') + ':00';
+          const hPrefix = String(h).padStart(2, '0') + ':';
+          const logsInHour = filteredDeptLogs.filter(l => (l.time || '').startsWith(hPrefix));
+          const count = logsInHour.length;
+
+          let statusClass = '';
+          let badgeText = '';
+
+          if (h === curHour) {
+            statusClass = 'border-amber-400 bg-amber-950/40 text-amber-200 ring-2 ring-amber-500/50 animate-pulse';
+            badgeText = count > 0 ? `ตรวจแล้ว (${count})` : 'ถึงรอบนี้ 🔔';
+          } else if (h < curHour) {
+            if (count > 0) {
+              statusClass = 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300';
+              badgeText = `ตรวจแล้ว (${count})`;
+            } else {
+              statusClass = 'border-rose-500/40 bg-rose-950/20 text-rose-300';
+              badgeText = 'ขาดตรวจ ⚠️';
+            }
+          } else {
+            statusClass = 'border-slate-800 bg-slate-950/60 text-slate-500';
+            badgeText = 'รอบถัดไป';
+          }
+
+          return `
+            <div class="p-2 rounded-xl border text-center transition ${statusClass}">
+              <div class="font-mono font-bold text-xs">${hStr}</div>
+              <div class="text-[9px] font-semibold mt-1 truncate">${badgeText}</div>
+            </div>
+          `;
+        }).join('');
+      }
 
       updateInspectionDueBanner();
     }
@@ -2732,33 +3081,83 @@
       const remText = document.getElementById('slotRemainingText');
       if (!timeBadge) return;
 
+      const deptCode = appState.selectedDept || 'PD';
+      const profile = getDepartmentFrequencyProfile(deptCode);
       const now = new Date();
       const curH = now.getHours();
-      const nextH = (curH + 1) % 24;
-      const curHStr = String(curH).padStart(2, '0') + ':00';
-      const nextHStr = String(nextH).padStart(2, '0') + ':00';
+      const todayStr = getTodayDateString();
 
-      timeBadge.innerText = `${curHStr} - ${nextHStr} น.`;
+      // Find today's logs for this department
+      const todayDeptLogs = appState.logs.filter(l => l.date === todayStr && l.dept === deptCode);
+      const deptItems = appState.master.filter(it => it.dept === deptCode && it.active !== false);
 
-      // Check current dept logs in this hour
-      const curHPrefix = String(curH).padStart(2, '0') + ':';
-      const curDeptLogs = appState.logs.filter(l => l.date === getTodayDateString() && l.dept === appState.selectedDept && (l.time || '').startsWith(curHPrefix));
+      let slotTitle = '';
+      let isCheckedInSlot = false;
+      let slotCheckedCount = 0;
 
-      if (curDeptLogs.length > 0) {
+      if (profile.type === 'hourly') {
+        const nextH = (curH + 1) % 24;
+        const curHStr = String(curH).padStart(2, '0') + ':00';
+        const nextHStr = String(nextH).padStart(2, '0') + ':00';
+        slotTitle = `${curHStr} - ${nextHStr} น.`;
+        const curHPrefix = String(curH).padStart(2, '0') + ':';
+        const logsInSlot = todayDeptLogs.filter(l => (l.time || '').startsWith(curHPrefix));
+        slotCheckedCount = logsInSlot.length;
+        isCheckedInSlot = slotCheckedCount > 0;
+      } else if (profile.type === '2hour') {
+        const startH = Math.floor(curH / 2) * 2;
+        const endH = (startH + 2) % 24;
+        const startHStr = String(startH).padStart(2, '0') + ':00';
+        const endHStr = String(endH).padStart(2, '0') + ':00';
+        slotTitle = `${startHStr} - ${endHStr} น.`;
+        const h1Prefix = String(startH).padStart(2, '0') + ':';
+        const h2Prefix = String(startH + 1).padStart(2, '0') + ':';
+        const logsInSlot = todayDeptLogs.filter(l => (l.time || '').startsWith(h1Prefix) || (l.time || '').startsWith(h2Prefix));
+        slotCheckedCount = logsInSlot.length;
+        isCheckedInSlot = slotCheckedCount > 0;
+      } else if (profile.type === '4hour') {
+        const startH = Math.floor(curH / 4) * 4;
+        const endH = (startH + 4) % 24;
+        const startHStr = String(startH).padStart(2, '0') + ':00';
+        const endHStr = String(endH).padStart(2, '0') + ':00';
+        slotTitle = `${startHStr} - ${endHStr} น.`;
+        const prefixes = [0, 1, 2, 3].map(offset => String(startH + offset).padStart(2, '0') + ':');
+        const logsInSlot = todayDeptLogs.filter(l => prefixes.some(p => (l.time || '').startsWith(p)));
+        slotCheckedCount = logsInSlot.length;
+        isCheckedInSlot = slotCheckedCount > 0;
+      } else if (profile.type === 'shift') {
+        const isDayShift = curH >= 8 && curH < 20;
+        slotTitle = isDayShift ? 'กะกลางวัน (08:00 - 20:00 น.)' : 'กะกลางคืน (20:00 - 08:00 น.)';
+        const logsInSlot = todayDeptLogs.filter(l => {
+          const h = parseInt((l.time || '00:00').split(':')[0], 10);
+          return isDayShift ? (h >= 8 && h < 20) : (h >= 20 || h < 8);
+        });
+        slotCheckedCount = logsInSlot.length;
+        isCheckedInSlot = slotCheckedCount > 0;
+      } else { // daily or lot
+        slotTitle = `รอบประจำวัน (${todayStr})`;
+        slotCheckedCount = todayDeptLogs.length;
+        isCheckedInSlot = slotCheckedCount > 0;
+      }
+
+      timeBadge.innerText = slotTitle;
+      if (desc) desc.innerText = profile.desc;
+
+      if (isCheckedInSlot) {
         if (statusBadge) {
-          statusBadge.className = 'px-2 py-0.2 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono';
-          statusBadge.innerText = 'รอบนี้บันทึกแล้ว ✔️';
+          statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono';
+          statusBadge.innerText = `รอบนี้บันทึกแล้ว ✔️ (${slotCheckedCount} ค่า)`;
         }
         if (remText) {
-          remText.innerHTML = `<span class="text-emerald-400 font-bold">บันทึกผลรอบ ${curHStr} แล้ว ${curDeptLogs.length} รายการ</span>`;
+          remText.innerHTML = `<span class="text-emerald-400 font-bold">บันทึกผลรอบ ${slotTitle} แล้ว ${slotCheckedCount} รายการ</span>`;
         }
       } else {
         if (statusBadge) {
-          statusBadge.className = 'px-2 py-0.2 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono';
-          statusBadge.innerText = 'ถึงรอบตรวจชั่วโมงนี้ 🔔';
+          statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono animate-pulse';
+          statusBadge.innerText = `ถึงรอบตรวจ ${profile.label} 🔔`;
         }
         if (remText) {
-          remText.innerHTML = `<span class="text-amber-400 font-bold">ยังไม่ได้ตรวจรอบ ${curHStr} น.</span>`;
+          remText.innerHTML = `<span class="text-amber-400 font-bold">ยังไม่ได้ตรวจรอบ ${slotTitle} (${deptItems.length} หัวข้อ)</span>`;
         }
       }
     }
