@@ -309,7 +309,17 @@
             </p>
           </div>
         </div>
-        <div class="flex items-center gap-2" id="slotRemainingContainer">
+        <div class="flex items-center gap-2 flex-wrap" id="slotRemainingContainer">
+          <!-- Live Elapsed Round Timer Widget -->
+          <div class="flex items-center gap-2 bg-slate-950/90 border border-indigo-500/40 px-3 py-1.5 rounded-xl shadow-inner font-mono text-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <i class="fa-solid fa-stopwatch text-indigo-400"></i>
+            <span class="text-slate-400 font-sans text-[11px] hidden sm:inline">เวลาตรวจรอบนี้:</span>
+            <span id="inspectionElapsedTimerDisplay" class="font-bold text-amber-300 text-xs sm:text-sm">00:00 นาที</span>
+            <button type="button" onclick="restartInspectionTimer()" class="text-slate-500 hover:text-amber-400 ml-1 text-xs" title="เริ่มจับเวลารอบใหม่">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+          </div>
           <span class="text-xs text-slate-300 font-mono bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800" id="slotRemainingText">
             🟢 ถึงเวลาตรวจรอบนี้
           </span>
@@ -995,6 +1005,7 @@
                 <th class="py-2.5 px-3">เกณฑ์ STD</th>
                 <th class="py-2.5 px-3">ค่าที่วัดได้</th>
                 <th class="py-2.5 px-3 text-center">สถานะ</th>
+                <th class="py-2.5 px-3 text-center">เวลาตรวจ</th>
                 <th class="py-2.5 px-3">ผู้ตรวจ / Lot</th>
                 <th class="py-2.5 px-3 text-center">รูป</th>
               </tr>
@@ -1135,7 +1146,7 @@
             <div class="flex items-center justify-between">
               <span class="font-bold text-white flex items-center gap-2">
                 <i class="fa-solid fa-code text-indigo-400"></i>
-                <span>โค้ด Google Apps Script (เวอร์ชัน 6.0)</span>
+                <span>โค้ด Google Apps Script (เวอร์ชัน 8.0 - รองรับ Duration & Pass/Fail & Numeric)</span>
               </span>
               <button onclick="copyGasCodeToClipboard()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition">
                 <i class="fa-solid fa-copy mr-1"></i> คัดลอกโค้ด
@@ -1155,7 +1166,92 @@
   </div> <!-- end #appLayout -->
 
   <!-- ================= MODALS & POPUPS ================= -->
-  
+
+  <!-- Modal: Custom Spec for Current Inspection Round -->
+  <div id="customSpecModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col animate-scaleIn">
+      <div class="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm border border-amber-500/30">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white">กำหนดเกณฑ์มาตรฐานเฉพาะรอบนี้ (Custom Spec)</h3>
+            <p class="text-[11px] text-slate-400">ปรับเปลี่ยนสเปคสำหรับ Lot/Order นี้ โดยไม่กระทบเกณฑ์มาตรฐานหลัก</p>
+          </div>
+        </div>
+        <button onclick="closeCustomSpecModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 text-xs">
+        <!-- Target Item Info -->
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+          <div class="text-[10px] text-slate-400 font-sans">รายการตรวจเช็ค:</div>
+          <div class="font-bold text-white text-sm" id="customSpecModalItemTitle">-</div>
+          <div class="text-[11px] text-slate-400 flex items-center gap-2 mt-1">
+            <span>เกณฑ์มาตรฐานเดิม: <b class="text-amber-300 font-mono" id="customSpecModalDefaultStd">-</b></span>
+          </div>
+        </div>
+
+        <input type="hidden" id="customSpecModalItemId">
+
+        <!-- Type Selector -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">ประเภทเกณฑ์สเปคเฉพาะรอบนี้</label>
+          <select id="customSpecModalType" onchange="handleCustomSpecModalTypeChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-medium">
+            <option value="range">ช่วงค่า (Min - Max)</option>
+            <option value="gte">มากกว่าเท่ากับ (>= Min)</option>
+            <option value="lte">น้อยกว่าเท่ากับ (<= Max)</option>
+            <option value="pass_fail">ผ่าน / ไม่ผ่าน (Checkbox ติ๊ก)</option>
+            <option value="numeric">ระบุตัวเลข (ไม่ระบุเกณฑ์ STD)</option>
+            <option value="text">ข้อความ / บรรยาย</option>
+          </select>
+        </div>
+
+        <!-- Min & Max Grid -->
+        <div class="grid grid-cols-2 gap-3" id="customSpecModalMinMaxRow">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1" id="customSpecModalMinLabel">ค่าต่ำสุด (Min)</label>
+            <input type="number" step="any" id="customSpecModalMin" placeholder="เช่น 150" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1" id="customSpecModalMaxLabel">ค่าสูงสุด (Max)</label>
+            <input type="number" step="any" id="customSpecModalMax" placeholder="เช่น 180" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <!-- Unit & Free Text -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">หน่วยวัด (Unit)</label>
+            <input type="text" id="customSpecModalUnit" placeholder="เช่น °C, bar..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">ระบุคำอธิบายสเปค</label>
+            <input type="text" id="customSpecModalDesc" placeholder="เช่น สเปคลูกค้า A..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between gap-2">
+        <button type="button" onclick="resetCustomSpecFromModal()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-rose-300 rounded-xl text-xs font-semibold transition border border-slate-700">
+          <i class="fa-solid fa-rotate-left mr-1"></i> ใช้เกณฑ์หลักเดิม
+        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeCustomSpecModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
+            ยกเลิก
+          </button>
+          <button type="button" onclick="saveCustomSpecModal()" class="px-5 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-amber-900/40 flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i>
+            <span>ใช้สเปคนี้เฉพาะรอบนี้</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 1. Multi-Row Checklist Standard Modal -->
   <div id="multiRowModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
@@ -1219,6 +1315,8 @@
               <option value="ราย 7 วัน">ราย 7 วัน (รายสัปดาห์)</option>
               <option value="ราย 14 วัน">ราย 14 วัน</option>
               <option value="ราย 30 วัน">ราย 30 วัน (รายเดือน)</option>
+              <option value="ตามรอบ / ตาม Lot">ตามรอบ / ตาม Lot</option>
+              <option value="ไม่ระบุ">ไม่ระบุ</option>
             </select>
           </div>
         </div>
@@ -1409,6 +1507,8 @@
       selectedMachine: 'ALL',
       entryPhotos: {},
       entryValues: {},
+      customStds: {},
+      inspectionStartTime: Date.now(),
       lastInvestigationResults: [],
       complianceChart: null
     };
@@ -1615,12 +1715,47 @@
     }
 
     // Live clock
+    function restartInspectionTimer() {
+      appState.inspectionStartTime = Date.now();
+      updateInspectionTimerDisplay();
+      Swal.fire({
+        icon: 'info',
+        title: 'เริ่มจับเวลารอบใหม่',
+        text: 'รีเซ็ตตัวจับเวลาสำหรับรอบการตรวจนี้เรียบร้อย',
+        timer: 1000,
+        showConfirmButton: false
+      });
+    }
+
+    function formatDuration(sec) {
+      sec = Math.max(0, parseInt(sec, 10) || 0);
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      if (m > 0) return `${m} นาที ${s} วินาที`;
+      return `${s} วินาที`;
+    }
+
+    function formatDurationShort(sec) {
+      sec = Math.max(0, parseInt(sec, 10) || 0);
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateInspectionTimerDisplay() {
+      const el = document.getElementById('inspectionElapsedTimerDisplay');
+      if (!el) return;
+      const sec = Math.max(0, Math.floor((Date.now() - (appState.inspectionStartTime || Date.now())) / 1000));
+      el.innerText = formatDurationShort(sec) + ' นาที';
+    }
+
     function startLiveClock() {
       setInterval(() => {
         const d = new Date();
         const str = d.toLocaleTimeString('th-TH');
         const el = document.getElementById('liveClockDisplay');
         if (el) el.innerText = str;
+        updateInspectionTimerDisplay();
         if (d.getSeconds() === 0) {
           updateInspectionDueBanner();
         }
@@ -1886,6 +2021,219 @@
       }
     }
 
+
+    // ================= DYNAMIC SPEC EVALUATOR & CUSTOM SPEC FUNCTIONS =================
+    function getActiveItemSpec(it) {
+      if (appState.customStds && appState.customStds[it.id]) {
+        return appState.customStds[it.id];
+      }
+      return {
+        spec_type: it.spec_type || 'range',
+        min_val: it.min_val !== null && it.min_val !== undefined ? it.min_val : null,
+        max_val: it.max_val !== null && it.max_val !== undefined ? it.max_val : null,
+        spec_raw: it.spec_raw || it.target || '-',
+        unit: it.unit || '',
+        isCustom: false
+      };
+    }
+
+    function evaluateItemSpec(it, valStr) {
+      if (valStr === undefined || valStr === null || String(valStr).trim() === '') {
+        return { hasValue: false, isPass: true, statusText: 'รอใส่ค่า', measuredDisplay: '' };
+      }
+
+      const activeSpec = getActiveItemSpec(it);
+      const specType = activeSpec.spec_type || 'range';
+      const valTrim = String(valStr).trim();
+
+      // 1. Pass / Fail Checkbox
+      if (specType === 'pass_fail') {
+        const isPass = (valTrim === 'PASS' || valTrim === 'ผ่าน' || valTrim === 'true');
+        return {
+          hasValue: true,
+          isPass: isPass,
+          statusText: isPass ? 'ได้สเป็ค' : 'ตกสเป็ค (ไม่ผ่าน)',
+          measuredDisplay: isPass ? 'ผ่าน' : 'ไม่ผ่าน'
+        };
+      }
+
+      // 2. Numeric only (no fixed STD constraint)
+      if (specType === 'numeric') {
+        const num = parseFloat(valTrim);
+        const isValid = !isNaN(num);
+        return {
+          hasValue: true,
+          isPass: true,
+          statusText: isValid ? 'บันทึกค่าแล้ว' : 'ระบุตัวเลข',
+          measuredDisplay: valTrim
+        };
+      }
+
+      // 3. Text
+      if (specType === 'text') {
+        return {
+          hasValue: true,
+          isPass: true,
+          statusText: 'บันทึกแล้ว',
+          measuredDisplay: valTrim
+        };
+      }
+
+      // 4. Numeric with specs: range, gte, lte
+      const numVal = parseFloat(valTrim);
+      if (isNaN(numVal)) {
+        return { hasValue: true, isPass: false, statusText: 'กรุณากรอกตัวเลข', measuredDisplay: valTrim };
+      }
+
+      let isPass = true;
+      if (specType === 'range') {
+        const min = activeSpec.min_val !== null && activeSpec.min_val !== undefined ? activeSpec.min_val : -Infinity;
+        const max = activeSpec.max_val !== null && activeSpec.max_val !== undefined ? activeSpec.max_val : Infinity;
+        if (numVal < min || numVal > max) isPass = false;
+      } else if (specType === 'gte') {
+        const min = activeSpec.min_val !== null && activeSpec.min_val !== undefined ? activeSpec.min_val : -Infinity;
+        if (numVal < min) isPass = false;
+      } else if (specType === 'lte') {
+        const max = activeSpec.max_val !== null && activeSpec.max_val !== undefined ? activeSpec.max_val : Infinity;
+        if (numVal > max) isPass = false;
+      }
+
+      return {
+        hasValue: true,
+        isPass: isPass,
+        statusText: isPass ? 'ได้สเป็ค' : 'ตกสเป็ค',
+        measuredDisplay: valTrim
+      };
+    }
+
+    // Custom Spec Modal Handlers
+    function openCustomSpecModal(itemId) {
+      const it = appState.master.find(m => m.id === itemId);
+      if (!it) return;
+
+      const activeSpec = getActiveItemSpec(it);
+      document.getElementById('customSpecModalItemId').value = itemId;
+      document.getElementById('customSpecModalItemTitle').innerText = `${it.item} (${it.machine || 'General'})`;
+      document.getElementById('customSpecModalDefaultStd').innerText = `${it.spec_raw || it.target || '-'} ${it.unit || ''}`;
+      
+      const typeSelect = document.getElementById('customSpecModalType');
+      typeSelect.value = activeSpec.spec_type || 'range';
+      
+      document.getElementById('customSpecModalMin').value = activeSpec.min_val !== null && activeSpec.min_val !== undefined ? activeSpec.min_val : '';
+      document.getElementById('customSpecModalMax').value = activeSpec.max_val !== null && activeSpec.max_val !== undefined ? activeSpec.max_val : '';
+      document.getElementById('customSpecModalUnit').value = activeSpec.unit || it.unit || '';
+      document.getElementById('customSpecModalDesc').value = activeSpec.desc || '';
+
+      handleCustomSpecModalTypeChange(typeSelect.value);
+      document.getElementById('customSpecModal').classList.remove('hidden');
+    }
+
+    function closeCustomSpecModal() {
+      document.getElementById('customSpecModal').classList.add('hidden');
+    }
+
+    function handleCustomSpecModalTypeChange(type) {
+      const minMaxRow = document.getElementById('customSpecModalMinMaxRow');
+      const minInput = document.getElementById('customSpecModalMin');
+      const maxInput = document.getElementById('customSpecModalMax');
+
+      if (type === 'pass_fail' || type === 'numeric' || type === 'text') {
+        minMaxRow.classList.add('opacity-40', 'pointer-events-none');
+        minInput.disabled = true;
+        maxInput.disabled = true;
+      } else if (type === 'gte') {
+        minMaxRow.classList.remove('opacity-40', 'pointer-events-none');
+        minInput.disabled = false;
+        maxInput.disabled = true;
+      } else if (type === 'lte') {
+        minMaxRow.classList.remove('opacity-40', 'pointer-events-none');
+        minInput.disabled = true;
+        maxInput.disabled = false;
+      } else {
+        minMaxRow.classList.remove('opacity-40', 'pointer-events-none');
+        minInput.disabled = false;
+        maxInput.disabled = false;
+      }
+    }
+
+    function saveCustomSpecModal() {
+      const itemId = document.getElementById('customSpecModalItemId').value;
+      const it = appState.master.find(m => m.id === itemId);
+      if (!it) return;
+
+      const type = document.getElementById('customSpecModalType').value;
+      const minVal = document.getElementById('customSpecModalMin').value;
+      const maxVal = document.getElementById('customSpecModalMax').value;
+      const unit = document.getElementById('customSpecModalUnit').value.trim();
+      const desc = document.getElementById('customSpecModalDesc').value.trim();
+
+      let specRaw = '';
+      if (type === 'range') {
+        specRaw = `${minVal !== '' ? minVal : '-'} ~ ${maxVal !== '' ? maxVal : '-'}`;
+      } else if (type === 'gte') {
+        specRaw = `>= ${minVal !== '' ? minVal : '-'}`;
+      } else if (type === 'lte') {
+        specRaw = `<= ${maxVal !== '' ? maxVal : '-'}`;
+      } else if (type === 'pass_fail') {
+        specRaw = 'ผ่าน (Pass/Fail)';
+      } else if (type === 'numeric') {
+        specRaw = 'ระบุตัวเลข (ไม่ระบุเกณฑ์)';
+      } else {
+        specRaw = desc || 'กำหนดเอง';
+      }
+
+      appState.customStds[itemId] = {
+        spec_type: type,
+        min_val: minVal !== '' ? parseFloat(minVal) : null,
+        max_val: maxVal !== '' ? parseFloat(maxVal) : null,
+        spec_raw: specRaw,
+        unit: unit,
+        desc: desc,
+        isCustom: true
+      };
+
+      closeCustomSpecModal();
+      renderEntryForm();
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'กำหนดสเปคเฉพาะรอบนี้แล้ว',
+        text: `ปรับเกณฑ์ "${it.item}" เป็น [ ${specRaw} ] สำหรับรอบนี้เรียบร้อย`,
+        timer: 1200,
+        showConfirmButton: false
+      });
+    }
+
+    function resetCustomSpec(itemId) {
+      if (appState.customStds && appState.customStds[itemId]) {
+        delete appState.customStds[itemId];
+        renderEntryForm();
+        Swal.fire({
+          icon: 'info',
+          title: 'คืนค่าเกณฑ์มาตรฐานเดิม',
+          text: 'กลับไปใช้เกณฑ์มาตรฐานหลักของรายการนี้แล้ว',
+          timer: 1000,
+          showConfirmButton: false
+        });
+      }
+    }
+
+    function resetCustomSpecFromModal() {
+      const itemId = document.getElementById('customSpecModalItemId').value;
+      resetCustomSpec(itemId);
+      closeCustomSpecModal();
+    }
+
+    function handlePassFailToggle(itemId, state) {
+      const current = appState.entryValues[itemId];
+      if (current === state) {
+        delete appState.entryValues[itemId];
+      } else {
+        appState.entryValues[itemId] = state;
+      }
+      renderEntryForm();
+    }
+
     function renderEntryForm() {
       const tbody = document.getElementById('entryTableBody');
       const countBadge = document.getElementById('entryItemCountBadge');
@@ -1920,29 +2268,91 @@
       tbody.innerHTML = items.map((it, idx) => {
         const val = appState.entryValues[it.id] !== undefined ? appState.entryValues[it.id] : '';
         const photoAttached = !!appState.entryPhotos[it.id];
+        const activeSpec = getActiveItemSpec(it);
+        const evalResult = evaluateItemSpec(it, val);
         
         let statusBadge = `<span class="w-full md:w-auto py-2 md:py-0.5 px-2 rounded-xl md:rounded text-xs md:text-[10px] font-bold bg-slate-800 text-slate-500 border border-slate-700 flex items-center justify-center">รอใส่ค่า</span>`;
         let inputBorderClass = 'border-slate-700 bg-slate-950 focus:border-blue-500 text-white';
 
-        if (val !== '') {
-          const numVal = parseFloat(val);
-          let isPass = true;
-          if (it.spec_type === 'range') {
-            if (it.min_val !== null && numVal < itemMin(it)) isPass = false;
-            if (it.max_val !== null && numVal > itemMax(it)) isPass = false;
-          } else if (it.spec_type === 'gte') {
-            if (it.min_val !== null && numVal < it.min_val) isPass = false;
-          } else if (it.spec_type === 'lte') {
-            if (it.max_val !== null && numVal > itemMax(it)) isPass = false;
-          }
-
-          if (isPass) {
-            statusBadge = `<span class="w-full md:w-auto py-2 md:py-0.5 px-2 rounded-xl md:rounded text-xs md:text-[10px] font-bold badge-in-spec flex items-center justify-center gap-1"><i class="fa-solid fa-check"></i> ได้สเป็ค</span>`;
+        if (evalResult.hasValue) {
+          if (evalResult.isPass) {
+            statusBadge = `<span class="w-full md:w-auto py-2 md:py-0.5 px-2 rounded-xl md:rounded text-xs md:text-[10px] font-bold badge-in-spec flex items-center justify-center gap-1"><i class="fa-solid fa-check"></i> ${evalResult.statusText}</span>`;
             inputBorderClass = 'border-emerald-500/80 bg-emerald-950/20 text-emerald-300 ring-1 ring-emerald-500/50';
           } else {
-            statusBadge = `<span class="w-full md:w-auto py-2 md:py-0.5 px-2 rounded-xl md:rounded text-xs md:text-[10px] font-bold badge-out-of-spec flex items-center justify-center gap-1 animate-pulse"><i class="fa-solid fa-xmark"></i> ตกสเป็ค</span>`;
-            inputBorderClass = 'border-rose-500/80 bg-rose-950/30 text-rose-300 ring-1 ring-rose-500/50 font-bold';
+            statusBadge = `<span class="w-full md:w-auto py-2 md:py-0.5 px-2 rounded-xl md:rounded text-xs md:text-[10px] font-bold badge-out-of-spec flex items-center justify-center gap-1 animate-pulse"><i class="fa-solid fa-xmark"></i> ${evalResult.statusText}</span>`;
+            inputBorderClass = 'border-rose-500/80 bg-rose-950/30 text-rose-300 ring-2 ring-rose-500/60 font-bold';
           }
+        }
+
+        // Render input control based on spec_type (Pass/Fail checkbox, numeric, or standard range)
+        let inputControlHtml = '';
+        if (activeSpec.spec_type === 'pass_fail') {
+          const isChecked = val === 'PASS';
+          const isFailed = val === 'FAIL';
+          inputControlHtml = `
+            <div class="flex items-center justify-center gap-1.5 w-full md:max-w-[170px] md:mx-auto">
+              <!-- Pass Checkbox Button -->
+              <button 
+                type="button" 
+                onclick="handlePassFailToggle('${it.id}', 'PASS')" 
+                class="flex-1 px-2.5 py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition ${
+                  isChecked 
+                    ? 'bg-emerald-600 text-white ring-2 ring-emerald-400 shadow-md' 
+                    : 'bg-slate-950 text-slate-400 hover:bg-slate-800 border border-slate-700'
+                }"
+                title="ผ่านตามเกณฑ์"
+              >
+                <i class="fa-solid fa-square-check text-sm ${isChecked ? 'text-white' : 'text-emerald-400'}"></i>
+                <span>ผ่าน</span>
+              </button>
+
+              <!-- Fail Checkbox Button (Pulsing Red) -->
+              <button 
+                type="button" 
+                onclick="handlePassFailToggle('${it.id}', 'FAIL')" 
+                class="flex-1 px-2.5 py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition ${
+                  isFailed 
+                    ? 'bg-rose-600 text-white ring-2 ring-rose-400 shadow-md animate-pulse font-bold' 
+                    : 'bg-slate-950 text-slate-400 hover:text-rose-400 border border-slate-700'
+                }"
+                title="ไม่ผ่านเกณฑ์"
+              >
+                <i class="fa-solid fa-square-xmark text-sm ${isFailed ? 'text-white' : 'text-rose-400'}"></i>
+                <span>ไม่ผ่าน</span>
+              </button>
+            </div>
+          `;
+        } else if (activeSpec.spec_type === 'numeric') {
+          inputControlHtml = `
+            <div class="relative w-full md:max-w-[140px] md:mx-auto">
+              <input 
+                type="number" 
+                step="any" 
+                id="input-val-${it.id}" 
+                value="${val}" 
+                oninput="handleEntryValueChange('${it.id}', this.value)" 
+                placeholder="กรอกตัวเลข..." 
+                class="w-full text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition ${inputBorderClass}"
+              >
+              ${activeSpec.unit || it.unit ? `<span class="absolute right-2.5 top-2.5 md:top-2 text-[11px] text-slate-500 pointer-events-none font-mono">${activeSpec.unit || it.unit}</span>` : ''}
+            </div>
+          `;
+        } else {
+          // Standard range / gte / lte / text
+          inputControlHtml = `
+            <div class="relative w-full md:max-w-[140px] md:mx-auto">
+              <input 
+                type="number" 
+                step="any" 
+                id="input-val-${it.id}" 
+                value="${val}" 
+                oninput="handleEntryValueChange('${it.id}', this.value)" 
+                placeholder="แตะกรอกค่า..." 
+                class="w-full text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition ${inputBorderClass}"
+              >
+              ${activeSpec.unit || it.unit ? `<span class="absolute right-2.5 top-2.5 md:top-2 text-[11px] text-slate-500 pointer-events-none font-mono">${activeSpec.unit || it.unit}</span>` : ''}
+            </div>
+          `;
         }
 
         return `
@@ -1964,36 +2374,41 @@
             <!-- Col 3: Item Title & Rules -->
             <td class="cell-item py-3 px-3">
               <div class="font-bold md:font-semibold text-white text-sm md:text-xs sm:text-sm leading-snug">${it.item}</div>
-              <div class="flex items-center gap-1.5 mt-1">
+              <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                 ${it.require_val ? `<span class="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 text-[9px] font-bold">บังคับค่า</span>` : ''}
                 ${it.require_photo ? `<span class="px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 text-[9px] font-bold">บังคับรูป</span>` : ''}
+                ${activeSpec.isCustom ? `<span class="px-1.5 py-0.2 rounded bg-amber-500 text-slate-950 font-bold text-[9px]">กำหนดสเปคเอง</span>` : ''}
               </div>
             </td>
 
-            <!-- Col 4: Standard Spec Display -->
+            <!-- Col 4: Standard Spec Display + On-the-fly Custom Spec Button -->
             <td class="cell-spec py-3 px-3 font-mono">
-              <div class="flex items-center justify-between md:inline-block bg-slate-950/70 md:bg-transparent p-2.5 md:p-0 rounded-xl md:rounded-none border border-slate-800/80 md:border-0">
-                <span class="md:hidden text-xs text-slate-400 font-sans font-medium">เกณฑ์มาตรฐาน (STD):</span>
-                <span class="text-xs font-bold text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg md:rounded border border-amber-800/50 inline-block font-mono">
-                  ${it.spec_raw || it.target || '-'} ${it.unit || ''}
-                </span>
+              <div class="flex items-center justify-between md:inline-block bg-slate-950/70 md:bg-transparent p-2 md:p-0 rounded-xl md:rounded-none border border-slate-800/80 md:border-0">
+                <span class="md:hidden text-xs text-slate-400 font-sans font-medium">เกณฑ์ (STD):</span>
+                <div class="flex items-center gap-1 flex-wrap">
+                  <span class="text-xs font-bold ${activeSpec.isCustom ? 'text-amber-200 bg-amber-950/80 border-amber-500 ring-1 ring-amber-500/40' : 'text-amber-300 bg-amber-950/40 border-amber-800/50'} px-2 py-1 rounded-lg border inline-flex items-center gap-1 font-mono">
+                    ${activeSpec.isCustom ? '<i class="fa-solid fa-pen text-[9px] text-amber-400"></i>' : ''}
+                    <span>${activeSpec.spec_raw} ${activeSpec.unit || it.unit || ''}</span>
+                  </span>
+                  
+                  <!-- Set Custom Spec Button -->
+                  <button type="button" onclick="openCustomSpecModal('${it.id}')" class="px-1.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-amber-300 border border-slate-700 text-[10px] transition shrink-0" title="กำหนด/แก้ไขสเปคเฉพาะรอบนี้">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span class="hidden lg:inline text-[9px] ml-0.5">${activeSpec.isCustom ? 'แก้สเปค' : 'ตั้งเอง'}</span>
+                  </button>
+
+                  ${activeSpec.isCustom ? `
+                    <button type="button" onclick="resetCustomSpec('${it.id}')" class="px-1.5 py-1 rounded bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 text-[10px] transition shrink-0" title="รีเซ็ตกลับเป็นเกณฑ์หลักเดิม">
+                      <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                  ` : ''}
+                </div>
               </div>
             </td>
 
-            <!-- Col 5: Measured Value Input (CLICK & TYPE IMMEDIATELY) -->
+            <!-- Col 5: Measured Value Input (or Pass/Fail Checkbox) -->
             <td class="cell-input py-3 px-3 text-center">
-              <div class="relative w-full md:max-w-[140px] md:mx-auto">
-                <input 
-                  type="number" 
-                  step="any" 
-                  id="input-val-${it.id}" 
-                  value="${val}" 
-                  oninput="handleEntryValueChange('${it.id}', this.value)" 
-                  placeholder="แตะกรอกค่า..." 
-                  class="w-full text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition ${inputBorderClass}"
-                >
-                ${it.unit ? `<span class="absolute right-2.5 top-2.5 md:top-2 text-[11px] text-slate-500 pointer-events-none font-mono">${it.unit}</span>` : ''}
-              </div>
+              ${inputControlHtml}
             </td>
 
             <!-- Col 6: Real-time Status Badge -->
@@ -2028,30 +2443,20 @@
 
       if (!input || !statusCell) return;
 
-      if (value.trim() === '') {
+      const evalResult = evaluateItemSpec(it, value);
+
+      if (!evalResult.hasValue) {
         input.className = 'w-full text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition border-slate-700 bg-slate-950 focus:border-blue-500 text-white';
         statusCell.innerHTML = `<span class="w-full md:w-auto py-2 md:py-0.5 px-2 rounded-xl md:rounded text-xs md:text-[10px] font-bold bg-slate-800 text-slate-500 border border-slate-700 flex items-center justify-center">รอใส่ค่า</span>`;
         return;
       }
 
-      const numVal = parseFloat(value);
-      let isPass = true;
-
-      if (it.spec_type === 'range') {
-        if (it.min_val !== null && numVal < itemMin(it)) isPass = false;
-        if (it.max_val !== null && numVal > itemMax(it)) isPass = false;
-      } else if (it.spec_type === 'gte') {
-        if (it.min_val !== null && numVal < it.min_val) isPass = false;
-      } else if (it.spec_type === 'lte') {
-        if (it.max_val !== null && numVal > itemMax(it)) isPass = false;
-      }
-
-      if (isPass) {
+      if (evalResult.isPass) {
         input.className = 'w-full text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition border-emerald-500/80 bg-emerald-950/20 text-emerald-300 ring-1 ring-emerald-500/50';
-        statusCell.innerHTML = `<span class="w-full md:w-auto py-2 md:py-0.5 px-2 rounded-xl md:rounded text-xs md:text-[10px] font-bold badge-in-spec flex items-center justify-center gap-1"><i class="fa-solid fa-check"></i> ได้สเป็ค</span>`;
+        statusCell.innerHTML = `<span class="w-full md:w-auto py-2 md:py-0.5 px-2 rounded-xl md:rounded text-xs md:text-[10px] font-bold badge-in-spec flex items-center justify-center gap-1"><i class="fa-solid fa-check"></i> ${evalResult.statusText}</span>`;
       } else {
-        input.className = 'w-full text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition border-rose-500/80 bg-rose-950/30 text-rose-300 ring-1 ring-rose-500/50 font-bold';
-        statusCell.innerHTML = `<span class="w-full md:w-auto py-2 md:py-0.5 px-2 rounded-xl md:rounded text-xs md:text-[10px] font-bold badge-out-of-spec flex items-center justify-center gap-1 animate-pulse"><i class="fa-solid fa-xmark"></i> ตกสเป็ค</span>`;
+        input.className = 'w-full text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition border-rose-500/80 bg-rose-950/30 text-rose-300 ring-2 ring-rose-500/60 font-bold';
+        statusCell.innerHTML = `<span class="w-full md:w-auto py-2 md:py-0.5 px-2 rounded-xl md:rounded text-xs md:text-[10px] font-bold badge-out-of-spec flex items-center justify-center gap-1 animate-pulse"><i class="fa-solid fa-xmark"></i> ${evalResult.statusText}</span>`;
       }
     }
 
@@ -2289,25 +2694,32 @@
 
       // 2. Strict Check for Required Checklist Items (require_val & require_photo)
       for (let it of items) {
+        const activeSpec = getActiveItemSpec(it);
         const input = document.getElementById('input-val-' + it.id);
-        const valStr = input ? input.value.trim() : (appState.entryValues[it.id] || '');
+        const valStr = appState.entryValues[it.id] !== undefined ? String(appState.entryValues[it.id]).trim() : (input ? input.value.trim() : '');
         const photo = appState.entryPhotos[it.id] || '';
 
         // Check if item strictly requires value
         if (it.require_val === true && valStr === '') {
-          highlightAndFocus('input-val-' + it.id, `รายการ <b>"${it.item}"</b> เป็นรายการที่ <u>บังคับใส่ค่า</u><br><span class="text-xs text-slate-300">กรุณากรอกค่าผลการตรวจก่อนกดบันทึก</span>`);
+          const focusId = activeSpec.spec_type === 'pass_fail' ? ('pass-fail-container-' + it.id) : ('input-val-' + it.id);
+          highlightAndFocus(focusId, `รายการ <b>"${it.item}"</b> เป็นรายการที่ <u>บังคับใส่ค่า</u><br><span class="text-xs text-slate-300">กรุณาแตะกรอกค่าหรือติ๊กผ่าน/ไม่ผ่านก่อนกดบันทึก</span>`);
           return;
         }
 
         // Check if item strictly requires photo
         if (it.require_photo === true && valStr !== '' && !photo) {
-          const photoBtnId = 'photo-btn-' + it.id;
+          const photoBtnId = 'photo-file-' + it.id;
           highlightAndFocus(document.getElementById(photoBtnId) ? photoBtnId : ('input-val-' + it.id), `รายการ <b>"${it.item}"</b> กำหนดให้ต้องถ่ายรูปหลักฐานประกอบก่อนบันทึก`);
           return;
         }
       }
 
-      // 3. Collect Values
+      // 3. Calculate Elapsed Inspection Duration
+      const durationSec = Math.max(1, Math.floor((Date.now() - (appState.inspectionStartTime || Date.now())) / 1000));
+      const durationStr = formatDuration(durationSec);
+      const durationShort = formatDurationShort(durationSec);
+
+      // 4. Collect Values with Custom Spec & Duration
       const newRecords = [];
       const dateStr = getTodayDateString();
       const timeStr = getNowTimeString();
@@ -2316,20 +2728,11 @@
         const input = document.getElementById('input-val-' + it.id);
         const noteInput = document.getElementById('input-note-' + it.id);
         const photo = appState.entryPhotos[it.id] || '';
-        const valStr = input ? input.value.trim() : (appState.entryValues[it.id] || '');
+        const valStr = appState.entryValues[it.id] !== undefined ? String(appState.entryValues[it.id]).trim() : (input ? input.value.trim() : '');
 
         if (valStr !== '') {
-          const val = parseFloat(valStr);
-          let isPass = true;
-
-          if (it.spec_type === 'range') {
-            if (it.min_val !== null && val < itemMin(it)) isPass = false;
-            if (it.max_val !== null && val > itemMax(it)) isPass = false;
-          } else if (it.spec_type === 'gte') {
-            if (it.min_val !== null && val < it.min_val) isPass = false;
-          } else if (it.spec_type === 'lte') {
-            if (it.max_val !== null && val > itemMax(it)) isPass = false;
-          }
+          const activeSpec = getActiveItemSpec(it);
+          const evalResult = evaluateItemSpec(it, valStr);
 
           newRecords.push({
             id: 'LOG-' + Date.now() + '-' + Math.floor(Math.random()*10000),
@@ -2340,14 +2743,17 @@
             machine: it.machine || machine,
             freq: it.freq,
             item: it.item,
-            std_spec: it.spec_raw || it.target,
-            measured_value: val,
-            unit: it.unit || '',
-            status: isPass ? 'IN-SPEC' : 'OUT-OF-SPEC',
+            std_spec: activeSpec.spec_raw,
+            measured_value: evalResult.measuredDisplay,
+            unit: activeSpec.unit || it.unit || '',
+            status: evalResult.isPass ? 'IN-SPEC' : 'OUT-OF-SPEC',
             inspector: inspector,
             order_no: orderNo,
             flute: flute,
             speed: speed,
+            duration: durationStr,
+            duration_short: durationShort,
+            duration_seconds: durationSec,
             photo: photo,
             notes: noteInput ? noteInput.value.trim() : ''
           });
@@ -2371,11 +2777,23 @@
       }
 
       // 3. Instant Toast Notification
+      appState.inspectionStartTime = Date.now();
+      updateInspectionTimerDisplay();
+
       Swal.fire({
         icon: 'success',
         title: 'บันทึกสำเร็จ!',
-        html: `บันทึกข้อมูลเรียบร้อย <b>${newRecords.length}</b> รายการ<br>${appState.gasUrl ? '<span class="text-xs text-emerald-400">🟢 ซิงค์ข้อมูลขึ้น Google Sheets ในพื้นหลัง</span>' : '<span class="text-xs text-amber-400">🟡 บันทึกลงเครื่องเรียบร้อย</span>'}`,
-        timer: 1200,
+        html: `
+          <div class="space-y-2 text-left">
+            <p class="text-sm text-slate-300">บันทึกผลการตรวจเช็คจำนวน <b>${newRecords.length} รายการ</b> เรียบร้อย</p>
+            <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-1">
+              <div>Order/Lot: <span class="font-mono text-white font-bold">${orderNo}</span> | แผนก: <span class="font-bold text-blue-400">${dept}</span></div>
+              <div class="font-mono text-amber-300 font-semibold"><i class="fa-solid fa-stopwatch text-indigo-400 mr-1"></i> เวลาที่ใช้ตรวจรอบนี้: <b>${durationStr}</b></div>
+            </div>
+            ${appState.gasUrl ? '<div class="text-[11px] text-emerald-400 mt-1">🟢 กำลังซิงค์ข้อมูลขึ้น Google Sheets ในพื้นหลัง</div>' : '<div class="text-[11px] text-amber-400 mt-1">🟡 บันทึกลงเครื่องเรียบร้อย</div>'}
+          </div>
+        `,
+        timer: 2400,
         showConfirmButton: false
       });
 
@@ -3394,6 +3812,7 @@
                   <th class="py-2.5 px-3">เกณฑ์มาตรฐาน (STD)</th>
                   <th class="py-2.5 px-3">ค่าที่วัดได้</th>
                   <th class="py-2.5 px-3 text-center">สถานะ</th>
+                  <th class="py-2.5 px-3 text-center">เวลาตรวจ</th>
                   <th class="py-2.5 px-3">ผู้ตรวจ / Order</th>
                   <th class="py-2.5 px-3 text-center">รูป</th>
                 </tr>
@@ -3419,6 +3838,9 @@
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPass ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500 text-white animate-pulse'}">
                           ${l.status}
                         </span>
+                      </td>
+                      <td class="py-2 px-3 text-center font-mono text-xs text-amber-300/90 font-medium">
+                        ${l.duration || l.duration_short || '-'}
                       </td>
                       <td class="py-2 px-3 text-slate-300 text-xs">
                         <div>${l.inspector || '-'}</div>
@@ -3477,6 +3899,7 @@
         'Measured Value': l.measured_value,
         'Unit': l.unit,
         'Status': l.status,
+        'Duration (เวลาที่ใช้ตรวจ)': l.duration || l.duration_short || '',
         'Inspector': l.inspector,
         'Order No': l.order_no,
         'Flute (ลอน)': l.flute || '',
@@ -3507,6 +3930,19 @@
 
     function renderMasterView() {
       const container = document.getElementById('masterItemsContainer');
+      // Populate masterFilterFreq dropdown if needed
+      const freqSelect = document.getElementById('masterFilterFreq');
+      if (freqSelect && freqSelect.options.length <= 1) {
+        const uniqueFreqs = Array.from(new Set(appState.master.map(it => it.freq || 'ไม่ระบุ').filter(Boolean)));
+        if (!uniqueFreqs.includes('ไม่ระบุ')) uniqueFreqs.push('ไม่ระบุ');
+        uniqueFreqs.forEach(f => {
+          const opt = document.createElement('option');
+          opt.value = f;
+          opt.innerText = f;
+          freqSelect.appendChild(opt);
+        });
+      }
+
       const deptFilter = document.getElementById('masterFilterDept') ? document.getElementById('masterFilterDept').value : 'ALL';
       const freqFilter = document.getElementById('masterFilterFreq') ? document.getElementById('masterFilterFreq').value : 'ALL';
       const search = document.getElementById('masterSearchInput') ? document.getElementById('masterSearchInput').value.trim().toLowerCase() : '';
@@ -3729,18 +4165,20 @@
             <input type="text" value="${it.item || ''}" oninput="multiRowTempItems[${idx}].item = this.value" placeholder="ระบุชื่อรายการตรวจ..." class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500 font-medium">
           </td>
           <td class="py-2 px-2">
-            <select onchange="multiRowTempItems[${idx}].spec_type = this.value" class="w-full bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-xs text-white focus:outline-none">
+            <select onchange="multiRowTempItems[${idx}].spec_type = this.value; renderMultiRowTable();" class="w-full bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-xs text-white focus:outline-none">
               <option value="range" ${it.spec_type === 'range' ? 'selected' : ''}>ช่วงค่า (Min-Max)</option>
               <option value="gte" ${it.spec_type === 'gte' ? 'selected' : ''}>มากกว่าเท่ากับ (>=)</option>
               <option value="lte" ${it.spec_type === 'lte' ? 'selected' : ''}>น้อยกว่าเท่ากับ (<=)</option>
-              <option value="text" ${it.spec_type === 'text' ? 'selected' : ''}>ข้อความ/ผ่านไม่ผ่าน</option>
+              <option value="pass_fail" ${it.spec_type === 'pass_fail' ? 'selected' : ''}>ผ่าน / ไม่ผ่าน (Checkbox)</option>
+              <option value="numeric" ${it.spec_type === 'numeric' ? 'selected' : ''}>ระบุตัวเลข (ไม่ระบุเกณฑ์ STD)</option>
+              <option value="text" ${it.spec_type === 'text' ? 'selected' : ''}>ข้อความ / บรรยาย</option>
             </select>
           </td>
           <td class="py-2 px-2">
-            <input type="number" step="any" value="${it.min_val !== null && it.min_val !== undefined ? it.min_val : ''}" oninput="multiRowTempItems[${idx}].min_val = this.value !== '' ? parseFloat(this.value) : null" placeholder="Min" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none text-center">
+            <input type="number" step="any" ${it.spec_type === 'pass_fail' || it.spec_type === 'numeric' || it.spec_type === 'text' || it.spec_type === 'lte' ? 'disabled placeholder="-" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-600 font-mono text-center cursor-not-allowed"' : `value="${it.min_val !== null && it.min_val !== undefined ? it.min_val : ''}" oninput="multiRowTempItems[${idx}].min_val = this.value !== '' ? parseFloat(this.value) : null" placeholder="Min" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none text-center"`}>
           </td>
           <td class="py-2 px-2">
-            <input type="number" step="any" value="${it.max_val !== null && it.max_val !== undefined ? it.max_val : ''}" oninput="multiRowTempItems[${idx}].max_val = this.value !== '' ? parseFloat(this.value) : null" placeholder="Max" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none text-center">
+            <input type="number" step="any" ${it.spec_type === 'pass_fail' || it.spec_type === 'numeric' || it.spec_type === 'text' || it.spec_type === 'gte' ? 'disabled placeholder="-" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-600 font-mono text-center cursor-not-allowed"' : `value="${it.max_val !== null && it.max_val !== undefined ? it.max_val : ''}" oninput="multiRowTempItems[${idx}].max_val = this.value !== '' ? parseFloat(this.value) : null" placeholder="Max" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none text-center"`}>
           </td>
           <td class="py-2 px-2">
             <input type="text" value="${it.unit || ''}" oninput="multiRowTempItems[${idx}].unit = this.value" placeholder="°C, bar..." class="w-full bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-xs text-white focus:outline-none font-mono text-center">
@@ -3795,6 +4233,10 @@
           specRaw = `>= ${it.min_val}`;
         } else if (it.spec_type === 'lte') {
           specRaw = `<= ${it.max_val}`;
+        } else if (it.spec_type === 'pass_fail') {
+          specRaw = 'ผ่าน (Pass/Fail)';
+        } else if (it.spec_type === 'numeric') {
+          specRaw = 'ระบุตัวเลข (ไม่ระบุเกณฑ์)';
         } else {
           specRaw = it.target || 'ปกติ';
         }
@@ -3956,6 +4398,9 @@
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPass ? 'badge-in-spec' : 'badge-out-of-spec'}">
                 ${l.status}
               </span>
+            </td>
+            <td class="py-2.5 px-3 text-center font-mono text-xs text-amber-300/90 font-medium">
+              ${l.duration || l.duration_short || '-'}
             </td>
             <td class="py-2.5 px-3 text-slate-300 text-xs">
               <div class="font-medium text-white">${l.inspector || '-'}</div>
@@ -4724,61 +5169,12 @@
     }
 
     function copyGasCodeToClipboard() {
-      const code = `/**
- * PLANT MASTER CHECKLIST - GOOGLE APPS SCRIPT BACKEND V6.0
- */
-const SHEET_LOGS = 'INSPECTION_LOGS';
-const SHEET_MASTER = 'CHECKLIST_MASTER';
-const SHEET_DEPTS = 'DEPARTMENTS';
-
-function doGet(e) {
-  try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    initSheetsIfNotExist(ss);
-    const action = (e && e.parameter && e.parameter.action) ? e.parameter.action : 'getAllData';
-    if (action === 'saveLogsGet' && e.parameter.data) {
-      const records = JSON.parse(decodeURIComponent(e.parameter.data));
-      const count = appendLogRecords(ss, records);
-      return createJsonResponse({ status: 'success', count: count });
-    }
-    const masterData = readMasterSheet(ss.getSheetByName(SHEET_MASTER));
-    const logsData = readLogsSheet(ss.getSheetByName(SHEET_LOGS));
-    const deptsData = readDeptsSheet(ss.getSheetByName(SHEET_DEPTS));
-    return createJsonResponse({ status: 'success', serverTime: Utilities.formatDate(new Date(), 'GMT+7', 'yyyy-MM-dd HH:mm:ss'), master: masterData, logs: logsData, depts: deptsData });
-  } catch (err) {
-    return createJsonResponse({ status: 'error', message: err.toString() });
-  }
-}
-
-function doPost(e) {
-  try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    initSheetsIfNotExist(ss);
-    let payload = {};
-    if (e && e.postData && e.postData.contents) {
-      try { payload = JSON.parse(e.postData.contents); } catch(ex) { payload = e.parameter || {}; }
-    } else if (e && e.parameter) { payload = e.parameter; }
-    const action = payload.action || 'saveLogs';
-    if (action === 'saveLogs') {
-      const records = payload.records || (payload.data ? JSON.parse(payload.data) : []);
-      const count = appendLogRecords(ss, records);
-      return createJsonResponse({ status: 'success', count: count });
-    }
-    if (action === 'updateMaster') {
-      const items = payload.items || [];
-      const updatedCount = overwriteMasterSheet(ss.getSheetByName(SHEET_MASTER), items);
-      return createJsonResponse({ status: 'success', count: updatedCount });
-    }
-    return createJsonResponse({ status: 'error', message: 'Unknown action' });
-  } catch (err) {
-    return createJsonResponse({ status: 'error', message: err.toString() });
-  }
-}`;
+      const code = "/**\n * =========================================================================\n * PLANT MASTER CHECKLIST & REAL-TIME DASHBOARD - GOOGLE APPS SCRIPT BACKEND\n * Version: 8.0 (Duration Tracking, Pass/Fail & Numeric Spec Support)\n * =========================================================================\n */\n\nconst SHEET_LOGS = 'INSPECTION_LOGS';\nconst SHEET_MASTER = 'CHECKLIST_MASTER';\nconst SHEET_DEPTS = 'DEPARTMENTS';\nconst SHEET_USERS = 'USERS';\n\n/**\n * Handle GET Requests (Read data, fetch master, logs, departments, users, or quick save)\n */\nfunction doGet(e) {\n  try {\n    const ss = SpreadsheetApp.getActiveSpreadsheet();\n    initSheetsIfNotExist(ss);\n    \n    const action = (e && e.parameter && e.parameter.action) ? e.parameter.action : 'getAllData';\n    \n    // Save logs via GET parameter (fallback for restrictive environments)\n    if (action === 'saveLogsGet' && e.parameter.data) {\n      const records = JSON.parse(decodeURIComponent(e.parameter.data));\n      const count = appendLogRecords(ss, records);\n      return createJsonResponse({ status: 'success', message: 'Saved logs via GET', count: count });\n    }\n    \n    // Default: Get all master items, logs, departments, and users\n    const masterData = readMasterSheet(ss.getSheetByName(SHEET_MASTER));\n    const logsData = readLogsSheet(ss.getSheetByName(SHEET_LOGS));\n    const deptsData = readDeptsSheet(ss.getSheetByName(SHEET_DEPTS));\n    const usersData = readUsersSheet(ss.getSheetByName(SHEET_USERS));\n    \n    return createJsonResponse({\n      status: 'success',\n      serverTime: Utilities.formatDate(new Date(), 'GMT+7', 'yyyy-MM-dd HH:mm:ss'),\n      master: masterData,\n      logs: logsData,\n      depts: deptsData,\n      users: usersData\n    });\n  } catch (err) {\n    return createJsonResponse({ status: 'error', message: err.toString() });\n  }\n}\n\n/**\n * Handle POST Requests (Save inspection logs, update master STD, manage departments & users)\n */\nfunction doPost(e) {\n  try {\n    const ss = SpreadsheetApp.getActiveSpreadsheet();\n    initSheetsIfNotExist(ss);\n    \n    let payload = {};\n    if (e && e.postData && e.postData.contents) {\n      try {\n        payload = JSON.parse(e.postData.contents);\n      } catch(ex) {\n        payload = e.parameter || {};\n      }\n    } else if (e && e.parameter) {\n      payload = e.parameter;\n    }\n    \n    const action = payload.action || 'saveLogs';\n    \n    // 1. Save Inspection Logs (from production/QC check entries)\n    if (action === 'saveLogs') {\n      const records = payload.records || (payload.data ? JSON.parse(payload.data) : []);\n      const count = appendLogRecords(ss, records);\n      return createJsonResponse({ status: 'success', message: 'Logs recorded successfully', count: count });\n    }\n    \n    // 2. Full Sync / Update of Master Checklist STD\n    if (action === 'updateMaster') {\n      const items = payload.items || [];\n      const updatedCount = overwriteMasterSheet(ss.getSheetByName(SHEET_MASTER), items);\n      return createJsonResponse({ status: 'success', message: 'Master updated successfully', count: updatedCount });\n    }\n    \n    // 3. Update Departments List\n    if (action === 'updateDepartments') {\n      const depts = payload.departments || [];\n      const updatedCount = overwriteDeptsSheet(ss.getSheetByName(SHEET_DEPTS), depts);\n      return createJsonResponse({ status: 'success', message: 'Departments updated successfully', count: updatedCount });\n    }\n\n    // 4. Update Users List & Permissions\n    if (action === 'updateUsers') {\n      const users = payload.users || [];\n      const updatedCount = overwriteUsersSheet(ss.getSheetByName(SHEET_USERS), users);\n      return createJsonResponse({ status: 'success', message: 'Users updated successfully', count: updatedCount });\n    }\n    \n    return createJsonResponse({ status: 'error', message: 'Unknown action: ' + action });\n  } catch (err) {\n    return createJsonResponse({ status: 'error', message: err.toString() });\n  }\n}\n\n/**\n * Helper: Format JSON response with CORS headers\n */\nfunction createJsonResponse(data) {\n  return ContentService.createTextOutput(JSON.stringify(data))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n\n/**\n * Format cell date to standard YYYY-MM-DD\n */\nfunction formatGasDateCell(val, displayVal) {\n  if (displayVal && /^\\d{4}-\\d{2}-\\d{2}$/.test(displayVal.trim())) {\n    return displayVal.trim();\n  }\n  if (val instanceof Date) {\n    return Utilities.formatDate(val, 'GMT+7', 'yyyy-MM-dd');\n  }\n  const str = String(displayVal || val || '').trim();\n  if (!str) return '';\n  \n  // DD/MM/YYYY or DD-MM-YYYY\n  const dmY = str.match(/^(\\d{1,2})[\\/\\-](\\d{1,2})[\\/\\-](\\d{4})/);\n  if (dmY) {\n    let year = parseInt(dmY[3]);\n    if (year > 2500) year -= 543;\n    return year + '-' + String(dmY[2]).padStart(2, '0') + '-' + String(dmY[1]).padStart(2, '0');\n  }\n  // YYYY-MM-DD\n  const ymd = str.match(/^(\\d{4})[\\/\\-](\\d{1,2})[\\/\\-](\\d{1,2})/);\n  if (ymd) {\n    let year = parseInt(ymd[1]);\n    if (year > 2500) year -= 543;\n    return year + '-' + String(ymd[2]).padStart(2, '0') + '-' + String(ymd[3]).padStart(2, '0');\n  }\n  return str;\n}\n\n/**\n * Format cell time to standard HH:mm\n */\nfunction formatGasTimeCell(val, displayVal) {\n  if (displayVal && /^\\d{2}:\\d{2}$/.test(displayVal.trim())) {\n    return displayVal.trim();\n  }\n  if (val instanceof Date) {\n    return Utilities.formatDate(val, 'GMT+7', 'HH:mm');\n  }\n  const str = String(displayVal || val || '').trim();\n  const hm = str.match(/(\\d{1,2}):(\\d{1,2})/);\n  if (hm) {\n    return String(hm[1]).padStart(2, '0') + ':' + String(hm[2]).padStart(2, '0');\n  }\n  return str;\n}\n\n/**\n * Format cell timestamp to standard YYYY-MM-DD HH:mm:ss\n */\nfunction formatGasTimestampCell(val, displayVal, dateStr, timeStr) {\n  if (val instanceof Date) {\n    return Utilities.formatDate(val, 'GMT+7', 'yyyy-MM-dd HH:mm:ss');\n  }\n  if (dateStr && timeStr) {\n    return dateStr + ' ' + (timeStr.length === 5 ? timeStr + ':00' : timeStr);\n  }\n  return String(displayVal || val || '');\n}\n\n/**\n * Helper: Append Log Records to Google Sheets (Deduplicated, Supports Flute & Speed)\n */\nfunction appendLogRecords(ss, records) {\n  const logsSheet = ss.getSheetByName(SHEET_LOGS);\n  if (!logsSheet || !records || records.length === 0) return 0;\n  \n  const lastRow = logsSheet.getLastRow();\n  const existingIds = new Set();\n  if (lastRow > 1) {\n    const existingValues = logsSheet.getRange(2, 1, lastRow - 1, 1).getValues();\n    for (let i = 0; i < existingValues.length; i++) {\n      if (existingValues[i][0]) existingIds.add(String(existingValues[i][0]));\n    }\n  }\n  \n  const now = new Date();\n  const defaultDateStr = Utilities.formatDate(now, 'GMT+7', 'yyyy-MM-dd');\n  const defaultTimeStr = Utilities.formatDate(now, 'GMT+7', 'HH:mm');\n  const defaultTimestampStr = Utilities.formatDate(now, 'GMT+7', 'yyyy-MM-dd HH:mm:ss');\n  \n  const rowsToAppend = [];\n  records.forEach(rec => {\n    const recId = rec.id || ('LOG-' + Utilities.formatDate(now, 'GMT+7', 'yyyyMMdd-HHmmss') + '-' + Math.floor(Math.random()*1000));\n    if (!existingIds.has(recId)) {\n      existingIds.add(recId);\n      \n      const rDate = rec.date || defaultDateStr;\n      const rTime = rec.time || defaultTimeStr;\n      const rTimestamp = rec.timestamp || (rDate + ' ' + rTime + ':00');\n      \n      rowsToAppend.push([\n        recId,\n        rTimestamp,\n        rDate,\n        rTime,\n        rec.dept || '',\n        rec.machine || '',\n        rec.freq || '',\n        rec.item || '',\n        rec.std_spec || '',\n        rec.measured_value !== undefined && rec.measured_value !== null ? rec.measured_value : '',\n        rec.unit || '',\n        rec.status || 'IN-SPEC',\n        rec.inspector || '',\n        rec.order_no || '',\n        rec.photo ? 'YES (\u0e21\u0e35\u0e23\u0e39\u0e1b\u0e41\u0e19\u0e1a)' : 'NO',\n        rec.notes || '',\n        rec.flute || '',\n        rec.speed || '',\n        rec.duration || ''\n      ]);\n    }\n  });\n  \n  if (rowsToAppend.length > 0) {\n    logsSheet.getRange(lastRow + 1, 1, rowsToAppend.length, 19).setValues(rowsToAppend);\n  }\n  \n  return rowsToAppend.length;\n}\n\n/**\n * Helper: Read Master Sheet\n */\nfunction readMasterSheet(sheet) {\n  if (!sheet) return [];\n  const rows = sheet.getDataRange().getValues();\n  if (rows.length <= 1) return [];\n  \n  const items = [];\n  for (let r = 1; r < rows.length; r++) {\n    const row = rows[r];\n    const itemTitle = String(row[4] || row[0] || '').trim();\n    if (!itemTitle) continue;\n    \n    items.push({\n      id: String(row[0] || ('STD_' + r)),\n      group_title: String(row[1] || '\u0e0a\u0e38\u0e14\u0e40\u0e0a\u0e47\u0e04\u0e25\u0e34\u0e2a\u0e15\u0e4c\u0e17\u0e31\u0e48\u0e27\u0e44\u0e1b'),\n      dept: String(row[2] || 'PD'),\n      machine: String(row[3] || 'General'),\n      item: itemTitle,\n      freq: String(row[5] || '\u0e17\u0e38\u0e01 1 \u0e0a\u0e31\u0e48\u0e27\u0e42\u0e21\u0e07'),\n      spec_raw: String(row[6] || ''),\n      spec_type: String(row[7] || 'range'),\n      min_val: row[8] !== '' && !isNaN(row[8]) ? parseFloat(row[8]) : null,\n      max_val: row[9] !== '' && !isNaN(row[9]) ? parseFloat(row[9]) : null,\n      unit: String(row[10] || ''),\n      target: String(row[6] || ''),\n      require_val: row[11] === true || String(row[11]).toUpperCase() === 'TRUE' || String(row[11]) === 'YES',\n      require_photo: row[12] === true || String(row[12]).toUpperCase() === 'TRUE' || String(row[12]) === 'YES',\n      active: row[13] !== false && String(row[13]).toUpperCase() !== 'FALSE'\n    });\n  }\n  return items;\n}\n\n/**\n * Helper: Read Logs Sheet with formatted Dates/Times and Flute/Speed\n */\nfunction readLogsSheet(sheet) {\n  if (!sheet) return [];\n  const rawRows = sheet.getDataRange().getValues();\n  const dispRows = sheet.getDataRange().getDisplayValues();\n  if (rawRows.length <= 1) return [];\n  \n  const logs = [];\n  // Read descending so newest logs appear first\n  for (let r = rawRows.length - 1; r >= 1; r--) {\n    const raw = rawRows[r];\n    const disp = dispRows[r];\n    if (!raw[0] && !raw[7]) continue;\n    \n    const dStr = formatGasDateCell(raw[2], disp[2]);\n    const tStr = formatGasTimeCell(raw[3], disp[3]);\n    const tsStr = formatGasTimestampCell(raw[1], disp[1], dStr, tStr);\n    \n    logs.push({\n      id: String(raw[0] || ('LOG-' + r)),\n      timestamp: tsStr,\n      date: dStr,\n      time: tStr,\n      dept: String(raw[4] || ''),\n      machine: String(raw[5] || ''),\n      freq: String(raw[6] || ''),\n      item: String(raw[7] || ''),\n      std_spec: String(raw[8] || ''),\n      measured_value: raw[9] !== '' ? raw[9] : '-',\n      unit: String(raw[10] || ''),\n      status: String(raw[11] || 'IN-SPEC'),\n      inspector: String(raw[12] || ''),\n      order_no: String(raw[13] || ''),\n      photo: (raw[14] && String(raw[14]).includes('YES')) ? 'ATTACHED' : '',\n      notes: String(raw[15] || ''),\n      flute: String(raw[16] || ''),\n      speed: String(raw[17] || ''),\n      duration: String(raw[18] || '')\n    });\n  }\n  return logs;\n}\n\n/**\n * Helper: Read Departments Sheet\n */\nfunction readDeptsSheet(sheet) {\n  if (!sheet) return [];\n  const rows = sheet.getDataRange().getValues();\n  if (rows.length <= 1) return [];\n  \n  const depts = [];\n  for (let r = 1; r < rows.length; r++) {\n    const row = rows[r];\n    if (!row[1] && !row[2]) continue;\n    depts.push({\n      id: String(row[0] || ('dept_' + r)),\n      code: String(row[1] || ''),\n      name: String(row[2] || ''),\n      icon: String(row[3] || 'fa-industry'),\n      color: String(row[4] || 'blue'),\n      desc: String(row[5] || '')\n    });\n  }\n  return depts;\n}\n\n/**\n * Helper: Read Users Sheet\n */\nfunction readUsersSheet(sheet) {\n  if (!sheet) return [];\n  const rows = sheet.getDataRange().getValues();\n  if (rows.length <= 1) return [];\n  \n  const users = [];\n  for (let r = 1; r < rows.length; r++) {\n    const row = rows[r];\n    const username = String(row[1] || '').trim();\n    if (!username) continue;\n    \n    let allowedTabs = [];\n    const tabsRaw = String(row[6] || '').trim();\n    if (tabsRaw.startsWith('[') && tabsRaw.endsWith(']')) {\n      try {\n        allowedTabs = JSON.parse(tabsRaw);\n      } catch(e) {\n        allowedTabs = tabsRaw.replace(/[\\[\\]\"]/g, '').split(',').map(s => s.trim()).filter(Boolean);\n      }\n    } else if (tabsRaw) {\n      allowedTabs = tabsRaw.split(',').map(s => s.trim()).filter(Boolean);\n    }\n    if (allowedTabs.length === 0) {\n      allowedTabs = ['inspection', 'dashboard', 'investigation', 'history', 'qr_hub'];\n    }\n    \n    users.push({\n      id: String(row[0] || ('usr_' + r)),\n      username: username,\n      password: String(row[2] || ''),\n      name: String(row[3] || username),\n      role: String(row[4] || 'operator'),\n      dept: String(row[5] || 'ALL'),\n      allowed_tabs: allowedTabs,\n      active: row[7] !== false && String(row[7]).toUpperCase() !== 'FALSE'\n    });\n  }\n  return users;\n}\n\n/**\n * Overwrite Master Checklist Sheet\n */\nfunction overwriteMasterSheet(sheet, items) {\n  if (!sheet) return 0;\n  sheet.clearContents();\n  \n  const headers = [\n    'ID', 'Group Title', 'Department', 'Machine', 'Item Name', 'Frequency', \n    'Standard Spec', 'Spec Type', 'Min Value', 'Max Value', 'Unit', \n    'Require Value', 'Require Photo', 'Active'\n  ];\n  sheet.appendRow(headers);\n  sheet.getRange(1, 1, 1, headers.length).setBackground('#1e3a8a').setFontColor('#ffffff').setFontWeight('bold');\n  \n  if (items && items.length > 0) {\n    const rows = items.map(it => [\n      it.id || '',\n      it.group_title || '\u0e0a\u0e38\u0e14\u0e40\u0e0a\u0e47\u0e04\u0e25\u0e34\u0e2a\u0e15\u0e4c\u0e17\u0e31\u0e48\u0e27\u0e44\u0e1b',\n      it.dept || 'PD',\n      it.machine || 'General',\n      it.item || '',\n      it.freq || '\u0e17\u0e38\u0e01 1 \u0e0a\u0e31\u0e48\u0e27\u0e42\u0e21\u0e07',\n      it.spec_raw || it.target || '',\n      it.spec_type || 'range',\n      it.min_val !== null && it.min_val !== undefined ? it.min_val : '',\n      it.max_val !== null && it.max_val !== undefined ? it.max_val : '',\n      it.unit || '',\n      it.require_val === true ? 'TRUE' : 'FALSE',\n      it.require_photo === true ? 'TRUE' : 'FALSE',\n      it.active !== false ? 'TRUE' : 'FALSE'\n    ]);\n    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);\n    return rows.length;\n  }\n  return 0;\n}\n\n/**\n * Overwrite Departments Sheet\n */\nfunction overwriteDeptsSheet(sheet, depts) {\n  if (!sheet) return 0;\n  sheet.clearContents();\n  const headers = ['ID', 'Code', 'Name', 'Icon', 'Color', 'Description'];\n  sheet.appendRow(headers);\n  sheet.getRange(1, 1, 1, headers.length).setBackground('#0f172a').setFontColor('#ffffff').setFontWeight('bold');\n  \n  if (depts && depts.length > 0) {\n    const rows = depts.map(d => [\n      d.id || '',\n      d.code || '',\n      d.name || '',\n      d.icon || 'fa-industry',\n      d.color || 'blue',\n      d.desc || ''\n    ]);\n    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);\n    return rows.length;\n  }\n  return 0;\n}\n\n/**\n * Overwrite Users Sheet\n */\nfunction overwriteUsersSheet(sheet, users) {\n  if (!sheet) return 0;\n  sheet.clearContents();\n  const headers = ['ID', 'Username', 'Password', 'Name', 'Role', 'Department', 'Allowed Tabs', 'Active'];\n  sheet.appendRow(headers);\n  sheet.getRange(1, 1, 1, headers.length).setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold');\n  \n  if (users && users.length > 0) {\n    const rows = users.map(u => [\n      u.id || '',\n      u.username || '',\n      u.password || '',\n      u.name || '',\n      u.role || 'operator',\n      u.dept || 'ALL',\n      Array.isArray(u.allowed_tabs) ? u.allowed_tabs.join(',') : String(u.allowed_tabs || ''),\n      u.active !== false ? 'TRUE' : 'FALSE'\n    ]);\n    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);\n    return rows.length;\n  }\n  return 0;\n}\n\n/**\n * Initialize sheets and headers if not exist\n */\nfunction initSheetsIfNotExist(ss) {\n  // 1. Logs Sheet\n  let logsSheet = ss.getSheetByName(SHEET_LOGS);\n  if (!logsSheet) {\n    logsSheet = ss.insertSheet(SHEET_LOGS);\n    logsSheet.appendRow([\n      'Record ID', 'Timestamp', 'Date', 'Time', 'Department', 'Machine',\n      'Frequency', 'Inspection Item', 'Standard Spec', 'Measured Value',\n      'Unit', 'Status', 'Inspector', 'Order No', 'Photo Attached', 'Notes',\n      'Flute', 'Speed', 'Duration'\n    ]);\n    logsSheet.getRange(1, 1, 1, 19).setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold');\n  } else {\n    // Check if Flute, Speed & Duration headers exist\n    const lastCol = logsSheet.getLastColumn();\n    if (lastCol < 19) {\n      if (lastCol < 17) logsSheet.getRange(1, 17).setValue('Flute');\n      if (lastCol < 18) logsSheet.getRange(1, 18).setValue('Speed');\n      if (lastCol < 19) logsSheet.getRange(1, 19).setValue('Duration');\n    }\n  }\n  \n  // 2. Master Sheet\n  let masterSheet = ss.getSheetByName(SHEET_MASTER);\n  if (!masterSheet) {\n    masterSheet = ss.insertSheet(SHEET_MASTER);\n    masterSheet.appendRow([\n      'ID', 'Group Title', 'Department', 'Machine', 'Item Name', 'Frequency', \n      'Standard Spec', 'Spec Type', 'Min Value', 'Max Value', 'Unit', \n      'Require Value', 'Require Photo', 'Active'\n    ]);\n    masterSheet.getRange(1, 1, 1, 14).setBackground('#1e3a8a').setFontColor('#ffffff').setFontWeight('bold');\n  }\n  \n  // 3. Departments Sheet\n  let deptsSheet = ss.getSheetByName(SHEET_DEPTS);\n  if (!deptsSheet) {\n    deptsSheet = ss.insertSheet(SHEET_DEPTS);\n    deptsSheet.appendRow(['ID', 'Code', 'Name', 'Icon', 'Color', 'Description']);\n    deptsSheet.getRange(1, 1, 1, 6).setBackground('#0f172a').setFontColor('#ffffff').setFontWeight('bold');\n  }\n\n  // 4. Users Sheet\n  let usersSheet = ss.getSheetByName(SHEET_USERS);\n  if (!usersSheet) {\n    usersSheet = ss.insertSheet(SHEET_USERS);\n    usersSheet.appendRow(['ID', 'Username', 'Password', 'Name', 'Role', 'Department', 'Allowed Tabs', 'Active']);\n    usersSheet.getRange(1, 1, 1, 8).setBackground('#0f172a').setFontColor('#ffffff').setFontWeight('bold');\n    \n    // Seed initial default users\n    const defaultUsers = [\n      ['usr_admin', 'admin', 'admin1234', '\u0e1c\u0e39\u0e49\u0e14\u0e39\u0e41\u0e25\u0e23\u0e30\u0e1a\u0e1a\u0e2a\u0e39\u0e07\u0e2a\u0e38\u0e14 (Admin)', 'admin', 'ALL', 'inspection,dashboard,investigation,master,history,qr_hub,users_depts,settings', 'TRUE'],\n      ['usr_pd', 'pd_user', 'pd1234', '\u0e17\u0e35\u0e21\u0e07\u0e32\u0e19\u0e1d\u0e48\u0e32\u0e22\u0e1c\u0e25\u0e34\u0e15 (PD)', 'operator', 'PD', 'inspection,dashboard,investigation,history,qr_hub', 'TRUE'],\n      ['usr_qc', 'qc_user', 'qc1234', '\u0e40\u0e08\u0e49\u0e32\u0e2b\u0e19\u0e49\u0e32\u0e17\u0e35\u0e48\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a (QC)', 'inspector', 'QC', 'inspection,dashboard,investigation,history,qr_hub', 'TRUE']\n    ];\n    usersSheet.getRange(2, 1, defaultUsers.length, 8).setValues(defaultUsers);\n  }\n}\n";
 
       navigator.clipboard.writeText(code);
       Swal.fire({
         icon: 'success',
-        title: 'คัดลอกโค้ด Apps Script แล้ว!',
+        title: 'คัดลอกโค้ด Apps Script v8.0 แล้ว!',
         text: 'นำไปวางใน Extensions > Apps Script และกด Deploy > New deployment (Web app: Anyone)',
         timer: 2000,
         showConfirmButton: false
