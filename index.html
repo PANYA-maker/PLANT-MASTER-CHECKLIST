@@ -36,6 +36,13 @@
     }
   </script>
 
+  <script>
+    // Enforce Permanent Dark Mode (ปิดระบบโหมดสว่าง)
+    document.documentElement.classList.remove('light');
+    document.documentElement.classList.add('dark');
+    try { localStorage.removeItem('plant_theme'); } catch(e) {}
+  </script>
+
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <!-- Chart.js -->
@@ -67,6 +74,228 @@
     @keyframes pulseGlow {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: .75; transform: scale(0.98); }
+    }
+
+    /* Theme transitions */
+    body, header, nav, main, div, table, tr, td, th, input, select, textarea, button {
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* ================= COMPLETE HIGH-CONTRAST LIGHT MODE ================= */
+    html.light, html.light body {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+
+    html.light header {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    html.light .bg-slate-950 {
+      background-color: #ffffff !important;
+    }
+
+    html.light .bg-slate-900 {
+      background-color: #ffffff !important;
+    }
+
+    html.light [class*="bg-slate-900/"],
+    html.light [class*="bg-slate-950/"],
+    html.light [class*="bg-slate-800/"] {
+      background-color: #f8fafc !important;
+    }
+
+    html.light .bg-slate-800 {
+      background-color: #f1f5f9 !important;
+    }
+
+    html.light .border-slate-800,
+    html.light .border-slate-700,
+    html.light [class*="border-slate-800/"],
+    html.light [class*="border-slate-700/"] {
+      border-color: #cbd5e1 !important;
+    }
+
+    /* Sharp Deep Text Colors */
+    html.light .text-white,
+    html.light .text-slate-100,
+    html.light .text-slate-200 {
+      color: #0f172a !important;
+    }
+
+    html.light .text-slate-300 {
+      color: #1e293b !important;
+    }
+
+    html.light .text-slate-400 {
+      color: #334155 !important; /* Dark Slate-700 - very crisp & readable! */
+    }
+
+    html.light .text-slate-500 {
+      color: #475569 !important;
+    }
+
+    /* Fix Gradient Text in Light Mode (Disable transparent text) */
+    html.light .bg-clip-text {
+      background-clip: border-box !important;
+      -webkit-background-clip: border-box !important;
+      -webkit-text-fill-color: #0f172a !important;
+      color: #0f172a !important;
+      background: none !important;
+    }
+
+    /* Colored Text in Light Mode (Deep & High Contrast) */
+    html.light .text-blue-300,
+    html.light .text-blue-400 {
+      color: #1d4ed8 !important;
+    }
+
+    html.light .text-indigo-300,
+    html.light .text-indigo-400 {
+      color: #4338ca !important;
+    }
+
+    html.light .text-amber-200,
+    html.light .text-amber-300,
+    html.light .text-amber-400 {
+      color: #92400e !important;
+    }
+
+    html.light .text-emerald-300,
+    html.light .text-emerald-400 {
+      color: #065f46 !important;
+    }
+
+    html.light .text-rose-300,
+    html.light .text-rose-400 {
+      color: #9f1239 !important;
+    }
+
+    html.light .text-cyan-300,
+    html.light .text-cyan-400 {
+      color: #0e7490 !important;
+    }
+
+    html.light .text-purple-300,
+    html.light .text-purple-400 {
+      color: #6b21a8 !important;
+    }
+
+    /* Form Controls */
+    html.light input:not([type="checkbox"]):not([type="radio"]),
+    html.light select,
+    html.light textarea {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border: 1.5px solid #94a3b8 !important;
+      font-weight: 500 !important;
+    }
+
+    html.light input:focus,
+    html.light select:focus,
+    html.light textarea:focus {
+      border-color: #2563eb !important;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25) !important;
+    }
+
+    html.light input::placeholder,
+    html.light textarea::placeholder {
+      color: #64748b !important;
+    }
+
+    /* Table Styles */
+    html.light table {
+      color: #0f172a !important;
+    }
+
+    html.light thead,
+    html.light thead th {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+      border-bottom: 2px solid #cbd5e1 !important;
+      font-weight: 700 !important;
+    }
+
+    html.light thead tr {
+      background-color: #f1f5f9 !important;
+    }
+
+    html.light tbody tr {
+      border-bottom-color: #e2e8f0 !important;
+    }
+
+    html.light tbody tr:hover {
+      background-color: #f8fafc !important;
+    }
+
+    /* Mobile Inspection Cards */
+    html.light .responsive-checklist-table tr.inspection-card-row {
+      background-color: #ffffff !important;
+      border: 1.5px solid #cbd5e1 !important;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    /* Badges */
+    html.light .badge-in-spec {
+      background-color: #dcfce7 !important;
+      color: #166534 !important;
+      border: 1px solid #86efac !important;
+      font-weight: 700 !important;
+    }
+
+    html.light .badge-out-of-spec {
+      background-color: #fee2e2 !important;
+      color: #991b1b !important;
+      border: 1px solid #fca5a5 !important;
+      font-weight: 700 !important;
+    }
+
+    html.light [class*="bg-amber-950/40"],
+    html.light [class*="bg-amber-950/80"] {
+      background-color: #fef3c7 !important;
+      border-color: #fcd34d !important;
+    }
+
+    html.light .bg-blue-950,
+    html.light [class*="bg-blue-950/80"] {
+      background-color: #eff6ff !important;
+      border-color: #bfdbfe !important;
+    }
+
+    html.light #inspectionDueBanner {
+      background: linear-gradient(to right, #eff6ff, #f8fafc, #f1f5f9) !important;
+      border-color: #93c5fd !important;
+    }
+
+    html.light #loginScreenView {
+      background-color: #f1f5f9 !important;
+    }
+
+    html.light #loginScreenView > div {
+      background-color: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+    }
+
+    html.light #customSpecModal > div,
+    html.light #multiRowModal > div,
+    html.light #photoViewerModal > div {
+      background-color: #ffffff !important;
+      border: 1.5px solid #cbd5e1 !important;
+    }
+
+    html.light #customSpecModal .bg-slate-950,
+    html.light #multiRowModal .bg-slate-950 {
+      background-color: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+    }
+
+    html.light ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    html.light ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
     }
 
     /* Mobile-first Responsive Checklist Table */
@@ -135,7 +364,7 @@
 <body class="h-full bg-slate-950 text-slate-100 flex flex-col antialiased selection:bg-blue-600 selection:text-white">
 
   <!-- ================= STANDALONE FULL-SCREEN LOGIN VIEW (บังคับเข้าสู่ระบบก่อนใช้งาน) ================= -->
-  <div id="loginScreenView" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-4 min-h-screen overflow-y-auto hidden">
+  <div id="loginScreenView" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-4 min-h-screen overflow-y-auto">
     <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
       
       <!-- Brand Header -->
@@ -272,6 +501,9 @@
             <span class="hidden sm:inline">ดึงข้อมูลล่าสุด</span>
           </button>
 
+          <!-- Theme Toggle Button (Dark / Light Mode) -->
+          <!-- Theme Toggle Removed: Permanent Dark Mode Enabled -->
+
           <!-- User Menu Badge -->
           <div class="relative" id="userMenuContainer">
             <!-- User pill injected by JS -->
@@ -360,53 +592,73 @@
         <!-- Generated by JS -->
       </div>
 
-      <!-- Metadata Bar: Inspector, Order/Lot, Machine, Flute, Speed -->
-      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800/90 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 shadow-md">
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-400 mb-1">
-            <i class="fa-solid fa-user-check text-blue-400 mr-1"></i> ผู้ทำการตรวจเช็ค (Inspector) <span class="text-rose-400 font-bold">*</span>
-          </label>
-          <input type="text" id="entryInspectorInput" placeholder="ระบุชื่อผู้ตรวจเช็ค..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-medium transition">
+      <!-- Dynamic Configurable Metadata Header Bar by Department -->
+      <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4 shadow-md space-y-3">
+        <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-800/60">
+          <div class="flex items-center gap-2 text-xs font-bold text-slate-300">
+            <i class="fa-solid fa-clipboard-list text-blue-400"></i>
+            <span>ข้อมูลส่วนหัวการตรวจเช็ค (Header Details)</span>
+            <span id="entryHeaderDeptBadge" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-950/80 text-blue-300 border border-blue-800/40 font-mono">PD</span>
+          </div>
+          <button 
+            type="button" 
+            onclick="openDeptHeaderConfigModal()" 
+            class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm active:scale-95"
+            title="ปรับแต่ง/เพิ่ม/ลดหัวเช็คลิสต์ของแต่ละแผนก"
+          >
+            <i class="fa-solid fa-sliders text-indigo-400 text-[11px]"></i>
+            <span>ปรับแต่งหัวเช็คลิสต์แผนกนี้</span>
+          </button>
         </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-400 mb-1">
-            <i class="fa-solid fa-hashtag text-indigo-400 mr-1"></i> หมายเลข Order / Lot <span class="text-rose-400 font-bold">*</span>
-          </label>
-          <input type="text" id="entryOrderNoInput" placeholder="เช่น ORD-6902, Lot A..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-mono transition">
-        </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-400 mb-1">
-            <i class="fa-solid fa-gear text-amber-400 mr-1"></i> เครื่องจักรเป้าหมาย (Machine) <span class="text-rose-400 font-bold">*</span>
-          </label>
-          <select id="entryMachineFilter" onchange="handleMachineFilterChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 transition">
-            <option value="ALL">เครื่องจักรทั้งหมดในแผนก</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-400 mb-1">
-            <i class="fa-solid fa-water text-cyan-400 mr-1"></i> ลอน (Flute) <span class="text-rose-400 font-bold">*</span>
-          </label>
-          <div class="relative">
+
+        <!-- Rendered dynamically by renderEntryHeader() -->
+        <div id="entryHeaderFieldsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <!-- Fallback static controls while JS boots -->
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+              <i class="fa-solid fa-user-check text-blue-400 mr-1"></i> ผู้ทำการตรวจเช็ค (Inspector) <span class="text-rose-400 font-bold">*</span>
+            </label>
+            <input type="text" id="entryInspectorInput" placeholder="ระบุชื่อผู้ตรวจเช็ค..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-medium transition">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+              <i class="fa-solid fa-hashtag text-indigo-400 mr-1"></i> หมายเลข Order / Lot <span class="text-rose-400 font-bold">*</span>
+            </label>
+            <input type="text" id="entryOrderNoInput" placeholder="เช่น ORD-6902, Lot A..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-mono transition">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+              <i class="fa-solid fa-gear text-amber-400 mr-1"></i> เครื่องจักรเป้าหมาย (Machine) <span class="text-rose-400 font-bold">*</span>
+            </label>
+            <select id="entryMachineFilter" onchange="handleMachineFilterChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 transition">
+              <option value="ALL">เครื่องจักรทั้งหมดในแผนก</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+              <i class="fa-solid fa-water text-cyan-400 mr-1"></i> ลอน (Flute) <span class="text-rose-400 font-bold">*</span>
+            </label>
             <input type="text" id="entryFluteInput" list="fluteOptionsList" placeholder="เช่น B, C, BC, E..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-500 font-semibold transition">
-            <datalist id="fluteOptionsList">
-              <option value="A"></option>
-              <option value="B"></option>
-              <option value="C"></option>
-              <option value="E"></option>
-              <option value="BC"></option>
-              <option value="AB"></option>
-              <option value="BE"></option>
-              <option value="3 ชั้น"></option>
-              <option value="5 ชั้น"></option>
-            </datalist>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+              <i class="fa-solid fa-gauge-high text-emerald-400 mr-1"></i> Speed (ความเร็ว m/min) <span class="text-rose-400 font-bold">*</span>
+            </label>
+            <input type="text" id="entrySpeedInput" placeholder="เช่น 150, 180 m/min..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500 font-mono transition">
           </div>
         </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-400 mb-1">
-            <i class="fa-solid fa-gauge-high text-emerald-400 mr-1"></i> Speed (ความเร็ว m/min) <span class="text-rose-400 font-bold">*</span>
-          </label>
-          <input type="text" id="entrySpeedInput" placeholder="เช่น 150, 180 m/min..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500 font-mono transition">
-        </div>
+
+        <datalist id="fluteOptionsList">
+          <option value="A"></option>
+          <option value="B"></option>
+          <option value="C"></option>
+          <option value="E"></option>
+          <option value="BC"></option>
+          <option value="AB"></option>
+          <option value="BE"></option>
+          <option value="3 ชั้น"></option>
+          <option value="5 ชั้น"></option>
+        </datalist>
       </div>
 
       <!-- CHECKLIST QUICK-ENTRY TABLE (คลิกกรอกค่าได้ทันที พร้อมแจ้งเตือนสี) -->
@@ -815,6 +1067,34 @@
           </div>
         </div>
 
+        <!-- Keyword / Text Search Bar (เลขออเดอร์ PDR, เลขม้วน, เครื่องจักร, รายการตรวจ, หมายเหตุ) -->
+        <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1.5">
+          <label class="block text-xs font-semibold text-indigo-300 flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i class="fa-solid fa-magnifying-glass text-indigo-400"></i>
+              <span>กรองค้นหาเพิ่มเติม (พิมพ์ค้นหาเลขออเดอร์ PDR, เลขม้วน, เครื่องจักร, รายการตรวจ, ผู้ตรวจ, หมายเหตุ):</span>
+            </span>
+            <span class="text-[11px] text-slate-400 font-normal">สืบค้นเรียลไทม์ทันทีที่พิมพ์</span>
+          </label>
+          <div class="relative flex items-center">
+            <i class="fa-solid fa-search absolute left-3.5 text-slate-500 text-xs pointer-events-none"></i>
+            <input 
+              type="text" 
+              id="invKeywordSearch" 
+              oninput="runDefectInvestigation()" 
+              placeholder="พิมพ์ค้นหา เช่น PDR1234, ม้วนที่ 4, BHS, อุณหภูมิ, 150..." 
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-24 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-medium transition"
+            >
+            <button 
+              type="button" 
+              onclick="document.getElementById('invKeywordSearch').value = ''; runDefectInvestigation();" 
+              class="absolute right-2 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-[11px] font-semibold transition"
+            >
+              <i class="fa-solid fa-xmark mr-1"></i> ล้างคำค้น
+            </button>
+          </div>
+        </div>
+
         <!-- Inputs Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           <!-- Start Date & Time -->
@@ -1199,9 +1479,11 @@
 
         <!-- Type Selector -->
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">ประเภทเกณฑ์สเปคเฉพาะรอบนี้</label>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">รูปแบบเกณฑ์มาตรฐาน (STD Mode)</label>
           <select id="customSpecModalType" onchange="handleCustomSpecModalTypeChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-medium">
-            <option value="range">ช่วงค่า (Min - Max)</option>
+            <option value="tol_percent">ค่าเป้าหมาย ± % (เช่น 100 ± 5%)</option>
+            <option value="tol_value">ค่าเป้าหมาย ± ค่าคงที่ (เช่น 100 ± 5 หรือไม่เกิน 5)</option>
+            <option value="range">ช่วงค่าโดยตรง (Min - Max)</option>
             <option value="gte">มากกว่าเท่ากับ (>= Min)</option>
             <option value="lte">น้อยกว่าเท่ากับ (<= Max)</option>
             <option value="pass_fail">ผ่าน / ไม่ผ่าน (Checkbox ติ๊ก)</option>
@@ -1210,8 +1492,31 @@
           </select>
         </div>
 
-        <!-- Min & Max Grid -->
-        <div class="grid grid-cols-2 gap-3" id="customSpecModalMinMaxRow">
+        <!-- Row for Target & Tolerance (When tol_percent or tol_value selected) -->
+        <div id="customSpecModalToleranceRow" class="space-y-3 p-3 rounded-2xl bg-slate-950 border border-amber-500/40">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-amber-300 mb-1">
+                <i class="fa-solid fa-crosshairs mr-1"></i> ค่าเป้าหมาย (Target STD)
+              </label>
+              <input type="number" step="any" id="customSpecModalTarget" oninput="calculateToleranceRangePreview()" placeholder="เช่น 100" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-amber-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-amber-300 mb-1" id="customSpecModalTolLabel">
+                <i class="fa-solid fa-plus-minus mr-1"></i> ความคลาดเคลื่อน (± %)
+              </label>
+              <input type="number" step="any" id="customSpecModalTol" oninput="calculateToleranceRangePreview()" placeholder="เช่น 5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-amber-500">
+            </div>
+          </div>
+          <!-- Live Preview Banner -->
+          <div id="customSpecTolerancePreview" class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs font-mono text-amber-300 flex items-center justify-between">
+            <span class="text-[11px] text-slate-400">เกณฑ์คำนวณได้:</span>
+            <span class="font-bold text-amber-200" id="customSpecTolerancePreviewText">กรอกเป้าหมายและค่าบวก/ลบ</span>
+          </div>
+        </div>
+
+        <!-- Min & Max Grid (When range, gte, lte selected) -->
+        <div class="grid grid-cols-2 gap-3 hidden" id="customSpecModalMinMaxRow">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1" id="customSpecModalMinLabel">ค่าต่ำสุด (Min)</label>
             <input type="number" step="any" id="customSpecModalMin" placeholder="เช่น 150" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-amber-500">
@@ -1469,7 +1774,75 @@
     const DEFAULT_USERS = [{"id": "usr_admin", "username": "admin", "password": "Panya1990", "name": "ผู้ดูแลระบบสูงสุด (Admin)", "role": "admin", "dept": "ALL", "allowed_tabs": ["inspection", "dashboard", "investigation", "master", "history", "qr_hub", "users_depts", "settings"], "active": true}, {"id": "usr_1791969629080", "username": "PD001", "password": "pd001", "name": "Production Leader", "role": "inspector", "dept": "PD", "allowed_tabs": ["inspection", "dashboard", "investigation", "master", "history", "qr_hub"], "active": true}, {"id": "usr_1791969738299", "username": "pd002", "password": "pd002", "name": "Production User", "role": "operator", "dept": "PD", "allowed_tabs": ["inspection", "dashboard"], "active": true}, {"id": "usr_1791969861196", "username": "qc001", "password": "qc001", "name": "Quality Control Leader", "role": "inspector", "dept": "QC", "allowed_tabs": ["inspection", "dashboard", "investigation", "master", "history", "qr_hub"], "active": true}, {"id": "usr_1791969991885", "username": "qc002", "password": "qc002", "name": "Quality Control User", "role": "operator", "dept": "QC", "allowed_tabs": ["inspection", "dashboard"], "active": true}, {"id": "usr_1791970190054", "username": "ut001", "password": "ut001", "name": "Utility Leader", "role": "inspector", "dept": "Boiler", "allowed_tabs": ["inspection", "dashboard", "investigation", "master", "history", "qr_hub"], "active": true}, {"id": "usr_1791970315411", "username": "ut002", "password": "ut001", "name": "Utility User Glue", "role": "operator", "dept": "GLUE", "allowed_tabs": ["inspection", "dashboard"], "active": true}, {"id": "usr_1791970360411", "username": "ut003", "password": "ut003", "name": "Utility User Boiler", "role": "operator", "dept": "Boiler", "allowed_tabs": ["inspection", "dashboard"], "active": true}, {"id": "usr_1791970481034", "username": "lab001", "password": "lab001", "name": "Lab Leader", "role": "inspector", "dept": "LAB", "allowed_tabs": ["inspection", "dashboard", "investigation", "master", "history", "qr_hub"], "active": true}, {"id": "usr_1791970515134", "username": "lab002", "password": "lab002", "name": "Lab Leader", "role": "operator", "dept": "LAB", "allowed_tabs": ["inspection", "dashboard"], "active": true}];
 
     // Active Application State
+    
+    // ================= DEPARTMENT CHECKLIST HEADER CONFIGURATION =================
+    const DEFAULT_DEPT_HEADERS = {
+      "PD": [
+        { id: "inspector", label: "ผู้ทำการตรวจเช็ค (Inspector)", type: "text", required: true, enabled: true, icon: "fa-user-check", iconColor: "text-blue-400", placeholder: "ระบุชื่อผู้ตรวจเช็ค..." },
+        { id: "order_no", label: "หมายเลข Order / Lot", type: "text", required: true, enabled: true, icon: "fa-hashtag", iconColor: "text-indigo-400", placeholder: "เช่น ORD-6902, Lot A..." },
+        { id: "machine", label: "เครื่องจักรเป้าหมาย (Machine)", type: "machine_select", required: true, enabled: true, icon: "fa-gear", iconColor: "text-amber-400" },
+        { id: "flute", label: "ลอน (Flute)", type: "flute_select", required: true, enabled: true, icon: "fa-water", iconColor: "text-cyan-400", placeholder: "เช่น B, C, BC, E..." },
+        { id: "speed", label: "Speed (ความเร็ว m/min)", type: "text", required: true, enabled: true, icon: "fa-gauge-high", iconColor: "text-emerald-400", placeholder: "เช่น 150, 180 m/min..." }
+      ],
+      "QC": [
+        { id: "inspector", label: "ผู้ทำการตรวจเช็ค (Inspector)", type: "text", required: true, enabled: true, icon: "fa-user-check", iconColor: "text-blue-400", placeholder: "ระบุชื่อผู้ตรวจเช็ค..." },
+        { id: "order_no", label: "หมายเลข Order / Lot", type: "text", required: true, enabled: true, icon: "fa-hashtag", iconColor: "text-indigo-400", placeholder: "เช่น ORD-6902, Lot A..." },
+        { id: "machine", label: "เครื่องจักรเป้าหมาย (Machine)", type: "machine_select", required: true, enabled: true, icon: "fa-gear", iconColor: "text-amber-400" },
+        { id: "flute", label: "ลอน (Flute)", type: "flute_select", required: true, enabled: true, icon: "fa-water", iconColor: "text-cyan-400", placeholder: "เช่น B, C, BC, E..." },
+        { id: "speed", label: "Speed (ความเร็ว m/min)", type: "text", required: true, enabled: true, icon: "fa-gauge-high", iconColor: "text-emerald-400", placeholder: "เช่น 150, 180 m/min..." }
+      ],
+      "Boiler": [
+        { id: "inspector", label: "ผู้ทำการตรวจเช็ค (Inspector)", type: "text", required: true, enabled: true, icon: "fa-user-check", iconColor: "text-blue-400", placeholder: "ระบุชื่อผู้ตรวจเช็ค..." },
+        { id: "machine", label: "เครื่องจักร / จุดตรวจ (Machine)", type: "machine_select", required: true, enabled: true, icon: "fa-fire-burner", iconColor: "text-rose-400" },
+        { id: "shift", label: "กะการทำงาน (Shift)", type: "text", required: false, enabled: true, icon: "fa-clock", iconColor: "text-amber-400", placeholder: "เช่น กะ A, กะ B, กะเช้า..." }
+      ],
+      "GLUE": [
+        { id: "inspector", label: "ผู้ทำการตรวจเช็ค (Inspector)", type: "text", required: true, enabled: true, icon: "fa-user-check", iconColor: "text-blue-400", placeholder: "ระบุชื่อผู้ตรวจเช็ค..." },
+        { id: "machine", label: "จุดตรวจ / สายการผลิต (Machine)", type: "machine_select", required: true, enabled: true, icon: "fa-flask-vial", iconColor: "text-amber-400" },
+        { id: "batch_no", label: "Batch กาว / ถังผสม", type: "text", required: false, enabled: true, icon: "fa-barcode", iconColor: "text-teal-400", placeholder: "เช่น Batch #01, Tank A..." }
+      ],
+      "LAB": [
+        { id: "inspector", label: "ผู้ทำการทดสอบ (Tester/Lab)", type: "text", required: true, enabled: true, icon: "fa-microscope", iconColor: "text-teal-400", placeholder: "ระบุชื่อผู้ตรวจ Lab..." },
+        { id: "order_no", label: "รหัสตัวอย่าง / Lot วัตถุดิบ", type: "text", required: true, enabled: true, icon: "fa-hashtag", iconColor: "text-indigo-400", placeholder: "เช่น Sample #A1, Lot 4200..." },
+        { id: "machine", label: "เครื่องจักร / ประเภททดสอบ", type: "machine_select", required: false, enabled: true, icon: "fa-gear", iconColor: "text-slate-400" }
+      ],
+      "IQC": [
+        { id: "inspector", label: "ผู้ตรวจรับ (IQC Inspector)", type: "text", required: true, enabled: true, icon: "fa-user-check", iconColor: "text-blue-400", placeholder: "ระบุชื่อผู้ตรวจรับ..." },
+        { id: "roll_no", label: "เลขที่ม้วน / Roll No", type: "text", required: true, enabled: true, icon: "fa-scroll", iconColor: "text-purple-400", placeholder: "เช่น Roll #9921, PDR-01..." },
+        { id: "supplier", label: "ซัพพลายเออร์ / ผู้ผลิต", type: "text", required: false, enabled: true, icon: "fa-truck", iconColor: "text-emerald-400", placeholder: "เช่น SCG, ค้าแป้ง..." },
+        { id: "order_no", label: "เลข PO / ใบรับสินค้า", type: "text", required: false, enabled: true, icon: "fa-file-invoice", iconColor: "text-indigo-400", placeholder: "เช่น PO-2610-001..." }
+      ]
+    };
+
+    function loadDeptHeaders() {
+      try {
+        const stored = localStorage.getItem('PLANT_DEPT_HEADERS_V2');
+        if (stored) return JSON.parse(stored);
+      } catch(e) {}
+      return JSON.parse(JSON.stringify(DEFAULT_DEPT_HEADERS));
+    }
+
+    function getDeptHeaders(deptCode) {
+      if (!appState.deptHeaders) appState.deptHeaders = loadDeptHeaders();
+      if (!appState.deptHeaders[deptCode]) {
+        // Fallback default for any newly created dept
+        appState.deptHeaders[deptCode] = [
+          { id: "inspector", label: "ผู้ทำการตรวจเช็ค (Inspector)", type: "text", required: true, enabled: true, icon: "fa-user-check", iconColor: "text-blue-400", placeholder: "ระบุชื่อผู้ตรวจเช็ค..." },
+          { id: "order_no", label: "หมายเลข Order / Lot", type: "text", required: false, enabled: true, icon: "fa-hashtag", iconColor: "text-indigo-400", placeholder: "เช่น ORD-001..." },
+          { id: "machine", label: "เครื่องจักรเป้าหมาย (Machine)", type: "machine_select", required: true, enabled: true, icon: "fa-gear", iconColor: "text-amber-400" }
+        ];
+        saveDeptHeaders();
+      }
+      return appState.deptHeaders[deptCode];
+    }
+
+    function saveDeptHeaders() {
+      localStorage.setItem('PLANT_DEPT_HEADERS_V2', JSON.stringify(appState.deptHeaders));
+    }
+
     let appState = {
+      deptHeaders: loadDeptHeaders(),
+      headerValues: {},
       master: JSON.parse(localStorage.getItem('PLANT_MASTER_STD_V6') || 'null') || DEFAULT_MASTER,
       logs: JSON.parse(localStorage.getItem('PLANT_INSPECTION_LOGS_V6') || 'null') || DEFAULT_LOGS,
       depts: JSON.parse(localStorage.getItem('PLANT_DEPTS_V6') || 'null') || DEFAULT_DEPTS,
@@ -1629,8 +2002,47 @@
       }
     }
 
+    // Theme Management (Dark / Light Mode)
+    function initTheme() {
+      const savedTheme = localStorage.getItem('plant_theme') || 'dark';
+      applyTheme(savedTheme);
+    }
+
+    function toggleTheme() {
+      const isLight = document.documentElement.classList.contains('light');
+      const nextTheme = isLight ? 'dark' : 'light';
+      applyTheme(nextTheme);
+    }
+
+    function applyTheme(theme) {
+      const btn = document.getElementById('themeToggleBtn');
+      const icon = document.getElementById('themeToggleIcon');
+      const txt = document.getElementById('themeToggleText');
+      if (theme === 'light') {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        if (icon) icon.className = 'fa-solid fa-moon text-indigo-600';
+        if (txt) txt.innerText = 'โหมดมืด';
+        if (btn) {
+          btn.title = 'เปลี่ยนเป็นโหมดมืด (Switch to Dark Mode)';
+          btn.className = 'px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-indigo-700 border border-slate-300 flex items-center gap-1.5 text-xs font-semibold transition shadow-sm';
+        }
+      } else {
+        document.documentElement.classList.remove('light');
+        document.documentElement.classList.add('dark');
+        if (icon) icon.className = 'fa-solid fa-sun text-amber-400';
+        if (txt) txt.innerText = 'โหมดสว่าง';
+        if (btn) {
+          btn.title = 'เปลี่ยนเป็นโหมดสว่าง (Switch to Light Mode)';
+          btn.className = 'px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 flex items-center gap-1.5 text-xs font-semibold transition shadow-sm';
+        }
+      }
+      localStorage.setItem('plant_theme', theme);
+    }
+
     // Initialization on DOM Load
     document.addEventListener('DOMContentLoaded', async () => {
+      initTheme();
       checkUrlParamsForDirectDeptAndGasUrl();
       startLiveClock();
       loadSettings();
@@ -1658,7 +2070,7 @@
       // Render First Page: Inspection Checklist Entry
       renderEntryDeptButtons();
       renderEntryFreqFilters();
-      populateEntryMachineDropdown();
+      renderEntryHeader();
       renderEntryForm();
       updateInspectionDueBanner();
       
@@ -1942,12 +2354,352 @@
       }).join('');
     }
 
+    
+    // ================= DYNAMIC ENTRY HEADER RENDERING =================
+    function renderEntryHeader() {
+      const container = document.getElementById('entryHeaderFieldsContainer');
+      const deptBadge = document.getElementById('entryHeaderDeptBadge');
+      if (!container) return;
+
+      const currentDept = appState.selectedDept || 'PD';
+      if (deptBadge) deptBadge.innerText = currentDept;
+
+      const fields = getDeptHeaders(currentDept).filter(f => f.enabled !== false);
+      const colSpanClass = fields.length <= 2 ? 'sm:grid-cols-2' : (fields.length === 3 ? 'sm:grid-cols-3' : (fields.length === 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-5'));
+      
+      container.className = `grid grid-cols-1 ${colSpanClass} gap-3`;
+
+      // Save currently typed values before re-rendering
+      captureCurrentHeaderInputs();
+
+      const userDefaultName = appState.currentUser ? (appState.currentUser.name || appState.currentUser.username || '') : '';
+      if (!appState.headerValues['inspector'] && userDefaultName) {
+        appState.headerValues['inspector'] = userDefaultName;
+      }
+
+      let html = '';
+      fields.forEach(f => {
+        const val = appState.headerValues[f.id] !== undefined ? appState.headerValues[f.id] : '';
+        const reqStar = f.required ? '<span class="text-rose-400 font-bold">*</span>' : '<span class="text-slate-500 text-[10px] font-normal">(ไม่บังคับ)</span>';
+        const iconHtml = f.icon ? `<i class="fa-solid ${f.icon} ${f.iconColor || 'text-blue-400'} mr-1"></i>` : '';
+
+        if (f.type === 'machine_select' || f.id === 'machine') {
+          html += `
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+                ${iconHtml} ${f.label} ${reqStar}
+              </label>
+              <select 
+                id="entryMachineFilter" 
+                onchange="appState.headerValues['machine'] = this.value; handleMachineFilterChange(this.value);" 
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 transition"
+              >
+                <option value="ALL">เครื่องจักรทั้งหมดในแผนก</option>
+              </select>
+            </div>
+          `;
+        } else if (f.type === 'flute_select' || f.id === 'flute') {
+          html += `
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+                ${iconHtml} ${f.label} ${reqStar}
+              </label>
+              <div class="relative">
+                <input 
+                  type="text" 
+                  id="entryFluteInput" 
+                  list="fluteOptionsList" 
+                  value="${val}"
+                  oninput="appState.headerValues['flute'] = this.value;"
+                  placeholder="${f.placeholder || 'เช่น B, C, BC, E...'}" 
+                  class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-500 font-semibold transition"
+                >
+              </div>
+            </div>
+          `;
+        } else if (f.id === 'inspector') {
+          html += `
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+                ${iconHtml} ${f.label} ${reqStar}
+              </label>
+              <input 
+                type="text" 
+                id="entryInspectorInput" 
+                value="${val}"
+                oninput="appState.headerValues['inspector'] = this.value;"
+                placeholder="${f.placeholder || 'ระบุชื่อผู้ตรวจเช็ค...'}" 
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-medium transition"
+              >
+            </div>
+          `;
+        } else if (f.id === 'order_no') {
+          html += `
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+                ${iconHtml} ${f.label} ${reqStar}
+              </label>
+              <input 
+                type="text" 
+                id="entryOrderNoInput" 
+                value="${val}"
+                oninput="appState.headerValues['order_no'] = this.value;"
+                placeholder="${f.placeholder || 'เช่น ORD-6902, Lot A...'}" 
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 font-mono transition"
+              >
+            </div>
+          `;
+        } else if (f.id === 'speed') {
+          html += `
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+                ${iconHtml} ${f.label} ${reqStar}
+              </label>
+              <input 
+                type="text" 
+                id="entrySpeedInput" 
+                value="${val}"
+                oninput="appState.headerValues['speed'] = this.value;"
+                placeholder="${f.placeholder || 'เช่น 150, 180 m/min...'}" 
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500 font-mono transition"
+              >
+            </div>
+          `;
+        } else if (f.type === 'select' && f.options && f.options.length > 0) {
+          html += `
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+                ${iconHtml} ${f.label} ${reqStar}
+              </label>
+              <select 
+                id="entryHeaderField_${f.id}" 
+                onchange="appState.headerValues['${f.id}'] = this.value;" 
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 transition"
+              >
+                <option value="">-- เลือก --</option>
+                ${f.options.map(opt => `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+              </select>
+            </div>
+          `;
+        } else {
+          // Standard custom text/number input
+          html += `
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+                ${iconHtml} ${f.label} ${reqStar}
+              </label>
+              <input 
+                type="${f.type === 'number' ? 'number' : 'text'}" 
+                id="entryHeaderField_${f.id}" 
+                value="${val}"
+                oninput="appState.headerValues['${f.id}'] = this.value;"
+                placeholder="${f.placeholder || 'ระบุค่า...'}" 
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 transition"
+              >
+            </div>
+          `;
+        }
+      });
+
+      container.innerHTML = html;
+      populateEntryMachineDropdown();
+    }
+
+    function captureCurrentHeaderInputs() {
+      if (!appState.headerValues) appState.headerValues = {};
+      const currentDept = appState.selectedDept || 'PD';
+      const fields = getDeptHeaders(currentDept);
+      fields.forEach(f => {
+        let el = null;
+        if (f.id === 'inspector') el = document.getElementById('entryInspectorInput');
+        else if (f.id === 'order_no') el = document.getElementById('entryOrderNoInput');
+        else if (f.id === 'machine') el = document.getElementById('entryMachineFilter');
+        else if (f.id === 'flute') el = document.getElementById('entryFluteInput');
+        else if (f.id === 'speed') el = document.getElementById('entrySpeedInput');
+        else el = document.getElementById('entryHeaderField_' + f.id);
+
+        if (el) {
+          appState.headerValues[f.id] = el.value.trim();
+        }
+      });
+    }
+
+    // ================= MODAL HANDLERS FOR DEPT HEADER CONFIG =================
+    let tempDeptHeadersConfig = [];
+
+    function openDeptHeaderConfigModal() {
+      const currentDept = appState.selectedDept || 'PD';
+      const modal = document.getElementById('deptHeaderConfigModal');
+      const badge = document.getElementById('dhcModalDeptCode');
+      const list = document.getElementById('dhcFieldsList');
+      if (!modal || !list) return;
+
+      if (badge) badge.innerText = currentDept;
+
+      // Deep copy active dept headers for editing
+      const headers = getDeptHeaders(currentDept);
+      tempDeptHeadersConfig = JSON.parse(JSON.stringify(headers));
+
+      renderDeptHeaderConfigList();
+      
+      const newLabel = document.getElementById('dhcNewFieldLabel');
+      if (newLabel) newLabel.value = '';
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeDeptHeaderConfigModal() {
+      const modal = document.getElementById('deptHeaderConfigModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function renderDeptHeaderConfigList() {
+      const list = document.getElementById('dhcFieldsList');
+      if (!list) return;
+
+      if (tempDeptHeadersConfig.length === 0) {
+        list.innerHTML = `<div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-center text-xs text-slate-500">ไม่มีฟิลด์ในแผนกนี้</div>`;
+        return;
+      }
+
+      list.innerHTML = tempDeptHeadersConfig.map((f, idx) => {
+        const isCore = (f.id === 'inspector');
+        return `
+          <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800/90 flex items-center justify-between flex-wrap gap-2 transition hover:border-slate-700">
+            <div class="flex items-center gap-3 flex-1 min-w-[200px]">
+              <div class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-xs ${f.iconColor || 'text-blue-400'}">
+                <i class="fa-solid ${f.icon || 'fa-tag'}"></i>
+              </div>
+              <div class="flex-1">
+                <input 
+                  type="text" 
+                  value="${f.label}" 
+                  oninput="tempDeptHeadersConfig[${idx}].label = this.value;" 
+                  class="bg-transparent border-b border-transparent hover:border-slate-700 focus:border-blue-500 font-bold text-white text-xs sm:text-sm px-1 py-0.5 focus:outline-none w-full"
+                >
+                <div class="text-[11px] text-slate-500 font-mono">
+                  ID: ${f.id} | ชนิด: ${f.type || 'text'}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <label class="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                <input 
+                  type="checkbox" 
+                  ${f.enabled !== false ? 'checked' : ''} 
+                  onchange="tempDeptHeadersConfig[${idx}].enabled = this.checked;" 
+                  class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0"
+                >
+                <span class="${f.enabled !== false ? 'text-emerald-400 font-semibold' : 'text-slate-500'}">เปิดใช้งาน</span>
+              </label>
+
+              <label class="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                <input 
+                  type="checkbox" 
+                  ${f.required ? 'checked' : ''} 
+                  ${isCore ? 'disabled' : ''}
+                  onchange="tempDeptHeadersConfig[${idx}].required = this.checked;" 
+                  class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-rose-600 focus:ring-0"
+                >
+                <span class="${f.required ? 'text-rose-400 font-bold' : 'text-slate-400'}">บังคับกรอก *</span>
+              </label>
+
+              ${!isCore ? `
+                <button 
+                  type="button" 
+                  onclick="removeDeptHeaderField(${idx})" 
+                  title="ลบหัวข้อนี้" 
+                  class="w-7 h-7 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-800/40 flex items-center justify-center transition"
+                >
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              ` : `
+                <div class="w-7 h-7"></div>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function removeDeptHeaderField(idx) {
+      tempDeptHeadersConfig.splice(idx, 1);
+      renderDeptHeaderConfigList();
+    }
+
+    function addNewDeptHeaderField() {
+      const labelInput = document.getElementById('dhcNewFieldLabel');
+      const typeSelect = document.getElementById('dhcNewFieldType');
+      const reqCheckbox = document.getElementById('dhcNewFieldRequired');
+      const optInput = document.getElementById('dhcNewFieldOptions');
+
+      const label = labelInput ? labelInput.value.trim() : '';
+      if (!label) {
+        Swal.fire({ icon: 'warning', title: 'กรุณากรอกชื่อหัวข้อ', text: 'ระบุชื่อหัวข้อของเช็คลิสต์ที่ต้องการเพิ่ม' });
+        return;
+      }
+
+      const id = 'custom_' + Date.now();
+      const type = typeSelect ? typeSelect.value : 'text';
+      const required = reqCheckbox ? reqCheckbox.checked : false;
+      let options = [];
+      if (type === 'select' && optInput && optInput.value.trim()) {
+        options = optInput.value.split(/[,|\r\n]+/).map(s => s.trim()).filter(Boolean);
+      }
+
+      tempDeptHeadersConfig.push({
+        id: id,
+        label: label,
+        type: type,
+        required: required,
+        enabled: true,
+        icon: type === 'number' ? 'fa-hashtag' : (type === 'select' ? 'fa-list' : 'fa-pen'),
+        iconColor: 'text-indigo-400',
+        placeholder: 'ระบุ ' + label + '...',
+        options: options
+      });
+
+      if (labelInput) labelInput.value = '';
+      if (optInput) optInput.value = '';
+      renderDeptHeaderConfigList();
+    }
+
+    function resetDeptHeaderToDefault() {
+      const currentDept = appState.selectedDept || 'PD';
+      const def = DEFAULT_DEPT_HEADERS[currentDept] || [
+        { id: "inspector", label: "ผู้ทำการตรวจเช็ค (Inspector)", type: "text", required: true, enabled: true, icon: "fa-user-check", iconColor: "text-blue-400", placeholder: "ระบุชื่อผู้ตรวจเช็ค..." },
+        { id: "order_no", label: "หมายเลข Order / Lot", type: "text", required: false, enabled: true, icon: "fa-hashtag", iconColor: "text-indigo-400", placeholder: "เช่น ORD-001..." },
+        { id: "machine", label: "เครื่องจักรเป้าหมาย (Machine)", type: "machine_select", required: true, enabled: true, icon: "fa-gear", iconColor: "text-amber-400" }
+      ];
+      tempDeptHeadersConfig = JSON.parse(JSON.stringify(def));
+      renderDeptHeaderConfigList();
+      Swal.fire({ icon: 'info', title: 'คืนค่าเริ่มต้นแล้ว', timer: 1000, showConfirmButton: false });
+    }
+
+    function saveDeptHeaderConfig() {
+      const currentDept = appState.selectedDept || 'PD';
+      if (!appState.deptHeaders) appState.deptHeaders = {};
+      appState.deptHeaders[currentDept] = tempDeptHeadersConfig;
+      saveDeptHeaders();
+      closeDeptHeaderConfigModal();
+      renderEntryHeader();
+      Swal.fire({
+        icon: 'success',
+        title: 'บันทึกการตั้งค่าหัวเช็คลิสต์แล้ว!',
+        text: `อัปเดตหัวข้อเช็คลิสต์สำหรับแผนก ${currentDept} เรียบร้อย`,
+        timer: 1500,
+        showConfirmButton: false
+      });
+    }
+
+
     function selectEntryDept(deptCode) {
       appState.selectedDept = deptCode;
       appState.selectedMachine = 'ALL';
       renderEntryDeptButtons();
       renderEntryFreqFilters();
-      populateEntryMachineDropdown();
+      renderEntryHeader();
       renderEntryForm();
       updateInspectionDueBanner();
     }
@@ -2027,13 +2779,15 @@
       if (appState.customStds && appState.customStds[it.id]) {
         return appState.customStds[it.id];
       }
+      const isCustomStdType = (it.spec_type === 'custom_std');
       return {
         spec_type: it.spec_type || 'range',
         min_val: it.min_val !== null && it.min_val !== undefined ? it.min_val : null,
         max_val: it.max_val !== null && it.max_val !== undefined ? it.max_val : null,
-        spec_raw: it.spec_raw || it.target || '-',
+        spec_raw: isCustomStdType ? 'รอระบุเกณฑ์ STD หน้างาน' : (it.spec_raw || it.target || '-'),
         unit: it.unit || '',
-        isCustom: false
+        isCustom: false,
+        isCustomType: isCustomStdType
       };
     }
 
@@ -2042,9 +2796,43 @@
         return { hasValue: false, isPass: true, statusText: 'รอใส่ค่า', measuredDisplay: '' };
       }
 
+      const valTrim = String(valStr).trim();
+
+      // ================= SUPPORT '-' (ไม่ได้ตรวจ / ข้ามในรอบนี้) =================
+      if (valTrim === '-' || valTrim === 'N/A' || valTrim === 'NA' || valTrim === 'ข้าม' || valTrim === 'ไม่ได้ตรวจ') {
+        return {
+          hasValue: true,
+          isPass: true,
+          isSkipped: true,
+          statusText: 'ไม่ได้ตรวจ (-)',
+          measuredDisplay: '-'
+        };
+      }
+
       const activeSpec = getActiveItemSpec(it);
       const specType = activeSpec.spec_type || 'range';
-      const valTrim = String(valStr).trim();
+
+      // Special check: custom_std without spec specified yet
+      if (it.spec_type === 'custom_std' && !activeSpec.isCustom) {
+        return {
+          hasValue: true,
+          isPass: false,
+          statusText: 'รอระบุ STD',
+          measuredDisplay: valTrim
+        };
+      }
+
+      // 0. Custom Options (ระบุตัวเลือกเอง)
+      if (specType === 'custom_options') {
+        const hasChoice = valTrim !== '';
+        const isBad = (valTrim.includes('ไม่') || valTrim.includes('ชำรุด') || valTrim.includes('เสีย') || valTrim.includes('ฉีก') || valTrim.includes('แตก') || valTrim.includes('รั่ว') || valTrim.includes('NG') || valTrim.includes('ผิดปกติ'));
+        return {
+          hasValue: hasChoice,
+          isPass: !isBad,
+          statusText: hasChoice ? (isBad ? `ตกสเป็ค (${valTrim})` : `ได้สเป็ค (${valTrim})`) : 'รอเลือกตัวเลือก',
+          measuredDisplay: valTrim
+        };
+      }
 
       // 1. Pass / Fail Checkbox
       if (specType === 'pass_fail') {
@@ -2069,12 +2857,13 @@
         };
       }
 
-      // 3. Text
+      // 3. Text (Text description allows any free-form text input)
       if (specType === 'text') {
+        const hasText = valTrim !== '';
         return {
-          hasValue: true,
+          hasValue: hasText,
           isPass: true,
-          statusText: 'บันทึกแล้ว',
+          statusText: hasText ? 'บันทึกแล้ว' : 'รอใส่ข้อความ',
           measuredDisplay: valTrim
         };
       }
@@ -2117,7 +2906,15 @@
       document.getElementById('customSpecModalDefaultStd').innerText = `${it.spec_raw || it.target || '-'} ${it.unit || ''}`;
       
       const typeSelect = document.getElementById('customSpecModalType');
-      typeSelect.value = activeSpec.spec_type || 'range';
+      if (activeSpec.tol_mode) {
+        typeSelect.value = activeSpec.tol_mode;
+        document.getElementById('customSpecModalTarget').value = activeSpec.target_val !== undefined ? activeSpec.target_val : '';
+        document.getElementById('customSpecModalTol').value = activeSpec.tol_val !== undefined ? activeSpec.tol_val : '';
+      } else {
+        typeSelect.value = activeSpec.spec_type || 'tol_percent';
+        document.getElementById('customSpecModalTarget').value = '';
+        document.getElementById('customSpecModalTol').value = '';
+      }
       
       document.getElementById('customSpecModalMin').value = activeSpec.min_val !== null && activeSpec.min_val !== undefined ? activeSpec.min_val : '';
       document.getElementById('customSpecModalMax').value = activeSpec.max_val !== null && activeSpec.max_val !== undefined ? activeSpec.max_val : '';
@@ -2132,27 +2929,72 @@
       document.getElementById('customSpecModal').classList.add('hidden');
     }
 
+    function calculateToleranceRangePreview() {
+      const type = document.getElementById('customSpecModalType').value;
+      const targetVal = parseFloat(document.getElementById('customSpecModalTarget').value);
+      const tolVal = parseFloat(document.getElementById('customSpecModalTol').value);
+      const preview = document.getElementById('customSpecTolerancePreviewText');
+      const unit = document.getElementById('customSpecModalUnit').value.trim();
+
+      if (isNaN(targetVal) || isNaN(tolVal)) {
+        if (preview) preview.innerText = 'รอระบุค่าเป้าหมายและค่าบวก/ลบ';
+        return;
+      }
+
+      let min = 0, max = 0, label = '';
+      if (type === 'tol_percent') {
+        const delta = Math.abs(targetVal * (tolVal / 100));
+        min = Math.round((targetVal - delta) * 100) / 100;
+        max = Math.round((targetVal + delta) * 100) / 100;
+        label = `${targetVal} ± ${tolVal}% (${min} ~ ${max} ${unit})`.trim();
+      } else if (type === 'tol_value') {
+        min = Math.round((targetVal - Math.abs(tolVal)) * 100) / 100;
+        max = Math.round((targetVal + Math.abs(tolVal)) * 100) / 100;
+        label = `${targetVal} ± ${tolVal} (${min} ~ ${max} ${unit})`.trim();
+      }
+
+      if (preview) preview.innerHTML = `<span class="text-emerald-400 font-bold">${label}</span>`;
+      document.getElementById('customSpecModalMin').value = min;
+      document.getElementById('customSpecModalMax').value = max;
+    }
+
     function handleCustomSpecModalTypeChange(type) {
+      const tolRow = document.getElementById('customSpecModalToleranceRow');
       const minMaxRow = document.getElementById('customSpecModalMinMaxRow');
+      const tolLabel = document.getElementById('customSpecModalTolLabel');
       const minInput = document.getElementById('customSpecModalMin');
       const maxInput = document.getElementById('customSpecModalMax');
 
-      if (type === 'pass_fail' || type === 'numeric' || type === 'text') {
-        minMaxRow.classList.add('opacity-40', 'pointer-events-none');
-        minInput.disabled = true;
-        maxInput.disabled = true;
-      } else if (type === 'gte') {
-        minMaxRow.classList.remove('opacity-40', 'pointer-events-none');
-        minInput.disabled = false;
-        maxInput.disabled = true;
-      } else if (type === 'lte') {
-        minMaxRow.classList.remove('opacity-40', 'pointer-events-none');
-        minInput.disabled = true;
-        maxInput.disabled = false;
+      if (type === 'tol_percent' || type === 'tol_value') {
+        if (tolRow) tolRow.classList.remove('hidden');
+        if (minMaxRow) minMaxRow.classList.add('hidden');
+        if (tolLabel) {
+          tolLabel.innerHTML = type === 'tol_percent' 
+            ? '<i class="fa-solid fa-percent mr-1"></i> ความคลาดเคลื่อน (± % เช่น 5)' 
+            : '<i class="fa-solid fa-plus-minus mr-1"></i> บวก/ลบ ไม่เกิน (± ค่าคงที่ เช่น 5)';
+        }
+        calculateToleranceRangePreview();
       } else {
-        minMaxRow.classList.remove('opacity-40', 'pointer-events-none');
-        minInput.disabled = false;
-        maxInput.disabled = false;
+        if (tolRow) tolRow.classList.add('hidden');
+        if (minMaxRow) minMaxRow.classList.remove('hidden');
+
+        if (type === 'pass_fail' || type === 'numeric' || type === 'text') {
+          minMaxRow.classList.add('opacity-40', 'pointer-events-none');
+          minInput.disabled = true;
+          maxInput.disabled = true;
+        } else if (type === 'gte') {
+          minMaxRow.classList.remove('opacity-40', 'pointer-events-none');
+          minInput.disabled = false;
+          maxInput.disabled = true;
+        } else if (type === 'lte') {
+          minMaxRow.classList.remove('opacity-40', 'pointer-events-none');
+          minInput.disabled = true;
+          maxInput.disabled = false;
+        } else {
+          minMaxRow.classList.remove('opacity-40', 'pointer-events-none');
+          minInput.disabled = false;
+          maxInput.disabled = false;
+        }
       }
     }
 
@@ -2168,29 +3010,66 @@
       const desc = document.getElementById('customSpecModalDesc').value.trim();
 
       let specRaw = '';
-      if (type === 'range') {
-        specRaw = `${minVal !== '' ? minVal : '-'} ~ ${maxVal !== '' ? maxVal : '-'}`;
-      } else if (type === 'gte') {
-        specRaw = `>= ${minVal !== '' ? minVal : '-'}`;
-      } else if (type === 'lte') {
-        specRaw = `<= ${maxVal !== '' ? maxVal : '-'}`;
-      } else if (type === 'pass_fail') {
-        specRaw = 'ผ่าน (Pass/Fail)';
-      } else if (type === 'numeric') {
-        specRaw = 'ระบุตัวเลข (ไม่ระบุเกณฑ์)';
-      } else {
-        specRaw = desc || 'กำหนดเอง';
-      }
+      let savedMin = null;
+      let savedMax = null;
+      let actualSpecType = type;
 
-      appState.customStds[itemId] = {
-        spec_type: type,
-        min_val: minVal !== '' ? parseFloat(minVal) : null,
-        max_val: maxVal !== '' ? parseFloat(maxVal) : null,
-        spec_raw: specRaw,
-        unit: unit,
-        desc: desc,
-        isCustom: true
-      };
+      if (type === 'tol_percent' || type === 'tol_value') {
+        const targetVal = parseFloat(document.getElementById('customSpecModalTarget').value);
+        const tolVal = parseFloat(document.getElementById('customSpecModalTol').value);
+        if (isNaN(targetVal) || isNaN(tolVal)) {
+          Swal.fire({ icon: 'warning', title: 'กรุณากรอกค่าเป้าหมายและค่าบวก/ลบ' });
+          return;
+        }
+        actualSpecType = 'range';
+        if (type === 'tol_percent') {
+          const delta = Math.abs(targetVal * (tolVal / 100));
+          savedMin = Math.round((targetVal - delta) * 100) / 100;
+          savedMax = Math.round((targetVal + delta) * 100) / 100;
+          specRaw = `${targetVal} ± ${tolVal}% (${savedMin} ~ ${savedMax})`;
+        } else {
+          savedMin = Math.round((targetVal - Math.abs(tolVal)) * 100) / 100;
+          savedMax = Math.round((targetVal + Math.abs(tolVal)) * 100) / 100;
+          specRaw = `${targetVal} ± ${tolVal} (${savedMin} ~ ${savedMax})`;
+        }
+
+        appState.customStds[itemId] = {
+          spec_type: 'range',
+          target_val: targetVal,
+          tol_val: tolVal,
+          tol_mode: type,
+          min_val: savedMin,
+          max_val: savedMax,
+          spec_raw: specRaw,
+          unit: unit,
+          desc: desc,
+          isCustom: true
+        };
+      } else {
+        if (type === 'range') {
+          specRaw = `${minVal !== '' ? minVal : '-'} ~ ${maxVal !== '' ? maxVal : '-'}`;
+        } else if (type === 'gte') {
+          specRaw = `>= ${minVal !== '' ? minVal : '-'}`;
+        } else if (type === 'lte') {
+          specRaw = `<= ${maxVal !== '' ? maxVal : '-'}`;
+        } else if (type === 'pass_fail') {
+          specRaw = 'ผ่าน (Pass/Fail)';
+        } else if (type === 'numeric') {
+          specRaw = 'ระบุตัวเลข (ไม่ระบุเกณฑ์)';
+        } else {
+          specRaw = desc || 'กำหนดเอง';
+        }
+
+        appState.customStds[itemId] = {
+          spec_type: type,
+          min_val: minVal !== '' ? parseFloat(minVal) : null,
+          max_val: maxVal !== '' ? parseFloat(maxVal) : null,
+          spec_raw: specRaw,
+          unit: unit,
+          desc: desc,
+          isCustom: true
+        };
+      }
 
       closeCustomSpecModal();
       renderEntryForm();
@@ -2199,7 +3078,7 @@
         icon: 'success',
         title: 'กำหนดสเปคเฉพาะรอบนี้แล้ว',
         text: `ปรับเกณฑ์ "${it.item}" เป็น [ ${specRaw} ] สำหรับรอบนี้เรียบร้อย`,
-        timer: 1200,
+        timer: 1400,
         showConfirmButton: false
       });
     }
@@ -2222,6 +3101,15 @@
       const itemId = document.getElementById('customSpecModalItemId').value;
       resetCustomSpec(itemId);
       closeCustomSpecModal();
+    }
+
+    function handleCustomOptionSelect(itemId, choice) {
+      if (appState.entryValues[itemId] === choice) {
+        delete appState.entryValues[itemId];
+      } else {
+        appState.entryValues[itemId] = choice;
+      }
+      renderEntryForm();
     }
 
     function handlePassFailToggle(itemId, state) {
@@ -2322,35 +3210,89 @@
               </button>
             </div>
           `;
+        } else if (activeSpec.spec_type === 'custom_options') {
+          const rawChoices = String(activeSpec.custom_choices || it.custom_choices || it.spec_raw || it.target || 'ปกติ, ไม่ปกติ');
+          const choices = rawChoices.split(/[,|\n\r]+/).map(s => s.trim()).filter(Boolean);
+          inputControlHtml = `
+            <div class="flex flex-wrap items-center justify-center gap-1.5 w-full md:max-w-[280px] md:mx-auto">
+              ${choices.map(opt => {
+                const isSelected = (val === opt);
+                const isBad = (opt.includes('ไม่') || opt.includes('ชำรุด') || opt.includes('เสีย') || opt.includes('ฉีก') || opt.includes('แตก') || opt.includes('รั่ว') || opt.includes('NG') || opt.includes('ผิดปกติ'));
+                let btnStyle = isSelected 
+                  ? (isBad ? 'bg-rose-600 text-white border-rose-400 ring-2 ring-rose-400 shadow-md font-bold animate-pulse' : 'bg-emerald-600 text-white border-emerald-400 ring-2 ring-emerald-400 shadow-md font-bold')
+                  : 'bg-slate-950 text-slate-300 border-slate-700 hover:bg-slate-800 hover:text-white';
+                return `
+                  <button 
+                    type="button" 
+                    onclick="handleCustomOptionSelect('${it.id}', '${opt.replace(/'/g, "\'")}')" 
+                    class="px-2.5 py-1 rounded-xl text-xs border transition flex items-center gap-1 ${btnStyle}"
+                  >
+                    ${isSelected ? (isBad ? '<i class="fa-solid fa-xmark text-[11px]"></i>' : '<i class="fa-solid fa-check text-[11px]"></i>') : '<i class="fa-regular fa-circle text-[9px] text-slate-500"></i>'}
+                    <span>${opt}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          `;
         } else if (activeSpec.spec_type === 'numeric') {
           inputControlHtml = `
-            <div class="relative w-full md:max-w-[140px] md:mx-auto">
+            <div class="relative w-full md:max-w-[160px] md:mx-auto flex items-center gap-1">
               <input 
-                type="number" 
-                step="any" 
+                type="text" 
+                inputmode="decimal"
                 id="input-val-${it.id}" 
                 value="${val}" 
                 oninput="handleEntryValueChange('${it.id}', this.value)" 
-                placeholder="กรอกตัวเลข..." 
+                placeholder="ตัวเลข หรือ -" 
                 class="w-full text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition ${inputBorderClass}"
               >
-              ${activeSpec.unit || it.unit ? `<span class="absolute right-2.5 top-2.5 md:top-2 text-[11px] text-slate-500 pointer-events-none font-mono">${activeSpec.unit || it.unit}</span>` : ''}
+              ${activeSpec.unit || it.unit ? `<span class="absolute right-9 top-2.5 md:top-2 text-[11px] text-slate-500 pointer-events-none font-mono">${activeSpec.unit || it.unit}</span>` : ''}
+              <button type="button" onclick="setRowSkipped('${it.id}')" title="ไม่ได้ตรวจรอบนี้ (ใส่ -)" class="px-1.5 py-2 md:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 text-[10px] font-mono transition shrink-0 active:scale-95">-</button>
+            </div>
+          `;
+        } else if (activeSpec.spec_type === 'text') {
+          // Free-form Text description: Supports Thai, letters, symbols
+          inputControlHtml = `
+            <div class="relative w-full md:max-w-[180px] md:mx-auto">
+              <input 
+                type="text" 
+                id="input-val-${it.id}" 
+                value="${val}" 
+                oninput="handleEntryValueChange('${it.id}', this.value)" 
+                placeholder="พิมพ์ข้อความ/ระบุ..." 
+                class="w-full text-left md:text-center border rounded-xl py-2 px-3 md:py-1.5 text-xs font-sans font-medium focus:outline-none transition ${inputBorderClass}"
+              >
+            </div>
+          `;
+        } else if (it.spec_type === 'custom_std' && !activeSpec.isCustom) {
+          // custom_std item awaiting STD definition
+          inputControlHtml = `
+            <div class="w-full md:max-w-[160px] md:mx-auto">
+              <button 
+                type="button" 
+                onclick="openCustomSpecModal('${it.id}')" 
+                class="w-full py-2 px-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+              >
+                <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                <span>ระบุ STD ก่อน</span>
+              </button>
             </div>
           `;
         } else {
-          // Standard range / gte / lte / text
+          // Standard range / gte / lte
           inputControlHtml = `
-            <div class="relative w-full md:max-w-[140px] md:mx-auto">
+            <div class="relative w-full md:max-w-[160px] md:mx-auto flex items-center gap-1">
               <input 
-                type="number" 
-                step="any" 
+                type="text" 
+                inputmode="decimal"
                 id="input-val-${it.id}" 
                 value="${val}" 
                 oninput="handleEntryValueChange('${it.id}', this.value)" 
-                placeholder="แตะกรอกค่า..." 
+                placeholder="แตะกรอก หรือ -" 
                 class="w-full text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition ${inputBorderClass}"
               >
-              ${activeSpec.unit || it.unit ? `<span class="absolute right-2.5 top-2.5 md:top-2 text-[11px] text-slate-500 pointer-events-none font-mono">${activeSpec.unit || it.unit}</span>` : ''}
+              ${activeSpec.unit || it.unit ? `<span class="absolute right-9 top-2.5 md:top-2 text-[11px] text-slate-500 pointer-events-none font-mono">${activeSpec.unit || it.unit}</span>` : ''}
+              <button type="button" onclick="setRowSkipped('${it.id}')" title="ไม่ได้ตรวจรอบนี้ (ใส่ -)" class="px-1.5 py-2 md:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 text-[10px] font-mono transition shrink-0 active:scale-95">-</button>
             </div>
           `;
         }
@@ -2377,32 +3319,42 @@
               <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                 ${it.require_val ? `<span class="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 text-[9px] font-bold">บังคับค่า</span>` : ''}
                 ${it.require_photo ? `<span class="px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 text-[9px] font-bold">บังคับรูป</span>` : ''}
-                ${activeSpec.isCustom ? `<span class="px-1.5 py-0.2 rounded bg-amber-500 text-slate-950 font-bold text-[9px]">กำหนดสเปคเอง</span>` : ''}
+                ${it.spec_type === 'custom_std' ? `<span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-bold text-[9px] inline-flex items-center gap-1 shadow-sm ${!activeSpec.isCustom ? 'animate-pulse' : ''}"><i class="fa-solid fa-triangle-exclamation"></i> ต้องระบุเกณฑ์ STD เอง</span>` : ''}
+                ${activeSpec.isCustom && it.spec_type !== 'custom_std' ? `<span class="px-1.5 py-0.2 rounded bg-amber-500 text-slate-950 font-bold text-[9px]">กำหนดสเปคเอง</span>` : ''}
               </div>
             </td>
 
-            <!-- Col 4: Standard Spec Display + On-the-fly Custom Spec Button -->
+            <!-- Col 4: Standard Spec Display + On-the-fly Custom Spec Button (ONLY when spec_type === 'custom_std') -->
             <td class="cell-spec py-3 px-3 font-mono">
               <div class="flex items-center justify-between md:inline-block bg-slate-950/70 md:bg-transparent p-2 md:p-0 rounded-xl md:rounded-none border border-slate-800/80 md:border-0">
                 <span class="md:hidden text-xs text-slate-400 font-sans font-medium">เกณฑ์ (STD):</span>
-                <div class="flex items-center gap-1 flex-wrap">
-                  <span class="text-xs font-bold ${activeSpec.isCustom ? 'text-amber-200 bg-amber-950/80 border-amber-500 ring-1 ring-amber-500/40' : 'text-amber-300 bg-amber-950/40 border-amber-800/50'} px-2 py-1 rounded-lg border inline-flex items-center gap-1 font-mono">
-                    ${activeSpec.isCustom ? '<i class="fa-solid fa-pen text-[9px] text-amber-400"></i>' : ''}
-                    <span>${activeSpec.spec_raw} ${activeSpec.unit || it.unit || ''}</span>
+                
+                ${it.spec_type === 'custom_std' ? `
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    ${!activeSpec.isCustom ? `
+                      <button type="button" onclick="openCustomSpecModal('${it.id}')" class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-2 border-dashed border-amber-500/60 text-xs font-bold transition flex items-center gap-1.5 animate-pulse shadow-sm shadow-amber-500/20">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>แตะเพื่อระบุเกณฑ์ STD</span>
+                      </button>
+                    ` : `
+                      <span class="text-xs font-bold text-amber-200 bg-amber-950/80 border border-amber-500 px-2 py-1 rounded-lg inline-flex items-center gap-1 font-mono ring-1 ring-amber-500/40">
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-[10px]"></i>
+                        <span>${activeSpec.spec_raw} ${activeSpec.unit || it.unit || ''}</span>
+                      </span>
+                      <button type="button" onclick="openCustomSpecModal('${it.id}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-[10px] font-bold transition" title="แก้ไขสเปคเฉพาะรอบนี้">
+                        <i class="fa-solid fa-pen"></i> แก้สเปค
+                      </button>
+                      <button type="button" onclick="resetCustomSpec('${it.id}')" class="px-1.5 py-1 rounded bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 text-[10px] transition" title="ล้างสเปคที่ตั้งไว้">
+                        <i class="fa-solid fa-rotate-left"></i>
+                      </button>
+                    `}
+                  </div>
+                ` : `
+                  <!-- Fixed Spec: Cannot be edited on the fly -->
+                  <span class="text-xs font-bold text-amber-300 bg-amber-950/40 border border-amber-800/50 px-2.5 py-1 rounded-lg inline-flex items-center gap-1 font-mono">
+                    <span>${it.spec_raw || it.target || '-'} ${it.unit || ''}</span>
                   </span>
-                  
-                  <!-- Set Custom Spec Button -->
-                  <button type="button" onclick="openCustomSpecModal('${it.id}')" class="px-1.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-amber-300 border border-slate-700 text-[10px] transition shrink-0" title="กำหนด/แก้ไขสเปคเฉพาะรอบนี้">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    <span class="hidden lg:inline text-[9px] ml-0.5">${activeSpec.isCustom ? 'แก้สเปค' : 'ตั้งเอง'}</span>
-                  </button>
-
-                  ${activeSpec.isCustom ? `
-                    <button type="button" onclick="resetCustomSpec('${it.id}')" class="px-1.5 py-1 rounded bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 text-[10px] transition shrink-0" title="รีเซ็ตกลับเป็นเกณฑ์หลักเดิม">
-                      <i class="fa-solid fa-rotate-left"></i>
-                    </button>
-                  ` : ''}
-                </div>
+                `}
               </div>
             </td>
 
@@ -2431,6 +3383,14 @@
           </tr>
         `;
       }).join('');
+    }
+
+    
+    function setRowSkipped(itemId) {
+      appState.entryValues[itemId] = '-';
+      const input = document.getElementById('input-val-' + itemId);
+      if (input) input.value = '-';
+      handleEntryValueChange(itemId, '-');
     }
 
     function handleEntryValueChange(itemId, value) {
@@ -2652,36 +3612,32 @@
     }
 
     function submitInspectionBatch() {
-      const inspectorInput = document.getElementById('entryInspectorInput');
-      const orderNoInput = document.getElementById('entryOrderNoInput');
-      const fluteInput = document.getElementById('entryFluteInput');
-      const speedInput = document.getElementById('entrySpeedInput');
+      const dept = appState.selectedDept || 'PD';
+      const deptHeaders = getDeptHeaders(dept).filter(f => f.enabled !== false);
+      captureCurrentHeaderInputs();
+
+      // 1. Validate Dynamic Required Header Fields for this department
+      for (let f of deptHeaders) {
+        const val = appState.headerValues[f.id] !== undefined ? String(appState.headerValues[f.id]).trim() : '';
+        if (f.required && !val) {
+          let targetElId = 'entryHeaderField_' + f.id;
+          if (f.id === 'inspector') targetElId = 'entryInspectorInput';
+          else if (f.id === 'order_no') targetElId = 'entryOrderNoInput';
+          else if (f.id === 'machine') targetElId = 'entryMachineFilter';
+          else if (f.id === 'flute') targetElId = 'entryFluteInput';
+          else if (f.id === 'speed') targetElId = 'entrySpeedInput';
+          
+          highlightAndFocus(targetElId, `กรุณาระบุ <b>${f.label}</b>`);
+          return;
+        }
+      }
+
+      const inspector = appState.headerValues['inspector'] || (appState.currentUser ? appState.currentUser.name : '');
+      const orderNo = appState.headerValues['order_no'] || '-';
+      const flute = appState.headerValues['flute'] || '';
+      const speed = appState.headerValues['speed'] || '';
       const machineSelect = document.getElementById('entryMachineFilter');
-
-      const inspector = inspectorInput ? inspectorInput.value.trim() : (appState.currentUser.name || '');
-      const orderNo = orderNoInput ? orderNoInput.value.trim() : '';
-      const flute = fluteInput ? fluteInput.value.trim() : '';
-      const speed = speedInput ? speedInput.value.trim() : '';
-      const machine = appState.selectedMachine || (machineSelect ? machineSelect.value : 'ALL');
-      const dept = appState.selectedDept;
-
-      // 1. Validate Required Header Fields
-      if (!inspector) {
-        highlightAndFocus('entryInspectorInput', 'กรุณาระบุชื่อ <b>ผู้ทำการตรวจเช็ค (Inspector)</b>');
-        return;
-      }
-      if (!orderNo) {
-        highlightAndFocus('entryOrderNoInput', 'กรุณาระบุ <b>หมายเลข Order / Lot การผลิต</b>');
-        return;
-      }
-      if (!flute) {
-        highlightAndFocus('entryFluteInput', 'กรุณาระบุ <b>ลอน (Flute)</b> เช่น B, C, BC, E...');
-        return;
-      }
-      if (!speed) {
-        highlightAndFocus('entrySpeedInput', 'กรุณาระบุ <b>Speed (ความเร็ว m/min)</b>');
-        return;
-      }
+      const machine = appState.selectedMachine || (machineSelect ? machineSelect.value : (appState.headerValues['machine'] || 'ALL'));
 
       let items = appState.master.filter(it => it.dept === dept && it.active !== false);
       if (appState.selectedFreq !== 'ALL') items = items.filter(it => it.freq === appState.selectedFreq);
@@ -2706,10 +3662,24 @@
           return;
         }
 
-        // Check if item strictly requires photo
-        if (it.require_photo === true && valStr !== '' && !photo) {
+        // Check if item strictly requires photo (Skipped '-' items do not require photo)
+        if (it.require_photo === true && valStr !== '' && valStr !== '-' && !photo) {
           const photoBtnId = 'photo-file-' + it.id;
           highlightAndFocus(document.getElementById(photoBtnId) ? photoBtnId : ('input-val-' + it.id), `รายการ <b>"${it.item}"</b> กำหนดให้ต้องถ่ายรูปหลักฐานประกอบก่อนบันทึก`);
+          return;
+        }
+
+        // Check if item is custom_std and user has entered value (and not skipped with '-')
+        if (it.spec_type === 'custom_std' && !activeSpec.isCustom && valStr !== '' && valStr !== '-') {
+          Swal.fire({
+            icon: 'warning',
+            title: 'ยังไม่ได้ระบุเกณฑ์ STD',
+            html: `รายการ <b>"${it.item}"</b> เป็นประเภทที่ต้องระบุเกณฑ์ STD เอง<br><span class="text-xs text-amber-300">กรุณาแตะระบุเกณฑ์มาตรฐาน (STD) ให้เรียบร้อยก่อนทำการบันทึก</span>`,
+            confirmButtonText: 'ระบุเกณฑ์ STD เดี๋ยวนี้',
+            confirmButtonColor: '#f59e0b'
+          }).then(() => {
+            openCustomSpecModal(it.id);
+          });
           return;
         }
       }
@@ -2744,9 +3714,9 @@
             freq: it.freq,
             item: it.item,
             std_spec: activeSpec.spec_raw,
-            measured_value: evalResult.measuredDisplay,
+            measured_value: evalResult.isSkipped ? '-' : evalResult.measuredDisplay,
             unit: activeSpec.unit || it.unit || '',
-            status: evalResult.isPass ? 'IN-SPEC' : 'OUT-OF-SPEC',
+            status: evalResult.isSkipped ? 'SKIPPED' : (evalResult.isPass ? 'IN-SPEC' : 'OUT-OF-SPEC'),
             inspector: inspector,
             order_no: orderNo,
             flute: flute,
@@ -3739,6 +4709,8 @@
       const startMs = parseToComparableTimestamp(startD, startT);
       const endMs = parseToComparableTimestamp(endD, endT) + (59 * 1000); // Include full end minute
 
+      const keyword = (document.getElementById('invKeywordSearch') ? document.getElementById('invKeywordSearch').value : '').trim().toLowerCase();
+
       let matchingLogs = appState.logs.filter(l => {
         const logMs = parseToComparableTimestamp(l.date, l.time);
 
@@ -3752,6 +4724,25 @@
 
         // Status check
         if (statusFilter !== 'ALL' && l.status !== statusFilter) return false;
+
+        // Keyword Search check (Order No, Notes, Roll No, Machine, Item, Inspector, Flute, Speed, etc.)
+        if (keyword) {
+          const searchCorpus = [
+            l.order_no || '',
+            l.notes || '',
+            l.machine || '',
+            l.item || '',
+            l.inspector || '',
+            l.flute || '',
+            l.speed || '',
+            l.measured_value || '',
+            l.std_spec || ''
+          ].join(' ').toLowerCase();
+
+          if (!searchCorpus.includes(keyword)) {
+            return false;
+          }
+        }
 
         return true;
       });
@@ -4171,15 +5162,23 @@
               <option value="lte" ${it.spec_type === 'lte' ? 'selected' : ''}>น้อยกว่าเท่ากับ (<=)</option>
               <option value="pass_fail" ${it.spec_type === 'pass_fail' ? 'selected' : ''}>ผ่าน / ไม่ผ่าน (Checkbox)</option>
               <option value="numeric" ${it.spec_type === 'numeric' ? 'selected' : ''}>ระบุตัวเลข (ไม่ระบุเกณฑ์ STD)</option>
+              <option value="custom_std" ${it.spec_type === 'custom_std' ? 'selected' : ''}>ระบุเกณฑ์ STD เอง (กำหนดหน้างาน)</option>
+              <option value="custom_options" ${it.spec_type === 'custom_options' ? 'selected' : ''}>ระบุตัวเลือกเอง (กำหนดตัวเลือกให้ติ๊ก)</option>
               <option value="text" ${it.spec_type === 'text' ? 'selected' : ''}>ข้อความ / บรรยาย</option>
             </select>
           </td>
-          <td class="py-2 px-2">
-            <input type="number" step="any" ${it.spec_type === 'pass_fail' || it.spec_type === 'numeric' || it.spec_type === 'text' || it.spec_type === 'lte' ? 'disabled placeholder="-" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-600 font-mono text-center cursor-not-allowed"' : `value="${it.min_val !== null && it.min_val !== undefined ? it.min_val : ''}" oninput="multiRowTempItems[${idx}].min_val = this.value !== '' ? parseFloat(this.value) : null" placeholder="Min" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none text-center"`}>
-          </td>
-          <td class="py-2 px-2">
-            <input type="number" step="any" ${it.spec_type === 'pass_fail' || it.spec_type === 'numeric' || it.spec_type === 'text' || it.spec_type === 'gte' ? 'disabled placeholder="-" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-600 font-mono text-center cursor-not-allowed"' : `value="${it.max_val !== null && it.max_val !== undefined ? it.max_val : ''}" oninput="multiRowTempItems[${idx}].max_val = this.value !== '' ? parseFloat(this.value) : null" placeholder="Max" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none text-center"`}>
-          </td>
+          ${it.spec_type === 'custom_options' ? `
+            <td class="py-2 px-2" colspan="2">
+              <input type="text" value="${it.custom_choices || it.target || ''}" oninput="multiRowTempItems[${idx}].custom_choices = this.value; multiRowTempItems[${idx}].target = this.value;" placeholder="ระบุตัวเลือก คั่นด้วยจุลภาค เช่น ปกติ, ชำรุด, รอซ่อม, ปะเทป" class="w-full bg-slate-900 border border-amber-500/60 rounded px-2 py-1 text-xs text-amber-200 focus:outline-none focus:border-amber-400 font-medium">
+            </td>
+          ` : `
+            <td class="py-2 px-2">
+              <input type="number" step="any" ${it.spec_type === 'pass_fail' || it.spec_type === 'numeric' || it.spec_type === 'custom_std' || it.spec_type === 'text' || it.spec_type === 'lte' ? 'disabled placeholder="-" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-600 font-mono text-center cursor-not-allowed"' : `value="${it.min_val !== null && it.min_val !== undefined ? it.min_val : ''}" oninput="multiRowTempItems[${idx}].min_val = this.value !== '' ? parseFloat(this.value) : null" placeholder="Min" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none text-center"`}>
+            </td>
+            <td class="py-2 px-2">
+              <input type="number" step="any" ${it.spec_type === 'pass_fail' || it.spec_type === 'numeric' || it.spec_type === 'custom_std' || it.spec_type === 'text' || it.spec_type === 'gte' ? 'disabled placeholder="-" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-600 font-mono text-center cursor-not-allowed"' : `value="${it.max_val !== null && it.max_val !== undefined ? it.max_val : ''}" oninput="multiRowTempItems[${idx}].max_val = this.value !== '' ? parseFloat(this.value) : null" placeholder="Max" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none text-center"`}>
+            </td>
+          `}
           <td class="py-2 px-2">
             <input type="text" value="${it.unit || ''}" oninput="multiRowTempItems[${idx}].unit = this.value" placeholder="°C, bar..." class="w-full bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-xs text-white focus:outline-none font-mono text-center">
           </td>
@@ -4237,6 +5236,10 @@
           specRaw = 'ผ่าน (Pass/Fail)';
         } else if (it.spec_type === 'numeric') {
           specRaw = 'ระบุตัวเลข (ไม่ระบุเกณฑ์)';
+        } else if (it.spec_type === 'custom_std') {
+          specRaw = 'ระบุเกณฑ์ STD เอง (กำหนดหน้างาน)';
+        } else if (it.spec_type === 'custom_options') {
+          specRaw = it.custom_choices || it.target || 'เลือกจากตัวเลือกที่กำหนด';
         } else {
           specRaw = it.target || 'ปกติ';
         }
@@ -4250,6 +5253,7 @@
           freq: freq,
           spec_raw: specRaw,
           spec_type: it.spec_type,
+          custom_choices: it.custom_choices || it.target || '',
           min_val: it.min_val !== '' && it.min_val !== null ? parseFloat(it.min_val) : null,
           max_val: it.max_val !== '' && it.max_val !== null ? parseFloat(it.max_val) : null,
           unit: it.unit || '',
@@ -5196,5 +6200,120 @@
       document.getElementById('photoViewerModal').classList.add('hidden');
     }
   </script>
+
+  <!-- ================= MODAL: ปรับแต่ง / เพิ่ม / ลด หัวเช็คลิสต์รายแผนก ================= -->
+  <div id="deptHeaderConfigModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+            <i class="fa-solid fa-sliders text-lg"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-white text-base sm:text-lg flex items-center gap-2">
+              <span>ตั้งค่าหัวเช็คลิสต์แผนก</span>
+              <span id="dhcModalDeptCode" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-950 text-blue-300 border border-blue-800/60">PD</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">
+              เปิด/ปิดฟิลด์ กำหนดการบังคับกรอก หรือเพิ่มฟิลด์เฉพาะของแผนกนี้
+            </p>
+          </div>
+        </div>
+        <button type="button" onclick="closeDeptHeaderConfigModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1 text-xs sm:text-sm">
+        
+        <!-- Active Fields List -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-list-check text-blue-400"></i> รายการหัวเช็คลิสต์ปัจจุบัน
+            </span>
+            <span class="text-[11px] text-slate-500">สามารถติ๊กเปิด/ปิด หรือสลับการบังคับกรอกได้</span>
+          </div>
+
+          <div id="dhcFieldsList" class="space-y-2">
+            <!-- Dynamically populated by openDeptHeaderConfigModal() -->
+          </div>
+        </div>
+
+        <!-- Add New Custom Header Field Section -->
+        <div class="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-3">
+          <span class="font-bold text-slate-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-plus-circle text-emerald-400"></i> เพิ่มหัวข้อเช็คลิสต์ใหม่ (Custom Field)
+          </span>
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+            <div class="sm:col-span-6">
+              <label class="block text-[11px] text-slate-400 mb-1 font-semibold">ชื่อหัวข้อ (Field Label)</label>
+              <input type="text" id="dhcNewFieldLabel" placeholder="เช่น เลขที่ม้วน, กะทำงาน, ซัพพลายเออร์..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition">
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block text-[11px] text-slate-400 mb-1 font-semibold">ประเภท (Type)</label>
+              <select id="dhcNewFieldType" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition">
+                <option value="text">ข้อความทั่วไป (Text)</option>
+                <option value="number">ตัวเลข (Number)</option>
+                <option value="select">ตัวเลือก (Dropdown)</option>
+              </select>
+            </div>
+            <div class="sm:col-span-3 flex items-end">
+              <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 py-2 select-none">
+                <input type="checkbox" id="dhcNewFieldRequired" checked class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0">
+                <span>บังคับกรอก (*)</span>
+              </label>
+            </div>
+          </div>
+          <div id="dhcNewFieldOptionsRow" class="hidden">
+            <label class="block text-[11px] text-slate-400 mb-1 font-semibold">รายการตัวเลือก (คั่นด้วยจุลภาค)</label>
+            <input type="text" id="dhcNewFieldOptions" placeholder="เช่น กะเช้า, กะบ่าย, กะดึก" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition">
+          </div>
+          <div class="flex justify-end pt-1">
+            <button type="button" onclick="addNewDeptHeaderField()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5 active:scale-95">
+              <i class="fa-solid fa-plus text-[11px]"></i>
+              <span>เพิ่มหัวข้อนี้</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between flex-wrap gap-2">
+        <button 
+          type="button" 
+          onclick="resetDeptHeaderToDefault()" 
+          class="px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition"
+        >
+          <i class="fa-solid fa-rotate-left text-slate-400"></i>
+          <span>คืนค่าเริ่มต้นของแผนกนี้</span>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button 
+            type="button" 
+            onclick="closeDeptHeaderConfigModal()" 
+            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition"
+          >
+            ยกเลิก
+          </button>
+          <button 
+            type="button" 
+            onclick="saveDeptHeaderConfig()" 
+            class="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-900/30 transition flex items-center gap-1.5 active:scale-95"
+          >
+            <i class="fa-solid fa-check"></i>
+            <span>บันทึกการตั้งค่าหัวเช็คลิสต์</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </body>
 </html>
