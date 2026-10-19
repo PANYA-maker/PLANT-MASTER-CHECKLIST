@@ -786,14 +786,23 @@
         </div>
 
         <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-md flex items-center justify-between">
-          <div>
+          <div class="flex-1 pr-2">
             <p class="text-xs font-medium text-slate-400">
               <i class="fa-solid fa-percent text-emerald-400 mr-1"></i> ผ่านตามสเป็ค (In-Spec)
             </p>
-            <h3 class="text-2xl sm:text-3xl font-bold font-mono text-emerald-400 mt-1" id="kpiInSpecRate">100%</h3>
-            <span class="text-[11px] text-slate-400">อัตราความสอดคล้อง</span>
+            <div class="flex items-baseline gap-2 mt-1">
+              <h3 class="text-2xl sm:text-3xl font-bold font-mono text-emerald-400" id="kpiInSpecRate">100%</h3>
+              <span class="text-[11px] text-slate-400">รวมไม่ได้ตรวจ (-)</span>
+            </div>
+            <div id="kpiInSpecBreakdown" class="flex items-center gap-1.5 mt-1.5 text-[11px] text-slate-400 flex-wrap">
+              <span class="text-emerald-400 font-semibold">ผ่าน 0</span>
+              <span class="text-slate-500">·</span>
+              <span class="text-slate-300">ไม่ได้ตรวจ (-) 0</span>
+              <span class="text-slate-500">·</span>
+              <span class="text-slate-500">หลุด 0</span>
+            </div>
           </div>
-          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl flex-shrink-0">
             <i class="fa-solid fa-circle-check"></i>
           </div>
         </div>
@@ -1261,34 +1270,27 @@
       <div class="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
         <div class="p-3 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2 flex-wrap">
-            <select id="histDeptFilter" onchange="renderHistoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
+            <select id="histDeptFilter" onchange="handleHistDeptChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
               <option value="ALL">ทุกแผนก</option>
+            </select>
+            <select id="histMachineFilter" onchange="renderHistoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
+              <option value="ALL">ทุกเครื่องจักร</option>
             </select>
             <select id="histStatusFilter" onchange="renderHistoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
               <option value="ALL">ทุกสถานะ</option>
               <option value="IN-SPEC">เฉพาะปกติ (In-Spec)</option>
+              <option value="SKIPPED">ไม่ได้ตรวจ (-)</option>
               <option value="OUT-OF-SPEC">เฉพาะหลุดสเป็ค (Out-of-Spec)</option>
             </select>
-            <input type="text" id="histSearchInput" oninput="renderHistoryTable()" placeholder="ค้นหาข้อมูล..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-xs text-white focus:outline-none w-48">
+            <input type="text" id="histSearchInput" oninput="renderHistoryTable()" placeholder="ค้นหาทุกคอลัมน์..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-xs text-white focus:outline-none w-56">
           </div>
           <span class="text-xs text-slate-400 font-mono" id="histTotalCountBadge">รวม 0 รายการ</span>
         </div>
 
-        <div class="overflow-x-auto max-h-[500px]">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-950 text-slate-400 font-mono text-[11px] sticky top-0 border-b border-slate-800 uppercase">
-              <tr>
-                <th class="py-2.5 px-3">วัน-เวลา</th>
-                <th class="py-2.5 px-3">แผนก / เครื่อง</th>
-                <th class="py-2.5 px-3">ความถี่</th>
-                <th class="py-2.5 px-3">รายการตรวจ</th>
-                <th class="py-2.5 px-3">เกณฑ์ STD</th>
-                <th class="py-2.5 px-3">ค่าที่วัดได้</th>
-                <th class="py-2.5 px-3 text-center">สถานะ</th>
-                <th class="py-2.5 px-3 text-center">เวลาตรวจ</th>
-                <th class="py-2.5 px-3">ผู้ตรวจ / Lot</th>
-                <th class="py-2.5 px-3 text-center">รูป</th>
-              </tr>
+        <div class="overflow-x-auto max-h-[550px]">
+          <table class="w-full text-left text-xs text-slate-300 whitespace-nowrap">
+            <thead id="historyTableHead" class="bg-slate-950 text-slate-400 font-mono text-[11px] sticky top-0 border-b border-slate-800 uppercase">
+              <!-- Injected dynamically by JS -->
             </thead>
             <tbody id="historyTableBody" class="divide-y divide-slate-800/60 font-sans">
               <!-- Injected by JS -->
@@ -1400,10 +1402,16 @@
             </h2>
             <p class="text-xs text-slate-400 mt-0.5">รวมศูนย์ข้อมูลเช็คลิสต์จากทุกเครื่อง ทุกแผนก เข้าสู่ Google Sheets อัตโนมัติ</p>
           </div>
-          <button onclick="syncWithGoogleSheets(false)" class="px-4 py-2 bg-blue-900/40 hover:bg-blue-800/60 text-blue-300 border border-blue-700/50 rounded-xl text-xs font-semibold transition flex items-center gap-2">
-            <i class="fa-solid fa-rotate"></i>
-            <span>ทดสอบดึงข้อมูล</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="testGoogleDriveConnection()" class="px-3.5 py-2 bg-emerald-900/40 hover:bg-emerald-800/60 text-emerald-300 border border-emerald-700/50 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
+              <i class="fa-brands fa-google-drive"></i>
+              <span>ทดสอบเชื่อมต่อ Google Drive</span>
+            </button>
+            <button onclick="syncWithGoogleSheets(false)" class="px-3.5 py-2 bg-blue-900/40 hover:bg-blue-800/60 text-blue-300 border border-blue-700/50 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-rotate"></i>
+              <span>ทดสอบดึงข้อมูล</span>
+            </button>
+          </div>
         </div>
 
         <div class="space-y-4">
@@ -1695,16 +1703,135 @@
         <!-- QR Code rendered here -->
       </div>
 
-      <div class="w-full space-y-2">
-        <input type="text" id="qrModalUrlInput" readonly class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 text-center font-mono">
+      <div class="w-full space-y-2.5">
+        <input type="text" id="qrModalUrlInput" readonly class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 text-center font-mono select-all">
         <div class="flex gap-2">
-          <button onclick="copyQrLink()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition">
-            <i class="fa-solid fa-link mr-1"></i> ก็อปปี้ลิ้งก์
+          <button onclick="downloadQrImage()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950/40">
+            <i class="fa-solid fa-download"></i> บันทึกรูป QR
           </button>
-          <button onclick="closeQrModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
+          <button onclick="copyQrLink()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-blue-950/40">
+            <i class="fa-solid fa-link"></i> ก็อปปี้ลิ้งก์
+          </button>
+          <button onclick="closeQrModal()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
             ปิด
           </button>
         </div>
+        <p class="text-[10px] text-slate-500 leading-relaxed text-center">
+          💡 สแกนผ่านมือถือ: หากเปิดไฟล์บนคอมพิวเตอร์ผ่าน file:// มือถือจะยังไม่สามารถเข้าถึงได้ ให้โฮสต์ไฟล์บน GitHub Pages หรือ Server เพื่อใช้งานผ่านมือถือ
+        </p>
+      </div>
+    </div>
+  </div>
+
+    <!-- Modal: Edit Inspection Log (แก้ไขข้อมูลที่บันทึกแล้ว) -->
+  <div id="editLogModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-base border border-indigo-500/30">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </div>
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <span>แก้ไขข้อมูลผลการตรวจเช็ค</span>
+              <span id="editLogBadgeId" class="text-[10px] font-mono text-indigo-300 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800"></span>
+            </h3>
+            <p class="text-xs text-slate-400" id="editLogSubtitle">ปรับปรุงข้อมูลกรณีคีย์ข้อมูลผิดพลาด</p>
+          </div>
+        </div>
+        <button onclick="closeEditLogModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs font-sans">
+        <input type="hidden" id="editLogId">
+        
+        <!-- Item Info Banner -->
+        <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3">
+          <div>
+            <div class="text-[10px] text-slate-400 font-mono" id="editLogDeptMachine">PD / ISOWA</div>
+            <div class="text-sm font-bold text-white mt-0.5" id="editLogItemTitle">ความกว้างกระดาษ</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] text-slate-400">เกณฑ์มาตรฐาน (STD)</div>
+            <div class="text-xs font-bold text-amber-300 font-mono" id="editLogStdSpec">100 - 105 mm</div>
+          </div>
+        </div>
+
+        <!-- Core Values (Measured Value & Status) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="block font-semibold text-slate-300">ค่าที่วัดได้ (Measured Value) *</label>
+            <div class="flex gap-2">
+              <input type="text" id="editLogMeasuredValue" oninput="autoEvalEditLogStatus()" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-mono font-bold focus:outline-none focus:border-indigo-500">
+              <span id="editLogUnitDisplay" class="px-3 py-2 bg-slate-800 text-slate-400 rounded-xl font-mono text-xs flex items-center">mm</span>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <label class="block font-semibold text-slate-300">สถานะผลตรวจ (Status) *</label>
+            <select id="editLogStatus" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-indigo-500">
+              <option value="IN-SPEC">🟢 ผ่านเกณฑ์ (IN-SPEC)</option>
+              <option value="SKIPPED">⚪ ไม่ได้ตรวจ (-) (SKIPPED)</option>
+              <option value="OUT-OF-SPEC">🔴 หลุดเกณฑ์มาตรฐาน (OUT-OF-SPEC)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Inspector & Order -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="block font-semibold text-slate-300">ผู้ทำการตรวจเช็ค (Inspector)</label>
+            <input type="text" id="editLogInspector" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <div class="space-y-1">
+            <label class="block font-semibold text-slate-300">หมายเลข Order / Lot</label>
+            <input type="text" id="editLogOrderNo" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <!-- Roll, Supplier & Paper Grade -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="space-y-1">
+            <label class="block font-semibold text-slate-300">เลขที่ม้วน (Roll No)</label>
+            <input type="text" id="editLogRollNo" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500">
+          </div>
+          <div class="space-y-1">
+            <label class="block font-semibold text-slate-300">ซัพพลายเออร์ (Supplier)</label>
+            <input type="text" id="editLogSupplier" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <div class="space-y-1">
+            <label class="block font-semibold text-slate-300">เกรด / แกรม (Grade/Gram)</label>
+            <input type="text" id="editLogPaperGrade" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <!-- Flute & Speed -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="block font-semibold text-slate-300">ลอน (Flute)</label>
+            <input type="text" id="editLogFlute" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500">
+          </div>
+          <div class="space-y-1">
+            <label class="block font-semibold text-slate-300">ความเร็วเครื่อง (Speed)</label>
+            <input type="text" id="editLogSpeed" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <!-- Notes & Reason -->
+        <div class="space-y-1">
+          <label class="block font-semibold text-slate-300">โน้ตบันทึกเพิ่มเติม / เหตุผลที่แก้ไข</label>
+          <textarea id="editLogNotes" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" placeholder="ระบุเหตุผล เช่น คีย์ตัวเลขสลับตำแหน่ง..."></textarea>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/80 flex items-center justify-end gap-2">
+        <button type="button" onclick="closeEditLogModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
+          ยกเลิก
+        </button>
+        <button type="button" onclick="saveEditedLog()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-indigo-950/50">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span>บันทึกการแก้ไข</span>
+        </button>
       </div>
     </div>
   </div>
@@ -1717,7 +1844,12 @@
           <i class="fa-solid fa-image text-blue-400"></i>
           <span>รูปภาพหลักฐานการตรวจเช็ค</span>
         </h4>
-        <button onclick="closePhotoViewer()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        <div class="flex items-center gap-2">
+          <a id="photoViewerExternalLink" href="#" target="_blank" class="hidden px-2 py-1 rounded bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 text-[11px] font-semibold items-center gap-1 transition">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดภาพเต็ม
+          </a>
+          <button onclick="closePhotoViewer()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
+        </div>
       </div>
       <div class="flex items-center justify-center bg-slate-950 rounded-xl overflow-hidden max-h-[70vh]">
         <img id="photoViewerImg" src="" alt="Proof Photo" class="max-h-full max-w-full object-contain">
@@ -1883,7 +2015,8 @@
       customStds: {},
       inspectionStartTime: Date.now(),
       lastInvestigationResults: [],
-      complianceChart: null
+      complianceChart: null,
+      logHeaders: []
     };
 
     // ================= DATE & TIME NORMALIZERS =================
@@ -1964,30 +2097,75 @@
       return new Date(y, m, d, hh, mm, 0).getTime();
     }
 
+    function findKeyCaseInsensitive(obj, keywords) {
+      if (!obj || typeof obj !== 'object') return '';
+      for (const k of Object.keys(obj)) {
+        const kLower = k.toLowerCase();
+        if (keywords.some(kw => kLower.includes(kw.toLowerCase()))) {
+          const val = obj[k];
+          if (val !== undefined && val !== null) {
+            const str = (typeof val === 'object' && val.value !== undefined) ? String(val.value).trim() : String(val).trim();
+            if (str !== '' && str !== '-') return str;
+          }
+        }
+      }
+      return '';
+    }
+
     function normalizeLogItem(rec) {
+      if (!rec || typeof rec !== 'object') return {};
       const d = normalizeDateStr(rec.date || (rec.timestamp ? rec.timestamp.split(' ')[0] : ''));
       const t = normalizeTimeStr(rec.time || (rec.timestamp ? rec.timestamp.split(' ')[1] : ''));
       const ts = rec.timestamp || (d + ' ' + t + ':00');
-      return {
-        id: rec.id || ('LOG-' + Date.now() + '-' + Math.floor(Math.random()*1000)),
-        timestamp: ts,
-        date: d,
-        time: t,
-        dept: rec.dept || '',
-        machine: rec.machine || '',
-        freq: rec.freq || '',
-        item: rec.item || '',
-        std_spec: rec.std_spec || '',
-        measured_value: rec.measured_value !== undefined && rec.measured_value !== null ? rec.measured_value : '-',
-        unit: rec.unit || '',
-        status: rec.status || 'IN-SPEC',
-        inspector: rec.inspector || '',
-        order_no: rec.order_no || '',
-        flute: rec.flute || '',
-        speed: rec.speed || '',
-        photo: rec.photo || '',
-        notes: rec.notes || ''
-      };
+
+      // Preserve ALL raw and custom fields from Google Sheet
+      const item = { ...rec };
+      item.id = rec.id || ('LOG-' + Date.now() + '-' + Math.floor(Math.random()*1000));
+      item.timestamp = ts;
+      item.date = d;
+      item.time = t;
+      item.dept = rec.dept || '';
+      item.machine = rec.machine || '';
+      item.freq = rec.freq || '';
+      item.item = rec.item || '';
+      item.std_spec = rec.std_spec || '';
+      item.measured_value = rec.measured_value !== undefined && rec.measured_value !== null ? rec.measured_value : '-';
+      item.unit = rec.unit || '';
+      item.status = rec.status || 'IN-SPEC';
+      item.inspector = rec.inspector || '';
+      item.order_no = rec.order_no || '';
+      item.flute = rec.flute || '';
+      item.speed = rec.speed || '';
+      item.photo = rec.photo || '';
+      item.notes = rec.notes || '';
+      item.duration = rec.duration || rec.duration_short || '';
+
+      // Intelligent Auto-Extractor for Roll No, Supplier, and Paper Grade
+      const rollVal = rec.roll_no || findKeyCaseInsensitive(rec, ['roll', 'ม้วน']) || findKeyCaseInsensitive(rec.custom_headers, ['roll', 'ม้วน']);
+      if (rollVal) {
+        item.roll_no = rollVal;
+        item['เลขที่ม้วน / Roll No'] = rollVal;
+        item['เลขที่ม้วน / Roll'] = rollVal;
+        item['เลขที่ม้วน'] = rollVal;
+      }
+
+      const suppVal = rec.supplier || findKeyCaseInsensitive(rec, ['supplier', 'ซัพพลาย', 'ผู้ผลิต']) || findKeyCaseInsensitive(rec.custom_headers, ['supplier', 'ซัพพลาย', 'ผู้ผลิต']);
+      if (suppVal) {
+        item.supplier = suppVal;
+        item['ซัพพลายเออร์ / ผู้ผลิต'] = suppVal;
+        item['ซัพพลายเออร์'] = suppVal;
+        item['ผู้ผลิต'] = suppVal;
+      }
+
+      const gradeVal = rec.paper_grade || findKeyCaseInsensitive(rec, ['grade', 'gram', 'เกรด', 'แกรม']) || findKeyCaseInsensitive(rec.custom_headers, ['grade', 'gram', 'เกรด', 'แกรม']);
+      if (gradeVal) {
+        item.paper_grade = gradeVal;
+        item['เกรด / แกรม'] = gradeVal;
+        item['เกรด'] = gradeVal;
+        item['แกรม'] = gradeVal;
+      }
+
+      return item;
     }
 
     // Save state helper
@@ -2046,6 +2224,10 @@
       checkUrlParamsForDirectDeptAndGasUrl();
       startLiveClock();
       loadSettings();
+      // Ensure all loaded logs are normalized and mapped with Roll, Supplier, and Grade
+      if (appState.logs && Array.isArray(appState.logs)) {
+        appState.logs = appState.logs.map(normalizeLogItem);
+      }
 
       // Check Authentication State
       if (!appState.currentUser) {
@@ -2334,6 +2516,11 @@
       if (invDept) {
         invDept.innerHTML = '<option value="ALL">ทุกแผนก</option>' + 
           depts.map(d => `<option value="${d.code}">${d.code}</option>`).join('');
+      }
+
+      // History Machine Dropdown
+      if (typeof populateHistMachineDropdown === 'function') {
+        populateHistMachineDropdown();
       }
     }
 
@@ -2677,17 +2864,35 @@
       Swal.fire({ icon: 'info', title: 'คืนค่าเริ่มต้นแล้ว', timer: 1000, showConfirmButton: false });
     }
 
-    function saveDeptHeaderConfig() {
+    async function saveDeptHeaderConfig() {
       const currentDept = appState.selectedDept || 'PD';
       if (!appState.deptHeaders) appState.deptHeaders = {};
       appState.deptHeaders[currentDept] = tempDeptHeadersConfig;
       saveDeptHeaders();
       closeDeptHeaderConfigModal();
       renderEntryHeader();
+
+      // Sync to Google Sheets DEPT_HEADERS tab
+      if (appState.gasUrl) {
+        try {
+          fetch(appState.gasUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'updateDeptHeaders',
+              dept_headers: appState.deptHeaders
+            })
+          }).catch(err => console.warn('Sync dept headers error:', err));
+        } catch(e) {
+          console.warn('Sync dept headers err:', e);
+        }
+      }
+
       Swal.fire({
         icon: 'success',
         title: 'บันทึกการตั้งค่าหัวเช็คลิสต์แล้ว!',
-        text: `อัปเดตหัวข้อเช็คลิสต์สำหรับแผนก ${currentDept} เรียบร้อย`,
+        text: `อัปเดตหัวข้อเช็คลิสต์สำหรับแผนก ${currentDept} เรียบร้อย (บันทึกขึ้น Google Sheets แล้ว)`,
         timer: 1500,
         showConfirmButton: false
       });
@@ -3371,10 +3576,24 @@
             <!-- Col 7: Photo & Note -->
             <td class="cell-actions py-3 px-3 text-center">
               <div class="flex items-center justify-between md:justify-center gap-2">
-                <label for="photo-file-${it.id}" class="cursor-pointer shrink-0 px-3 py-2 md:px-2 md:py-1 rounded-xl md:rounded-lg ${photoAttached ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'} text-xs font-semibold flex items-center gap-1.5 transition" title="ถ่ายรูป / แนบรูป">
-                  <i class="fa-solid ${photoAttached ? 'fa-check' : 'fa-camera text-blue-400'}"></i>
-                  <span class="md:hidden">${photoAttached ? 'มีรูปแล้ว' : 'ถ่ายรูป'}</span>
-                </label>
+                ${photoAttached ? `
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <img src="${appState.entryPhotos[it.id]}" onclick="viewPhoto('${appState.entryPhotos[it.id]}', '${it.item}')" class="w-8 h-8 rounded-lg object-cover border-2 border-emerald-500 cursor-pointer shadow-md hover:scale-105 transition" title="แตะเพื่อดูรูปภาพขยาย">
+                    <label for="photo-file-${it.id}" class="cursor-pointer p-1 text-slate-400 hover:text-white text-xs transition" title="ถ่ายใหม่">
+                      <i class="fa-solid fa-camera-rotate"></i>
+                    </label>
+                    <button type="button" onclick="removeEntryPhoto('${it.id}')" class="p-1 text-rose-400 hover:text-rose-300 text-xs transition" title="ลบรูป">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                ` : `
+                  <div class="flex items-center gap-1 shrink-0">
+                    <label for="photo-file-${it.id}" class="cursor-pointer px-2.5 py-1.5 md:px-2 md:py-1 rounded-xl md:rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="ถ่ายรูปสดด้วยกล้อง">
+                      <i class="fa-solid fa-camera text-blue-400"></i>
+                      <span class="md:hidden">ถ่ายรูป</span>
+                    </label>
+                  </div>
+                `}
                 <input type="file" id="photo-file-${it.id}" accept="image/*" capture="environment" onchange="handleEntryPhotoUpload('${it.id}', this)" class="hidden">
                 
                 <input type="text" id="input-note-${it.id}" placeholder="บันทึกข้อความ / โน้ต..." class="flex-1 md:flex-none bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 md:py-1 text-xs text-slate-300 md:w-24 focus:outline-none focus:border-blue-500">
@@ -3420,23 +3639,65 @@
       }
     }
 
-    function handleEntryPhotoUpload(itemId, inputElement) {
+    // Client-side Fast Image Compression via HTML5 Canvas (under 80KB for blazing fast upload)
+    function compressImage(file, maxWidth = 900, maxHeight = 900, quality = 0.72) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+              if (width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width = Math.round((width * maxHeight) / height);
+                height = maxHeight;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve(dataUrl);
+          };
+          img.onerror = () => reject(new Error('Failed to load image'));
+          img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleEntryPhotoUpload(itemId, inputElement) {
       if (inputElement.files && inputElement.files[0]) {
         const file = inputElement.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          appState.entryPhotos[itemId] = e.target.result;
-          Swal.fire({
-            icon: 'success',
-            title: 'แนบรูปภาพแล้ว',
-            text: 'แนบรูปภาพหลักฐานเรียบร้อย',
-            timer: 1000,
-            showConfirmButton: false
-          });
+        try {
+          // Fast compress image
+          const compressedDataUrl = await compressImage(file, 900, 900, 0.72);
+          appState.entryPhotos[itemId] = compressedDataUrl;
           renderEntryForm();
-        };
-        reader.readAsDataURL(file);
+        } catch (err) {
+          console.warn('Compression error fallback:', err);
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            appState.entryPhotos[itemId] = e.target.result;
+            renderEntryForm();
+          };
+          reader.readAsDataURL(file);
+        }
       }
+    }
+
+    function removeEntryPhoto(itemId) {
+      delete appState.entryPhotos[itemId];
+      renderEntryForm();
     }
 
     // Submit Inspection Batch (Instant Save + Background Sync)
@@ -3704,7 +3965,16 @@
           const activeSpec = getActiveItemSpec(it);
           const evalResult = evaluateItemSpec(it, valStr);
 
-          newRecords.push({
+          // Collect custom header values
+          const customHeadersMap = {};
+          deptHeaders.forEach(f => {
+            if (!['inspector', 'order_no', 'machine', 'flute', 'speed'].includes(f.id)) {
+              const val = appState.headerValues[f.id] !== undefined ? String(appState.headerValues[f.id]).trim() : '';
+              customHeadersMap[f.id] = { label: f.label, value: val };
+            }
+          });
+
+          const recObj = {
             id: 'LOG-' + Date.now() + '-' + Math.floor(Math.random()*10000),
             timestamp: dateStr + ' ' + timeStr + ':00',
             date: dateStr,
@@ -3725,8 +3995,18 @@
             duration_short: durationShort,
             duration_seconds: durationSec,
             photo: photo,
-            notes: noteInput ? noteInput.value.trim() : ''
+            notes: noteInput ? noteInput.value.trim() : '',
+            custom_headers: customHeadersMap
+          };
+
+          // Attach direct custom properties for dynamic Google Sheet column creation
+          deptHeaders.forEach(f => {
+            if (!['inspector', 'order_no', 'machine', 'flute', 'speed'].includes(f.id)) {
+              recObj[f.id] = appState.headerValues[f.id] !== undefined ? String(appState.headerValues[f.id]).trim() : '';
+            }
           });
+
+          newRecords.push(recObj);
         }
       }
 
@@ -3854,7 +4134,11 @@
       const totalChecks = logs.length;
       const outOfSpecLogs = logs.filter(l => l.status === 'OUT-OF-SPEC');
       const inSpecLogs = logs.filter(l => l.status === 'IN-SPEC');
-      const inSpecRate = totalChecks > 0 ? ((inSpecLogs.length / totalChecks) * 100).toFixed(1) : '100';
+      const skippedLogs = logs.filter(l => l.status === 'SKIPPED');
+      
+      // Include SKIPPED in compliance rate calculation so % does not drop unfairly
+      const nonDefectCount = inSpecLogs.length + skippedLogs.length;
+      const inSpecRate = totalChecks > 0 ? ((nonDefectCount / totalChecks) * 100).toFixed(1) : '100';
 
       const targetMode = document.getElementById('dashboardTargetMode') ? document.getElementById('dashboardTargetMode').value : '24';
       const totalDailyRunsTarget = appState.master.reduce((sum, it) => sum + getDailyFrequencyMultiplier(it.freq, targetMode), 0);
@@ -3863,6 +4147,18 @@
       document.getElementById('kpiInSpecRate').innerText = inSpecRate + '%';
       document.getElementById('kpiOutOfSpecCount').innerText = outOfSpecLogs.length;
       document.getElementById('kpiTotalMasterItems').innerText = appState.master.length;
+
+      // Update Breakdown in KPI Card 2
+      const breakdownEl = document.getElementById('kpiInSpecBreakdown');
+      if (breakdownEl) {
+        breakdownEl.innerHTML = `
+          <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check text-[10px]"></i> ผ่าน ${inSpecLogs.length}</span>
+          <span class="text-slate-500">·</span>
+          <span class="text-slate-300 font-medium"><i class="fa-solid fa-minus text-[10px]"></i> ไม่ได้ตรวจ (-) ${skippedLogs.length}</span>
+          <span class="text-slate-500">·</span>
+          <span class="${outOfSpecLogs.length > 0 ? 'text-rose-400 font-bold' : 'text-slate-500'}"><i class="fa-solid fa-triangle-exclamation text-[10px]"></i> หลุด ${outOfSpecLogs.length}</span>
+        `;
+      }
       const kpiTargetSub = document.getElementById('kpiTargetSubtext');
       if (kpiTargetSub) {
         kpiTargetSub.innerText = `(เป้า ${totalDailyRunsTarget} ครั้ง/${targetMode === '12' ? 'กะ' : 'วัน'})`;
@@ -4615,16 +4911,17 @@
         appState.complianceChart.destroy();
       }
 
+      const inSpecCount = logs.filter(l => l.status === 'IN-SPEC').length;
+      const skippedCount = logs.filter(l => l.status === 'SKIPPED').length;
+      const outOfSpecCount = logs.filter(l => l.status === 'OUT-OF-SPEC').length;
+
       appState.complianceChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['In-Spec (ผ่านเกณฑ์)', 'Out-of-Spec (หลุดสเป็ค)'],
+          labels: ['In-Spec (ผ่านเกณฑ์)', 'ไม่ได้ตรวจ (-)', 'Out-of-Spec (หลุดสเป็ค)'],
           datasets: [{
-            data: [
-              logs.filter(l => l.status === 'IN-SPEC').length,
-              logs.filter(l => l.status === 'OUT-OF-SPEC').length
-            ],
-            backgroundColor: ['#10b981', '#f43f5e'],
+            data: [inSpecCount, skippedCount, outOfSpecCount],
+            backgroundColor: ['#10b981', '#64748b', '#f43f5e'],
             borderWidth: 0,
             hoverOffset: 4
           }]
@@ -4725,20 +5022,28 @@
         // Status check
         if (statusFilter !== 'ALL' && l.status !== statusFilter) return false;
 
-        // Keyword Search check (Order No, Notes, Roll No, Machine, Item, Inspector, Flute, Speed, etc.)
+        // Keyword Search across ALL columns of Google Sheet INSPECTION_LOGS except 'custom_headers_summary'
         if (keyword) {
-          const searchCorpus = [
-            l.order_no || '',
-            l.notes || '',
-            l.machine || '',
-            l.item || '',
-            l.inspector || '',
-            l.flute || '',
-            l.speed || '',
-            l.measured_value || '',
-            l.std_spec || ''
-          ].join(' ').toLowerCase();
-
+          const ignored = ['custom_headers_summary', 'Custom Headers Summary'];
+          let corpusParts = [];
+          for (const key of Object.keys(l)) {
+            if (ignored.some(ig => ig.toLowerCase() === key.toLowerCase())) continue;
+            const val = l[key];
+            if (val !== null && val !== undefined && typeof val !== 'object') {
+              corpusParts.push(String(val));
+            } else if (key === 'custom_headers' && typeof val === 'object' && val !== null) {
+              for (const chk of Object.keys(val)) {
+                if (ignored.some(ig => ig.toLowerCase() === chk.toLowerCase())) continue;
+                const subVal = val[chk];
+                if (subVal && typeof subVal === 'object' && subVal.value) {
+                  corpusParts.push(String(subVal.value));
+                } else if (subVal && typeof subVal !== 'object') {
+                  corpusParts.push(String(subVal));
+                }
+              }
+            }
+          }
+          const searchCorpus = corpusParts.join(' ').toLowerCase();
           if (!searchCorpus.includes(keyword)) {
             return false;
           }
@@ -4834,8 +5139,18 @@
                         ${l.duration || l.duration_short || '-'}
                       </td>
                       <td class="py-2 px-3 text-slate-300 text-xs">
-                        <div>${l.inspector || '-'}</div>
-                        <div class="text-[10px] text-slate-500">${l.order_no || ''}</div>
+                        <div class="font-medium text-white">${l.inspector || '-'}</div>
+                        <div class="text-[10px] text-slate-400">${l.order_no ? 'Order: ' + l.order_no : ''}</div>
+                        ${(() => {
+                          const r = l.roll_no || findKeyCaseInsensitive(l, ['roll', 'ม้วน']) || findKeyCaseInsensitive(l.custom_headers, ['roll', 'ม้วน']);
+                          const s = l.supplier || findKeyCaseInsensitive(l, ['supplier', 'ซัพพลาย', 'ผู้ผลิต']) || findKeyCaseInsensitive(l.custom_headers, ['supplier', 'ซัพพลาย', 'ผู้ผลิต']);
+                          const g = l.paper_grade || findKeyCaseInsensitive(l, ['grade', 'gram', 'เกรด', 'แกรม']) || findKeyCaseInsensitive(l.custom_headers, ['grade', 'gram', 'เกรด', 'แกรม']);
+                          const subParts = [];
+                          if (r) subParts.push('ม้วน: ' + r);
+                          if (s) subParts.push('ผู้ผลิต: ' + s);
+                          if (g) subParts.push('เกรด: ' + g);
+                          return subParts.length > 0 ? `<div class="text-[10px] text-indigo-300 font-mono mt-0.5">${subParts.join(' | ')}</div>` : '';
+                        })()}
                       </td>
                       <td class="py-2 px-3 text-center">
                         ${l.photo ? `
@@ -4893,6 +5208,9 @@
         'Duration (เวลาที่ใช้ตรวจ)': l.duration || l.duration_short || '',
         'Inspector': l.inspector,
         'Order No': l.order_no,
+        'เลขที่ม้วน (Roll No)': l.roll_no || findKeyCaseInsensitive(l, ['roll', 'ม้วน']) || findKeyCaseInsensitive(l.custom_headers, ['roll', 'ม้วน']) || '',
+        'ซัพพลายเออร์ (Supplier)': l.supplier || findKeyCaseInsensitive(l, ['supplier', 'ซัพพลาย', 'ผู้ผลิต']) || findKeyCaseInsensitive(l.custom_headers, ['supplier', 'ซัพพลาย', 'ผู้ผลิต']) || '',
+        'เกรด / แกรม (Grade/Gram)': l.paper_grade || findKeyCaseInsensitive(l, ['grade', 'gram', 'เกรด', 'แกรม']) || findKeyCaseInsensitive(l.custom_headers, ['grade', 'gram', 'เกรด', 'แกรม']) || '',
         'Flute (ลอน)': l.flute || '',
         'Speed (ความเร็ว)': l.speed || '',
         'Notes': l.notes
@@ -5365,21 +5683,204 @@
     }
 
     // ================= TAB 4: HISTORY & EXPORT =================
+    // Helper to populate Machine Filter Dropdown in History Tab
+    function populateHistMachineDropdown() {
+      const select = document.getElementById('histMachineFilter');
+      if (!select) return;
+      const currentVal = select.value;
+      const currentDept = document.getElementById('histDeptFilter') ? document.getElementById('histDeptFilter').value : 'ALL';
+      
+      const machines = new Set();
+      appState.master.forEach(it => {
+        if (it.machine && (currentDept === 'ALL' || it.dept === currentDept)) {
+          machines.add(it.machine);
+        }
+      });
+      appState.logs.forEach(l => {
+        if (l.machine && (currentDept === 'ALL' || l.dept === currentDept)) {
+          machines.add(l.machine);
+        }
+      });
+
+      const sorted = Array.from(machines).sort();
+      select.innerHTML = '<option value="ALL">ทุกเครื่องจักร</option>' + sorted.map(m => `<option value="${m}">${m}</option>`).join('');
+      if (sorted.includes(currentVal)) {
+        select.value = currentVal;
+      } else {
+        select.value = 'ALL';
+      }
+    }
+
+    function handleHistDeptChange() {
+      populateHistMachineDropdown();
+      renderHistoryTable();
+    }
+
+    // Helper: Render Combined Material & Roll Details Column (Clean, grouped, readable)
+    function renderMaterialDetails(l) {
+      const parts = [];
+      if (l.order_no && l.order_no !== '-') {
+        parts.push(`<div class="font-bold text-white"><i class="fa-solid fa-hashtag text-indigo-400 mr-1 text-[10px]"></i>Order: <span class="font-mono text-white">${l.order_no}</span></div>`);
+      }
+      const roll = l.roll_no || findKeyCaseInsensitive(l, ['roll', 'ม้วน']) || findKeyCaseInsensitive(l.custom_headers, ['roll', 'ม้วน']);
+      if (roll && roll !== '-') {
+        parts.push(`<div class="text-blue-300 font-semibold"><i class="fa-solid fa-scroll text-blue-400 mr-1 text-[10px]"></i>ม้วน: <span class="font-mono">${roll}</span></div>`);
+      }
+      const supplier = l.supplier || findKeyCaseInsensitive(l, ['supplier', 'ซัพพลาย', 'ผู้ผลิต']) || findKeyCaseInsensitive(l.custom_headers, ['supplier', 'ซัพพลาย', 'ผู้ผลิต']);
+      if (supplier && supplier !== '-') {
+        parts.push(`<div class="text-indigo-300"><i class="fa-solid fa-truck-field text-indigo-400 mr-1 text-[10px]"></i>ผู้ผลิต: ${supplier}</div>`);
+      }
+      const grade = l.paper_grade || findKeyCaseInsensitive(l, ['grade', 'gram', 'เกรด', 'แกรม']) || findKeyCaseInsensitive(l.custom_headers, ['grade', 'gram', 'เกรด', 'แกรม']);
+      if (grade && grade !== '-') {
+        parts.push(`<div class="text-amber-300"><i class="fa-solid fa-layer-group text-amber-400 mr-1 text-[10px]"></i>เกรด/แกรม: <span class="font-mono">${grade}</span></div>`);
+      }
+      if (l.flute || l.speed) {
+        const fluteStr = l.flute ? `ลอน: ${l.flute}` : '';
+        const speedStr = l.speed ? `สปีด: ${l.speed}` : '';
+        parts.push(`<div class="text-cyan-400 text-[10px] font-mono">${[fluteStr, speedStr].filter(Boolean).join(' | ')}</div>`);
+      }
+      if (parts.length === 0) return '<span class="text-slate-500">-</span>';
+      return `<div class="space-y-0.5 text-xs">${parts.join('')}</div>`;
+    }
+
+    // Helper: Build Grouped Column Definitions for History Table (Clean 8 columns)
+    function getHistoryColumns() {
+      return [
+        {
+          key: 'date_dept_machine',
+          label: 'วัน-เวลา & เครื่องจักร',
+          render: l => `
+            <div>
+              <div class="font-mono font-semibold text-slate-200 text-xs">${l.date || ''} <span class="text-slate-400 font-normal">@${l.time || ''}</span></div>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-200">${l.dept || '-'}</span>
+                <span class="text-slate-300 font-mono text-[11px]">${l.machine || '-'}</span>
+                <span class="text-slate-500 text-[10px] font-mono">(${l.freq || '-'})</span>
+              </div>
+            </div>
+          `
+        },
+        {
+          key: 'order_material',
+          label: 'Order & วัตถุดิบ/ม้วน',
+          render: l => renderMaterialDetails(l)
+        },
+        {
+          key: 'item_spec',
+          label: 'รายการตรวจ & เกณฑ์ STD',
+          render: l => `
+            <div>
+              <div class="font-medium text-white text-xs">${l.item || '-'}</div>
+              <div class="text-amber-300 font-mono text-[11px] mt-0.5">STD: ${l.std_spec || '-'}</div>
+            </div>
+          `
+        },
+        {
+          key: 'measured_status',
+          label: 'ค่าที่วัดได้ & สถานะ',
+          render: l => {
+            const isPass = l.status === 'IN-SPEC';
+            const isSkip = l.status === 'SKIPPED';
+            const colClass = isSkip ? 'text-slate-400' : (isPass ? 'text-emerald-400' : 'text-rose-400');
+            const badgeClass = isSkip ? 'bg-slate-800 text-slate-300 border border-slate-700' : (isPass ? 'badge-in-spec' : 'badge-out-of-spec animate-pulse');
+            return `
+              <div>
+                <div class="font-mono font-bold text-sm ${colClass}">${l.measured_value || '-'} <span class="text-xs text-slate-400 font-normal">${l.unit || ''}</span></div>
+                <div class="mt-1"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">${l.status || '-'}</span></div>
+              </div>
+            `;
+          }
+        },
+        {
+          key: 'inspector_duration',
+          label: 'ผู้ตรวจ & เวลาตรวจ',
+          render: l => `
+            <div>
+              <div class="text-slate-200 text-xs font-medium">${l.inspector || '-'}</div>
+              <div class="text-amber-300/80 font-mono text-[10px] mt-0.5"><i class="fa-solid fa-stopwatch mr-0.5"></i>${l.duration || l.duration_short || '-'}</div>
+            </div>
+          `
+        },
+        {
+          key: 'photo',
+          label: 'รูปภาพ',
+          render: l => {
+            if (!l.photo || l.photo === 'NO') return '<span class="text-slate-600">-</span>';
+            return `
+              <button onclick="viewPhoto('${l.photo}', '${l.item}')" class="px-2.5 py-1.5 rounded-xl bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-700/60 text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition" title="แตะเพื่อดูรูปภาพ">
+                <i class="fa-solid fa-image"></i>
+                <span>รูปหลักฐาน</span>
+              </button>
+            `;
+          }
+        },
+        {
+          key: 'notes',
+          label: 'โน้ต / บันทึก',
+          render: l => `<span class="text-slate-400 text-xs truncate max-w-[130px] inline-block" title="${l.notes || ''}">${l.notes || '-'}</span>`
+        },
+        {
+          key: 'actions',
+          label: 'จัดการ',
+          render: l => `
+            <button onclick="openEditLogModal('${l.id}')" class="px-2.5 py-1 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/40 text-xs font-semibold flex items-center gap-1 transition shadow-sm" title="แก้ไขข้อมูลผลตรวจนี้">
+              <i class="fa-solid fa-pen-to-square"></i>
+              <span>แก้ไข</span>
+            </button>
+          `
+        }
+      ];
+    }
+
     function renderHistoryTable() {
+      const thead = document.getElementById('historyTableHead');
       const tbody = document.getElementById('historyTableBody');
       const dept = document.getElementById('histDeptFilter') ? document.getElementById('histDeptFilter').value : 'ALL';
+      const machine = document.getElementById('histMachineFilter') ? document.getElementById('histMachineFilter').value : 'ALL';
       const status = document.getElementById('histStatusFilter') ? document.getElementById('histStatusFilter').value : 'ALL';
       const search = document.getElementById('histSearchInput') ? document.getElementById('histSearchInput').value.trim().toLowerCase() : '';
 
+      const cols = getHistoryColumns();
+
+      if (thead) {
+        thead.innerHTML = `<tr>` + cols.map(c => `<th class="py-2.5 px-3 whitespace-nowrap">${c.label}</th>`).join('') + `</tr>`;
+      }
+
       let logs = appState.logs;
       if (dept !== 'ALL') logs = logs.filter(l => l.dept === dept);
+      if (machine !== 'ALL') logs = logs.filter(l => (l.machine || 'General') === machine);
       if (status !== 'ALL') logs = logs.filter(l => l.status === status);
-      if (search) logs = logs.filter(l => (l.item && l.item.toLowerCase().includes(search)) || (l.inspector && l.inspector.toLowerCase().includes(search)) || (l.order_no && l.order_no.toLowerCase().includes(search)));
+
+      // Search across ALL columns except Custom Headers Summary
+      if (search) {
+        const ignored = ['custom_headers_summary', 'Custom Headers Summary'];
+        logs = logs.filter(l => {
+          let corpusParts = [];
+          for (const key of Object.keys(l)) {
+            if (ignored.some(ig => ig.toLowerCase() === key.toLowerCase())) continue;
+            const val = l[key];
+            if (val !== null && val !== undefined && typeof val !== 'object') {
+              corpusParts.push(String(val));
+            } else if (key === 'custom_headers' && typeof val === 'object' && val !== null) {
+              for (const chk of Object.keys(val)) {
+                if (ignored.some(ig => ig.toLowerCase() === chk.toLowerCase())) continue;
+                const subVal = val[chk];
+                if (subVal && typeof subVal === 'object' && subVal.value) {
+                  corpusParts.push(String(subVal.value));
+                } else if (subVal && typeof subVal !== 'object') {
+                  corpusParts.push(String(subVal));
+                }
+              }
+            }
+          }
+          return corpusParts.join(' ').toLowerCase().includes(search);
+        });
+      }
 
       document.getElementById('histTotalCountBadge').innerText = `รวม ${logs.length} รายการ`;
 
       if (logs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-slate-500">ไม่พบประวัติการตรวจเช็คตามเงื่อนไข</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${cols.length}" class="py-10 text-center text-slate-500">ไม่พบประวัติการตรวจเช็คตามเงื่อนไข</td></tr>`;
         return;
       }
 
@@ -5387,40 +5888,257 @@
         const isPass = l.status === 'IN-SPEC';
         return `
           <tr class="hover:bg-slate-800/40 transition ${!isPass ? 'bg-rose-950/20' : ''}">
-            <td class="py-2.5 px-3 font-mono font-semibold text-slate-200">${l.date} ${l.time}</td>
-            <td class="py-2.5 px-3">
-              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-200">${l.dept}</span>
-              <span class="text-[10px] text-slate-400 ml-1">${l.machine || ''}</span>
-            </td>
-            <td class="py-2.5 px-3 font-mono text-slate-400 text-[11px]">${l.freq || '-'}</td>
-            <td class="py-2.5 px-3 font-medium text-white">${l.item}</td>
-            <td class="py-2.5 px-3 text-amber-300 font-mono text-[11px]">${l.std_spec}</td>
-            <td class="py-2.5 px-3 font-mono font-bold text-sm ${isPass ? 'text-emerald-400' : 'text-rose-400'}">
-              ${l.measured_value} ${l.unit || ''}
-            </td>
-            <td class="py-2.5 px-3 text-center">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPass ? 'badge-in-spec' : 'badge-out-of-spec'}">
-                ${l.status}
-              </span>
-            </td>
-            <td class="py-2.5 px-3 text-center font-mono text-xs text-amber-300/90 font-medium">
-              ${l.duration || l.duration_short || '-'}
-            </td>
-            <td class="py-2.5 px-3 text-slate-300 text-xs">
-              <div class="font-medium text-white">${l.inspector || '-'}</div>
-              <div class="text-[10px] text-slate-400 font-mono">${l.order_no || ''}</div>
-              ${(l.flute || l.speed) ? `<div class="text-[10px] text-cyan-400 font-mono mt-0.5">${l.flute ? 'ลอน: '+l.flute : ''} ${l.speed ? 'ความเร็ว: '+l.speed : ''}</div>` : ''}
-            </td>
-            <td class="py-2.5 px-3 text-center">
-              ${l.photo ? `
-                <button onclick="viewPhoto('${l.photo}', '${l.item}')" class="text-blue-400 hover:text-blue-300 text-xs" title="ดูรูป">
-                  <i class="fa-solid fa-image"></i>
-                </button>
-              ` : '<span class="text-slate-600">-</span>'}
-            </td>
+            ${cols.map(c => `<td class="py-2.5 px-3 whitespace-nowrap align-middle">${c.render(l)}</td>`).join('')}
           </tr>
         `;
       }).join('');
+    }
+
+    // ================= EDIT LOG RECORD LOGIC =================
+    function openEditLogModal(logId) {
+      const log = appState.logs.find(l => l.id === logId);
+      if (!log) {
+        Swal.fire({ icon: 'error', title: 'ไม่พบรายการ', text: 'ไม่พบรายการที่ต้องการแก้ไข' });
+        return;
+      }
+
+      document.getElementById('editLogId').value = log.id;
+      document.getElementById('editLogBadgeId').innerText = log.id;
+      document.getElementById('editLogDeptMachine').innerText = `${log.dept} / ${log.machine} (@${log.date} ${log.time})`;
+      document.getElementById('editLogItemTitle').innerText = log.item;
+      document.getElementById('editLogStdSpec').innerText = `${log.std_spec || '-'} ${log.unit || ''}`;
+      document.getElementById('editLogMeasuredValue').value = log.measured_value || '';
+      document.getElementById('editLogUnitDisplay').innerText = log.unit || '';
+      document.getElementById('editLogStatus').value = log.status || 'IN-SPEC';
+      document.getElementById('editLogInspector').value = log.inspector || '';
+      document.getElementById('editLogOrderNo').value = log.order_no || '';
+      
+      const roll = log.roll_no || findKeyCaseInsensitive(log, ['roll', 'ม้วน']) || findKeyCaseInsensitive(log.custom_headers, ['roll', 'ม้วน']) || '';
+      const supplier = log.supplier || findKeyCaseInsensitive(log, ['supplier', 'ซัพพลาย', 'ผู้ผลิต']) || findKeyCaseInsensitive(log.custom_headers, ['supplier', 'ซัพพลาย', 'ผู้ผลิต']) || '';
+      const grade = log.paper_grade || findKeyCaseInsensitive(log, ['grade', 'gram', 'เกรด', 'แกรม']) || findKeyCaseInsensitive(log.custom_headers, ['grade', 'gram', 'เกรด', 'แกรม']) || '';
+
+      document.getElementById('editLogRollNo').value = roll !== '-' ? roll : '';
+      document.getElementById('editLogSupplier').value = supplier !== '-' ? supplier : '';
+      document.getElementById('editLogPaperGrade').value = grade !== '-' ? grade : '';
+      document.getElementById('editLogFlute').value = log.flute || '';
+      document.getElementById('editLogSpeed').value = log.speed || '';
+      document.getElementById('editLogNotes').value = log.notes || '';
+
+      document.getElementById('editLogModal').classList.remove('hidden');
+    }
+
+    function closeEditLogModal() {
+      document.getElementById('editLogModal').classList.add('hidden');
+    }
+
+    function parseSpecStringToItem(specStr, itemName) {
+      const item = {
+        item: itemName || '',
+        spec_raw: specStr || '',
+        spec_type: 'range',
+        min_val: null,
+        max_val: null
+      };
+      if (!specStr) return item;
+      const s = String(specStr).trim();
+      if (s.includes('ผ่าน') || s.toLowerCase().includes('pass')) {
+        item.spec_type = 'pass_fail';
+        return item;
+      }
+      if (s.includes('ข้อความ') || s.toLowerCase().includes('text')) {
+        item.spec_type = 'text';
+        return item;
+      }
+      // Range with '-'
+      if (s.includes('-')) {
+        const parts = s.split('-');
+        if (parts.length === 2) {
+          const min = parseFloat(parts[0].trim());
+          const max = parseFloat(parts[1].trim());
+          if (!isNaN(min) && !isNaN(max)) {
+            item.spec_type = 'range';
+            item.min_val = min;
+            item.max_val = max;
+            return item;
+          }
+        }
+      }
+      // Range with '+-' or '±'
+      if (s.includes('+-') || s.includes('±')) {
+        const parts = s.split(/\+-|±/);
+        if (parts.length === 2) {
+          const base = parseFloat(parts[0].trim());
+          const tol = parseFloat(parts[1].trim());
+          if (!isNaN(base) && !isNaN(tol)) {
+            item.spec_type = 'range';
+            item.min_val = base - tol;
+            item.max_val = base + tol;
+            return item;
+          }
+        }
+      }
+      // >= or <=
+      if (s.startsWith('>=') || s.startsWith('≥')) {
+        const min = parseFloat(s.replace('>=', '').replace('≥', '').trim());
+        if (!isNaN(min)) {
+          item.spec_type = 'gte';
+          item.min_val = min;
+          return item;
+        }
+      }
+      if (s.startsWith('<=') || s.startsWith('≤')) {
+        const max = parseFloat(s.replace('<=', '').replace('≤', '').trim());
+        if (!isNaN(max)) {
+          item.spec_type = 'lte';
+          item.max_val = max;
+          return item;
+        }
+      }
+      return item;
+    }
+
+    function autoEvalEditLogStatus() {
+      const valStr = document.getElementById('editLogMeasuredValue').value.trim();
+      const statusSelect = document.getElementById('editLogStatus');
+      const logId = document.getElementById('editLogId').value;
+      const log = appState.logs.find(l => l.id === logId);
+      if (!log || !statusSelect) return;
+
+      if (valStr === '-') {
+        statusSelect.value = 'SKIPPED';
+        return;
+      }
+
+      // Check against master item if found, else parse from log.std_spec
+      let evalItem = appState.master.find(m => m.item === log.item && m.dept === log.dept);
+      if (!evalItem && log.std_spec) {
+        evalItem = parseSpecStringToItem(log.std_spec, log.item);
+      }
+      if (evalItem) {
+        const evalRes = evaluateItemSpec(evalItem, valStr);
+        if (evalRes.hasValue) {
+          statusSelect.value = evalRes.isSkipped ? 'SKIPPED' : (evalRes.isPass ? 'IN-SPEC' : 'OUT-OF-SPEC');
+        }
+      }
+    }
+
+    async function saveEditedLog() {
+      const logId = document.getElementById('editLogId').value;
+      const logIndex = appState.logs.findIndex(l => l.id === logId);
+      if (logIndex === -1) return;
+
+      const log = appState.logs[logIndex];
+      const newMeasuredVal = document.getElementById('editLogMeasuredValue').value.trim();
+      const newStatus = document.getElementById('editLogStatus').value;
+      const newInspector = document.getElementById('editLogInspector').value.trim();
+      const newOrderNo = document.getElementById('editLogOrderNo').value.trim();
+      const newRollNo = document.getElementById('editLogRollNo').value.trim();
+      const newSupplier = document.getElementById('editLogSupplier').value.trim();
+      const newPaperGrade = document.getElementById('editLogPaperGrade').value.trim();
+      const newFlute = document.getElementById('editLogFlute').value.trim();
+      const newSpeed = document.getElementById('editLogSpeed').value.trim();
+      const newNotes = document.getElementById('editLogNotes').value.trim();
+
+      // Apply modifications to local object
+      log.measured_value = newMeasuredVal;
+      log.status = newStatus;
+      log.inspector = newInspector;
+      log.order_no = newOrderNo;
+      log.roll_no = newRollNo;
+      log['เลขที่ม้วน / Roll No'] = newRollNo;
+      log.supplier = newSupplier;
+      log['ซัพพลายเออร์ / ผู้ผลิต'] = newSupplier;
+      log.paper_grade = newPaperGrade;
+      log['เกรด / แกรม'] = newPaperGrade;
+      log.flute = newFlute;
+      log.speed = newSpeed;
+      log.notes = newNotes;
+
+      if (!log.custom_headers) log.custom_headers = {};
+      if (newRollNo) log.custom_headers['Roll No'] = newRollNo;
+      if (newSupplier) log.custom_headers['ซัพพลายเออร์ / ผู้ผลิต'] = newSupplier;
+      if (newPaperGrade) log.custom_headers['เกรด / แกรม'] = newPaperGrade;
+
+      saveState();
+      closeEditLogModal();
+      renderHistoryTable();
+      renderDashboard();
+      if (typeof runDefectInvestigation === 'function') runDefectInvestigation();
+
+      // Send update to Google Sheets Backend
+      if (appState.gasUrl) {
+        try {
+          fetch(appState.gasUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'updateLog',
+              record: log
+            })
+          }).catch(err => console.warn('Background updateLog error:', err));
+        } catch(e) {
+          console.warn('Sync update log err:', e);
+        }
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'บันทึกการแก้ไขแล้ว!',
+        text: 'อัปเดตข้อมูลผลตรวจเรียบร้อย (บันทึกขึ้น Google Sheets แล้ว)',
+        timer: 1600,
+        showConfirmButton: false
+      });
+    }
+
+    // Helper: Test Google Drive Connection directly from Settings tab
+    async function testGoogleDriveConnection() {
+      if (!appState.gasUrl) {
+        Swal.fire({ icon: 'warning', title: 'ยังไม่ได้ระบุ Web App URL', text: 'กรุณากรอก Google Apps Script Web App URL ก่อนทดสอบ' });
+        return;
+      }
+      Swal.fire({
+        title: 'กำลังทดสอบเชื่อมต่อ Google Drive...',
+        didOpen: () => Swal.showLoading(),
+        allowOutsideClick: false
+      });
+      try {
+        const res = await fetch(appState.gasUrl + '?action=testDrive');
+        const data = await res.json();
+        if (data.status === 'success') {
+          Swal.fire({
+            icon: 'success',
+            title: 'เชื่อมต่อ Google Drive สำเร็จ!',
+            html: `
+              <div class="text-left text-xs text-slate-300 space-y-2">
+                <div><b>สถานะ:</b> <span class="text-emerald-400 font-bold">เข้าถึง Google Drive ได้อย่างสมบูรณ์</span></div>
+                <div><b>ชื่อโฟลเดอร์:</b> <span class="font-mono text-white">${data.folderName}</span></div>
+                <div><b>Folder ID:</b> <span class="font-mono text-slate-400">${data.folderId}</span></div>
+                <div class="mt-2 text-slate-400">รูปภาพที่ถ่ายในการตรวจเช็คจะถูกอัปโหลดขึ้นโฟลเดอร์นี้โดยอัตโนมัติ</div>
+              </div>
+            `
+          });
+        } else {
+          Swal.fire({
+            icon: 'warning',
+            title: 'ต้องกดยืนยันสิทธิ์ Google Drive',
+            html: `
+              <div class="text-left text-xs text-slate-300 space-y-2">
+                <div class="text-rose-400 font-bold">ข้อความ: ${data.message || 'Permission needed'}</div>
+                <div class="p-3 rounded-xl bg-slate-950 border border-amber-500/40 text-amber-300 space-y-1">
+                  <b>ขั้นตอนยืนยันสิทธิ์ (ทำครั้งเดียว):</b><br>
+                  1. ไปที่ Google Sheets > ส่วนขยาย (Extensions) > Apps Script<br>
+                  2. เลือกฟังก์ชัน <b>testDriveAndPermissions</b> แล้วกดปุ่ม <b>เรียกใช้ (Run)</b><br>
+                  3. กด <b>ตรวจสอบสิทธิ์ (Review permissions)</b> แล้วกด <b>Allow</b><br>
+                  4. กด Deploy > New deployment (Web app: Anyone)
+                </div>
+              </div>
+            `
+          });
+        }
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'การเชื่อมต่อล้มเหลว', text: err.toString() });
+      }
     }
 
     function exportHistoryExcel() {
@@ -5430,28 +6148,73 @@
         return;
       }
 
-      const rows = logs.map(l => ({
-        'Timestamp': l.timestamp,
-        'Date': l.date,
-        'Time': l.time,
-        'Department': l.dept,
-        'Machine': l.machine,
-        'Frequency': l.freq,
-        'Item': l.item,
-        'Standard Spec': l.std_spec,
-        'Measured Value': l.measured_value,
-        'Unit': l.unit,
-        'Status': l.status,
-        'Inspector': l.inspector,
-        'Order No': l.order_no,
-        'Flute (ลอน)': l.flute || '',
-        'Speed (ความเร็ว)': l.speed || '',
-        'Notes': l.notes
-      }));
+      const dept = document.getElementById('histDeptFilter') ? document.getElementById('histDeptFilter').value : 'ALL';
+      const machine = document.getElementById('histMachineFilter') ? document.getElementById('histMachineFilter').value : 'ALL';
+      const status = document.getElementById('histStatusFilter') ? document.getElementById('histStatusFilter').value : 'ALL';
+      const search = document.getElementById('histSearchInput') ? document.getElementById('histSearchInput').value.trim().toLowerCase() : '';
+
+      let filteredLogs = logs;
+      if (dept !== 'ALL') filteredLogs = filteredLogs.filter(l => l.dept === dept);
+      if (machine !== 'ALL') filteredLogs = filteredLogs.filter(l => (l.machine || 'General') === machine);
+      if (status !== 'ALL') filteredLogs = filteredLogs.filter(l => l.status === status);
+      if (search) {
+        const ignored = ['custom_headers_summary', 'Custom Headers Summary'];
+        filteredLogs = filteredLogs.filter(l => {
+          let corpusParts = [];
+          for (const key of Object.keys(l)) {
+            if (ignored.some(ig => ig.toLowerCase() === key.toLowerCase())) continue;
+            const val = l[key];
+            if (val !== null && val !== undefined && typeof val !== 'object') {
+              corpusParts.push(String(val));
+            } else if (key === 'custom_headers' && typeof val === 'object' && val !== null) {
+              for (const chk of Object.keys(val)) {
+                if (ignored.some(ig => ig.toLowerCase() === chk.toLowerCase())) continue;
+                const subVal = val[chk];
+                if (subVal && typeof subVal === 'object' && subVal.value) {
+                  corpusParts.push(String(subVal.value));
+                } else if (subVal && typeof subVal !== 'object') {
+                  corpusParts.push(String(subVal));
+                }
+              }
+            }
+          }
+          return corpusParts.join(' ').toLowerCase().includes(search);
+        });
+      }
+
+      const rows = filteredLogs.map(l => {
+        const roll = l.roll_no || findKeyCaseInsensitive(l, ['roll', 'ม้วน']) || findKeyCaseInsensitive(l.custom_headers, ['roll', 'ม้วน']) || '';
+        const supplier = l.supplier || findKeyCaseInsensitive(l, ['supplier', 'ซัพพลาย', 'ผู้ผลิต']) || findKeyCaseInsensitive(l.custom_headers, ['supplier', 'ซัพพลาย', 'ผู้ผลิต']) || '';
+        const grade = l.paper_grade || findKeyCaseInsensitive(l, ['grade', 'gram', 'เกรด', 'แกรม']) || findKeyCaseInsensitive(l.custom_headers, ['grade', 'gram', 'เกรด', 'แกรม']) || '';
+
+        return {
+          'Record ID': l.id,
+          'Date': l.date,
+          'Time': l.time,
+          'Department': l.dept,
+          'Machine': l.machine,
+          'Frequency': l.freq,
+          'Item': l.item,
+          'Standard Spec': l.std_spec,
+          'Measured Value': l.measured_value,
+          'Unit': l.unit,
+          'Status': l.status,
+          'Inspector': l.inspector,
+          'Order No': l.order_no,
+          'เลขที่ม้วน (Roll No)': roll,
+          'ซัพพลายเออร์ (Supplier)': supplier,
+          'เกรด / แกรม (Grade/Gram)': grade,
+          'Flute (ลอน)': l.flute || '',
+          'Speed (สปีด)': l.speed || '',
+          'Duration': l.duration || l.duration_short || '',
+          'Photo Link': (l.photo && l.photo.startsWith('http')) ? l.photo : (l.photo ? 'ATTACHED' : ''),
+          'Notes': l.notes || ''
+        };
+      });
 
       const ws = XLSX.utils.json_to_sheet(rows);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Inspection_Logs');
+      XLSX.utils.book_append_sheet(wb, ws, "Inspection_Logs");
       XLSX.writeFile(wb, `Inspection_Logs_All_${getTodayDateString()}.xlsx`);
     }
 
@@ -5485,9 +6248,9 @@
             <div class="space-y-2 pt-2">
               <input type="text" readonly value="${url}" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-400 font-mono text-center">
               <div class="grid grid-cols-2 gap-2">
-                <button onclick="openQrModalDirect('${d.code}')" class="py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5">
+                <button onclick="openDeptQrModalDirect('${d.code}')" class="py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-blue-950/40">
                   <i class="fa-solid fa-expand"></i>
-                  <span>ขยาย / พิมพ์</span>
+                  <span>ขยาย / บันทึก QR</span>
                 </button>
                 <button onclick="copyDeptLink('${d.code}')" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition flex items-center justify-center gap-1">
                   <i class="fa-solid fa-copy"></i>
@@ -5517,6 +6280,7 @@
     }
 
     function openDeptQrModalDirect(deptCode) {
+      window._activeQrDeptCode = deptCode;
       const d = appState.depts.find(x => x.code === deptCode);
       const url = getSharableDeptUrl(deptCode);
 
@@ -5528,14 +6292,45 @@
       container.innerHTML = '';
       new QRCode(container, {
         text: url,
-        width: 180,
-        height: 180,
+        width: 220,
+        height: 220,
         colorDark: "#0f172a",
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
       });
 
       document.getElementById('qrModal').classList.remove('hidden');
+    }
+
+    function downloadQrImage() {
+      const container = document.getElementById('qrCanvasContainer');
+      if (!container) return;
+      const canvas = container.querySelector('canvas');
+      const img = container.querySelector('img');
+      let dataUrl = '';
+      if (canvas) {
+        dataUrl = canvas.toDataURL('image/png');
+      } else if (img && img.src) {
+        dataUrl = img.src;
+      }
+      if (!dataUrl) {
+        Swal.fire({ icon: 'error', title: 'ไม่พบรูปภาพ QR', text: 'กรุณาลองใหม่อีกครั้ง' });
+        return;
+      }
+      const deptCode = window._activeQrDeptCode || appState.selectedDept || 'ALL';
+      const link = document.createElement('a');
+      link.download = `QR_Checklist_${deptCode}_${getTodayDateString()}.png`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      Swal.fire({
+        icon: 'success',
+        title: 'บันทึกรูป QR Code สำเร็จ!',
+        text: `ไฟล์ QR_Checklist_${deptCode}.png ถูกดาวน์โหลดเรียบร้อยแล้ว`,
+        timer: 1500,
+        showConfirmButton: false
+      });
     }
 
     function openQrModalForCurrentDept() {
@@ -6086,9 +6881,23 @@
             updated = true;
           }
 
-          // Merge Logs from Google Sheet (Normalize all dates/times)
+          // Merge Logs from Google Sheet (Normalize all dates/times & preserve local photos)
           if (data.logs && Array.isArray(data.logs)) {
-            appState.logs = data.logs.map(normalizeLogItem);
+            const localPhotoMap = {};
+            appState.logs.forEach(l => {
+              if (l.photo && (l.photo.startsWith('data:image/') || l.photo.startsWith('http'))) {
+                localPhotoMap[l.id] = l.photo;
+              }
+            });
+
+            appState.logs = data.logs.map(rem => {
+              const norm = normalizeLogItem(rem);
+              // Preserve local base64 photo if remote log has no URL
+              if ((!norm.photo || norm.photo === 'ATTACHED' || norm.photo === 'NO') && localPhotoMap[norm.id]) {
+                norm.photo = localPhotoMap[norm.id];
+              }
+              return norm;
+            });
             updated = true;
           }
 
@@ -6109,6 +6918,20 @@
               renderTabNav();
             }
             renderUsersTable();
+            updated = true;
+          }
+
+          // Merge Department Headers if present from Google Sheet DEPT_HEADERS tab
+          if (data.dept_headers && typeof data.dept_headers === 'object' && Object.keys(data.dept_headers).length > 0) {
+            appState.deptHeaders = data.dept_headers;
+            localStorage.setItem('PLANT_DEPT_HEADERS_V2', JSON.stringify(appState.deptHeaders));
+            renderEntryHeader();
+            updated = true;
+          }
+
+          // Merge Column Headers from Google Sheet INSPECTION_LOGS
+          if (data.log_headers && Array.isArray(data.log_headers) && data.log_headers.length > 0) {
+            appState.logHeaders = data.log_headers;
             updated = true;
           }
 
@@ -6173,12 +6996,12 @@
     }
 
     function copyGasCodeToClipboard() {
-      const code = "/**\n * =========================================================================\n * PLANT MASTER CHECKLIST & REAL-TIME DASHBOARD - GOOGLE APPS SCRIPT BACKEND\n * Version: 8.0 (Duration Tracking, Pass/Fail & Numeric Spec Support)\n * =========================================================================\n */\n\nconst SHEET_LOGS = 'INSPECTION_LOGS';\nconst SHEET_MASTER = 'CHECKLIST_MASTER';\nconst SHEET_DEPTS = 'DEPARTMENTS';\nconst SHEET_USERS = 'USERS';\n\n/**\n * Handle GET Requests (Read data, fetch master, logs, departments, users, or quick save)\n */\nfunction doGet(e) {\n  try {\n    const ss = SpreadsheetApp.getActiveSpreadsheet();\n    initSheetsIfNotExist(ss);\n    \n    const action = (e && e.parameter && e.parameter.action) ? e.parameter.action : 'getAllData';\n    \n    // Save logs via GET parameter (fallback for restrictive environments)\n    if (action === 'saveLogsGet' && e.parameter.data) {\n      const records = JSON.parse(decodeURIComponent(e.parameter.data));\n      const count = appendLogRecords(ss, records);\n      return createJsonResponse({ status: 'success', message: 'Saved logs via GET', count: count });\n    }\n    \n    // Default: Get all master items, logs, departments, and users\n    const masterData = readMasterSheet(ss.getSheetByName(SHEET_MASTER));\n    const logsData = readLogsSheet(ss.getSheetByName(SHEET_LOGS));\n    const deptsData = readDeptsSheet(ss.getSheetByName(SHEET_DEPTS));\n    const usersData = readUsersSheet(ss.getSheetByName(SHEET_USERS));\n    \n    return createJsonResponse({\n      status: 'success',\n      serverTime: Utilities.formatDate(new Date(), 'GMT+7', 'yyyy-MM-dd HH:mm:ss'),\n      master: masterData,\n      logs: logsData,\n      depts: deptsData,\n      users: usersData\n    });\n  } catch (err) {\n    return createJsonResponse({ status: 'error', message: err.toString() });\n  }\n}\n\n/**\n * Handle POST Requests (Save inspection logs, update master STD, manage departments & users)\n */\nfunction doPost(e) {\n  try {\n    const ss = SpreadsheetApp.getActiveSpreadsheet();\n    initSheetsIfNotExist(ss);\n    \n    let payload = {};\n    if (e && e.postData && e.postData.contents) {\n      try {\n        payload = JSON.parse(e.postData.contents);\n      } catch(ex) {\n        payload = e.parameter || {};\n      }\n    } else if (e && e.parameter) {\n      payload = e.parameter;\n    }\n    \n    const action = payload.action || 'saveLogs';\n    \n    // 1. Save Inspection Logs (from production/QC check entries)\n    if (action === 'saveLogs') {\n      const records = payload.records || (payload.data ? JSON.parse(payload.data) : []);\n      const count = appendLogRecords(ss, records);\n      return createJsonResponse({ status: 'success', message: 'Logs recorded successfully', count: count });\n    }\n    \n    // 2. Full Sync / Update of Master Checklist STD\n    if (action === 'updateMaster') {\n      const items = payload.items || [];\n      const updatedCount = overwriteMasterSheet(ss.getSheetByName(SHEET_MASTER), items);\n      return createJsonResponse({ status: 'success', message: 'Master updated successfully', count: updatedCount });\n    }\n    \n    // 3. Update Departments List\n    if (action === 'updateDepartments') {\n      const depts = payload.departments || [];\n      const updatedCount = overwriteDeptsSheet(ss.getSheetByName(SHEET_DEPTS), depts);\n      return createJsonResponse({ status: 'success', message: 'Departments updated successfully', count: updatedCount });\n    }\n\n    // 4. Update Users List & Permissions\n    if (action === 'updateUsers') {\n      const users = payload.users || [];\n      const updatedCount = overwriteUsersSheet(ss.getSheetByName(SHEET_USERS), users);\n      return createJsonResponse({ status: 'success', message: 'Users updated successfully', count: updatedCount });\n    }\n    \n    return createJsonResponse({ status: 'error', message: 'Unknown action: ' + action });\n  } catch (err) {\n    return createJsonResponse({ status: 'error', message: err.toString() });\n  }\n}\n\n/**\n * Helper: Format JSON response with CORS headers\n */\nfunction createJsonResponse(data) {\n  return ContentService.createTextOutput(JSON.stringify(data))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n\n/**\n * Format cell date to standard YYYY-MM-DD\n */\nfunction formatGasDateCell(val, displayVal) {\n  if (displayVal && /^\\d{4}-\\d{2}-\\d{2}$/.test(displayVal.trim())) {\n    return displayVal.trim();\n  }\n  if (val instanceof Date) {\n    return Utilities.formatDate(val, 'GMT+7', 'yyyy-MM-dd');\n  }\n  const str = String(displayVal || val || '').trim();\n  if (!str) return '';\n  \n  // DD/MM/YYYY or DD-MM-YYYY\n  const dmY = str.match(/^(\\d{1,2})[\\/\\-](\\d{1,2})[\\/\\-](\\d{4})/);\n  if (dmY) {\n    let year = parseInt(dmY[3]);\n    if (year > 2500) year -= 543;\n    return year + '-' + String(dmY[2]).padStart(2, '0') + '-' + String(dmY[1]).padStart(2, '0');\n  }\n  // YYYY-MM-DD\n  const ymd = str.match(/^(\\d{4})[\\/\\-](\\d{1,2})[\\/\\-](\\d{1,2})/);\n  if (ymd) {\n    let year = parseInt(ymd[1]);\n    if (year > 2500) year -= 543;\n    return year + '-' + String(ymd[2]).padStart(2, '0') + '-' + String(ymd[3]).padStart(2, '0');\n  }\n  return str;\n}\n\n/**\n * Format cell time to standard HH:mm\n */\nfunction formatGasTimeCell(val, displayVal) {\n  if (displayVal && /^\\d{2}:\\d{2}$/.test(displayVal.trim())) {\n    return displayVal.trim();\n  }\n  if (val instanceof Date) {\n    return Utilities.formatDate(val, 'GMT+7', 'HH:mm');\n  }\n  const str = String(displayVal || val || '').trim();\n  const hm = str.match(/(\\d{1,2}):(\\d{1,2})/);\n  if (hm) {\n    return String(hm[1]).padStart(2, '0') + ':' + String(hm[2]).padStart(2, '0');\n  }\n  return str;\n}\n\n/**\n * Format cell timestamp to standard YYYY-MM-DD HH:mm:ss\n */\nfunction formatGasTimestampCell(val, displayVal, dateStr, timeStr) {\n  if (val instanceof Date) {\n    return Utilities.formatDate(val, 'GMT+7', 'yyyy-MM-dd HH:mm:ss');\n  }\n  if (dateStr && timeStr) {\n    return dateStr + ' ' + (timeStr.length === 5 ? timeStr + ':00' : timeStr);\n  }\n  return String(displayVal || val || '');\n}\n\n/**\n * Helper: Append Log Records to Google Sheets (Deduplicated, Supports Flute & Speed)\n */\nfunction appendLogRecords(ss, records) {\n  const logsSheet = ss.getSheetByName(SHEET_LOGS);\n  if (!logsSheet || !records || records.length === 0) return 0;\n  \n  const lastRow = logsSheet.getLastRow();\n  const existingIds = new Set();\n  if (lastRow > 1) {\n    const existingValues = logsSheet.getRange(2, 1, lastRow - 1, 1).getValues();\n    for (let i = 0; i < existingValues.length; i++) {\n      if (existingValues[i][0]) existingIds.add(String(existingValues[i][0]));\n    }\n  }\n  \n  const now = new Date();\n  const defaultDateStr = Utilities.formatDate(now, 'GMT+7', 'yyyy-MM-dd');\n  const defaultTimeStr = Utilities.formatDate(now, 'GMT+7', 'HH:mm');\n  const defaultTimestampStr = Utilities.formatDate(now, 'GMT+7', 'yyyy-MM-dd HH:mm:ss');\n  \n  const rowsToAppend = [];\n  records.forEach(rec => {\n    const recId = rec.id || ('LOG-' + Utilities.formatDate(now, 'GMT+7', 'yyyyMMdd-HHmmss') + '-' + Math.floor(Math.random()*1000));\n    if (!existingIds.has(recId)) {\n      existingIds.add(recId);\n      \n      const rDate = rec.date || defaultDateStr;\n      const rTime = rec.time || defaultTimeStr;\n      const rTimestamp = rec.timestamp || (rDate + ' ' + rTime + ':00');\n      \n      rowsToAppend.push([\n        recId,\n        rTimestamp,\n        rDate,\n        rTime,\n        rec.dept || '',\n        rec.machine || '',\n        rec.freq || '',\n        rec.item || '',\n        rec.std_spec || '',\n        rec.measured_value !== undefined && rec.measured_value !== null ? rec.measured_value : '',\n        rec.unit || '',\n        rec.status || 'IN-SPEC',\n        rec.inspector || '',\n        rec.order_no || '',\n        rec.photo ? 'YES (\u0e21\u0e35\u0e23\u0e39\u0e1b\u0e41\u0e19\u0e1a)' : 'NO',\n        rec.notes || '',\n        rec.flute || '',\n        rec.speed || '',\n        rec.duration || ''\n      ]);\n    }\n  });\n  \n  if (rowsToAppend.length > 0) {\n    logsSheet.getRange(lastRow + 1, 1, rowsToAppend.length, 19).setValues(rowsToAppend);\n  }\n  \n  return rowsToAppend.length;\n}\n\n/**\n * Helper: Read Master Sheet\n */\nfunction readMasterSheet(sheet) {\n  if (!sheet) return [];\n  const rows = sheet.getDataRange().getValues();\n  if (rows.length <= 1) return [];\n  \n  const items = [];\n  for (let r = 1; r < rows.length; r++) {\n    const row = rows[r];\n    const itemTitle = String(row[4] || row[0] || '').trim();\n    if (!itemTitle) continue;\n    \n    items.push({\n      id: String(row[0] || ('STD_' + r)),\n      group_title: String(row[1] || '\u0e0a\u0e38\u0e14\u0e40\u0e0a\u0e47\u0e04\u0e25\u0e34\u0e2a\u0e15\u0e4c\u0e17\u0e31\u0e48\u0e27\u0e44\u0e1b'),\n      dept: String(row[2] || 'PD'),\n      machine: String(row[3] || 'General'),\n      item: itemTitle,\n      freq: String(row[5] || '\u0e17\u0e38\u0e01 1 \u0e0a\u0e31\u0e48\u0e27\u0e42\u0e21\u0e07'),\n      spec_raw: String(row[6] || ''),\n      spec_type: String(row[7] || 'range'),\n      min_val: row[8] !== '' && !isNaN(row[8]) ? parseFloat(row[8]) : null,\n      max_val: row[9] !== '' && !isNaN(row[9]) ? parseFloat(row[9]) : null,\n      unit: String(row[10] || ''),\n      target: String(row[6] || ''),\n      require_val: row[11] === true || String(row[11]).toUpperCase() === 'TRUE' || String(row[11]) === 'YES',\n      require_photo: row[12] === true || String(row[12]).toUpperCase() === 'TRUE' || String(row[12]) === 'YES',\n      active: row[13] !== false && String(row[13]).toUpperCase() !== 'FALSE'\n    });\n  }\n  return items;\n}\n\n/**\n * Helper: Read Logs Sheet with formatted Dates/Times and Flute/Speed\n */\nfunction readLogsSheet(sheet) {\n  if (!sheet) return [];\n  const rawRows = sheet.getDataRange().getValues();\n  const dispRows = sheet.getDataRange().getDisplayValues();\n  if (rawRows.length <= 1) return [];\n  \n  const logs = [];\n  // Read descending so newest logs appear first\n  for (let r = rawRows.length - 1; r >= 1; r--) {\n    const raw = rawRows[r];\n    const disp = dispRows[r];\n    if (!raw[0] && !raw[7]) continue;\n    \n    const dStr = formatGasDateCell(raw[2], disp[2]);\n    const tStr = formatGasTimeCell(raw[3], disp[3]);\n    const tsStr = formatGasTimestampCell(raw[1], disp[1], dStr, tStr);\n    \n    logs.push({\n      id: String(raw[0] || ('LOG-' + r)),\n      timestamp: tsStr,\n      date: dStr,\n      time: tStr,\n      dept: String(raw[4] || ''),\n      machine: String(raw[5] || ''),\n      freq: String(raw[6] || ''),\n      item: String(raw[7] || ''),\n      std_spec: String(raw[8] || ''),\n      measured_value: raw[9] !== '' ? raw[9] : '-',\n      unit: String(raw[10] || ''),\n      status: String(raw[11] || 'IN-SPEC'),\n      inspector: String(raw[12] || ''),\n      order_no: String(raw[13] || ''),\n      photo: (raw[14] && String(raw[14]).includes('YES')) ? 'ATTACHED' : '',\n      notes: String(raw[15] || ''),\n      flute: String(raw[16] || ''),\n      speed: String(raw[17] || ''),\n      duration: String(raw[18] || '')\n    });\n  }\n  return logs;\n}\n\n/**\n * Helper: Read Departments Sheet\n */\nfunction readDeptsSheet(sheet) {\n  if (!sheet) return [];\n  const rows = sheet.getDataRange().getValues();\n  if (rows.length <= 1) return [];\n  \n  const depts = [];\n  for (let r = 1; r < rows.length; r++) {\n    const row = rows[r];\n    if (!row[1] && !row[2]) continue;\n    depts.push({\n      id: String(row[0] || ('dept_' + r)),\n      code: String(row[1] || ''),\n      name: String(row[2] || ''),\n      icon: String(row[3] || 'fa-industry'),\n      color: String(row[4] || 'blue'),\n      desc: String(row[5] || '')\n    });\n  }\n  return depts;\n}\n\n/**\n * Helper: Read Users Sheet\n */\nfunction readUsersSheet(sheet) {\n  if (!sheet) return [];\n  const rows = sheet.getDataRange().getValues();\n  if (rows.length <= 1) return [];\n  \n  const users = [];\n  for (let r = 1; r < rows.length; r++) {\n    const row = rows[r];\n    const username = String(row[1] || '').trim();\n    if (!username) continue;\n    \n    let allowedTabs = [];\n    const tabsRaw = String(row[6] || '').trim();\n    if (tabsRaw.startsWith('[') && tabsRaw.endsWith(']')) {\n      try {\n        allowedTabs = JSON.parse(tabsRaw);\n      } catch(e) {\n        allowedTabs = tabsRaw.replace(/[\\[\\]\"]/g, '').split(',').map(s => s.trim()).filter(Boolean);\n      }\n    } else if (tabsRaw) {\n      allowedTabs = tabsRaw.split(',').map(s => s.trim()).filter(Boolean);\n    }\n    if (allowedTabs.length === 0) {\n      allowedTabs = ['inspection', 'dashboard', 'investigation', 'history', 'qr_hub'];\n    }\n    \n    users.push({\n      id: String(row[0] || ('usr_' + r)),\n      username: username,\n      password: String(row[2] || ''),\n      name: String(row[3] || username),\n      role: String(row[4] || 'operator'),\n      dept: String(row[5] || 'ALL'),\n      allowed_tabs: allowedTabs,\n      active: row[7] !== false && String(row[7]).toUpperCase() !== 'FALSE'\n    });\n  }\n  return users;\n}\n\n/**\n * Overwrite Master Checklist Sheet\n */\nfunction overwriteMasterSheet(sheet, items) {\n  if (!sheet) return 0;\n  sheet.clearContents();\n  \n  const headers = [\n    'ID', 'Group Title', 'Department', 'Machine', 'Item Name', 'Frequency', \n    'Standard Spec', 'Spec Type', 'Min Value', 'Max Value', 'Unit', \n    'Require Value', 'Require Photo', 'Active'\n  ];\n  sheet.appendRow(headers);\n  sheet.getRange(1, 1, 1, headers.length).setBackground('#1e3a8a').setFontColor('#ffffff').setFontWeight('bold');\n  \n  if (items && items.length > 0) {\n    const rows = items.map(it => [\n      it.id || '',\n      it.group_title || '\u0e0a\u0e38\u0e14\u0e40\u0e0a\u0e47\u0e04\u0e25\u0e34\u0e2a\u0e15\u0e4c\u0e17\u0e31\u0e48\u0e27\u0e44\u0e1b',\n      it.dept || 'PD',\n      it.machine || 'General',\n      it.item || '',\n      it.freq || '\u0e17\u0e38\u0e01 1 \u0e0a\u0e31\u0e48\u0e27\u0e42\u0e21\u0e07',\n      it.spec_raw || it.target || '',\n      it.spec_type || 'range',\n      it.min_val !== null && it.min_val !== undefined ? it.min_val : '',\n      it.max_val !== null && it.max_val !== undefined ? it.max_val : '',\n      it.unit || '',\n      it.require_val === true ? 'TRUE' : 'FALSE',\n      it.require_photo === true ? 'TRUE' : 'FALSE',\n      it.active !== false ? 'TRUE' : 'FALSE'\n    ]);\n    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);\n    return rows.length;\n  }\n  return 0;\n}\n\n/**\n * Overwrite Departments Sheet\n */\nfunction overwriteDeptsSheet(sheet, depts) {\n  if (!sheet) return 0;\n  sheet.clearContents();\n  const headers = ['ID', 'Code', 'Name', 'Icon', 'Color', 'Description'];\n  sheet.appendRow(headers);\n  sheet.getRange(1, 1, 1, headers.length).setBackground('#0f172a').setFontColor('#ffffff').setFontWeight('bold');\n  \n  if (depts && depts.length > 0) {\n    const rows = depts.map(d => [\n      d.id || '',\n      d.code || '',\n      d.name || '',\n      d.icon || 'fa-industry',\n      d.color || 'blue',\n      d.desc || ''\n    ]);\n    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);\n    return rows.length;\n  }\n  return 0;\n}\n\n/**\n * Overwrite Users Sheet\n */\nfunction overwriteUsersSheet(sheet, users) {\n  if (!sheet) return 0;\n  sheet.clearContents();\n  const headers = ['ID', 'Username', 'Password', 'Name', 'Role', 'Department', 'Allowed Tabs', 'Active'];\n  sheet.appendRow(headers);\n  sheet.getRange(1, 1, 1, headers.length).setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold');\n  \n  if (users && users.length > 0) {\n    const rows = users.map(u => [\n      u.id || '',\n      u.username || '',\n      u.password || '',\n      u.name || '',\n      u.role || 'operator',\n      u.dept || 'ALL',\n      Array.isArray(u.allowed_tabs) ? u.allowed_tabs.join(',') : String(u.allowed_tabs || ''),\n      u.active !== false ? 'TRUE' : 'FALSE'\n    ]);\n    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);\n    return rows.length;\n  }\n  return 0;\n}\n\n/**\n * Initialize sheets and headers if not exist\n */\nfunction initSheetsIfNotExist(ss) {\n  // 1. Logs Sheet\n  let logsSheet = ss.getSheetByName(SHEET_LOGS);\n  if (!logsSheet) {\n    logsSheet = ss.insertSheet(SHEET_LOGS);\n    logsSheet.appendRow([\n      'Record ID', 'Timestamp', 'Date', 'Time', 'Department', 'Machine',\n      'Frequency', 'Inspection Item', 'Standard Spec', 'Measured Value',\n      'Unit', 'Status', 'Inspector', 'Order No', 'Photo Attached', 'Notes',\n      'Flute', 'Speed', 'Duration'\n    ]);\n    logsSheet.getRange(1, 1, 1, 19).setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold');\n  } else {\n    // Check if Flute, Speed & Duration headers exist\n    const lastCol = logsSheet.getLastColumn();\n    if (lastCol < 19) {\n      if (lastCol < 17) logsSheet.getRange(1, 17).setValue('Flute');\n      if (lastCol < 18) logsSheet.getRange(1, 18).setValue('Speed');\n      if (lastCol < 19) logsSheet.getRange(1, 19).setValue('Duration');\n    }\n  }\n  \n  // 2. Master Sheet\n  let masterSheet = ss.getSheetByName(SHEET_MASTER);\n  if (!masterSheet) {\n    masterSheet = ss.insertSheet(SHEET_MASTER);\n    masterSheet.appendRow([\n      'ID', 'Group Title', 'Department', 'Machine', 'Item Name', 'Frequency', \n      'Standard Spec', 'Spec Type', 'Min Value', 'Max Value', 'Unit', \n      'Require Value', 'Require Photo', 'Active'\n    ]);\n    masterSheet.getRange(1, 1, 1, 14).setBackground('#1e3a8a').setFontColor('#ffffff').setFontWeight('bold');\n  }\n  \n  // 3. Departments Sheet\n  let deptsSheet = ss.getSheetByName(SHEET_DEPTS);\n  if (!deptsSheet) {\n    deptsSheet = ss.insertSheet(SHEET_DEPTS);\n    deptsSheet.appendRow(['ID', 'Code', 'Name', 'Icon', 'Color', 'Description']);\n    deptsSheet.getRange(1, 1, 1, 6).setBackground('#0f172a').setFontColor('#ffffff').setFontWeight('bold');\n  }\n\n  // 4. Users Sheet\n  let usersSheet = ss.getSheetByName(SHEET_USERS);\n  if (!usersSheet) {\n    usersSheet = ss.insertSheet(SHEET_USERS);\n    usersSheet.appendRow(['ID', 'Username', 'Password', 'Name', 'Role', 'Department', 'Allowed Tabs', 'Active']);\n    usersSheet.getRange(1, 1, 1, 8).setBackground('#0f172a').setFontColor('#ffffff').setFontWeight('bold');\n    \n    // Seed initial default users\n    const defaultUsers = [\n      ['usr_admin', 'admin', 'admin1234', '\u0e1c\u0e39\u0e49\u0e14\u0e39\u0e41\u0e25\u0e23\u0e30\u0e1a\u0e1a\u0e2a\u0e39\u0e07\u0e2a\u0e38\u0e14 (Admin)', 'admin', 'ALL', 'inspection,dashboard,investigation,master,history,qr_hub,users_depts,settings', 'TRUE'],\n      ['usr_pd', 'pd_user', 'pd1234', '\u0e17\u0e35\u0e21\u0e07\u0e32\u0e19\u0e1d\u0e48\u0e32\u0e22\u0e1c\u0e25\u0e34\u0e15 (PD)', 'operator', 'PD', 'inspection,dashboard,investigation,history,qr_hub', 'TRUE'],\n      ['usr_qc', 'qc_user', 'qc1234', '\u0e40\u0e08\u0e49\u0e32\u0e2b\u0e19\u0e49\u0e32\u0e17\u0e35\u0e48\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a (QC)', 'inspector', 'QC', 'inspection,dashboard,investigation,history,qr_hub', 'TRUE']\n    ];\n    usersSheet.getRange(2, 1, defaultUsers.length, 8).setValues(defaultUsers);\n  }\n}\n";
+      const code = "/**\n * =========================================================================\n * PLANT MASTER CHECKLIST & REAL-TIME DASHBOARD - GOOGLE APPS SCRIPT BACKEND\n * Version: 11.0 (Google Drive Fallback, Editable Log Records & Smart Thai Column Mapping)\n * =========================================================================\n */\n\nconst SHEET_LOGS = 'INSPECTION_LOGS';\nconst SHEET_MASTER = 'CHECKLIST_MASTER';\nconst SHEET_DEPTS = 'DEPARTMENTS';\nconst SHEET_USERS = 'USERS';\nconst SHEET_DEPT_HEADERS = 'DEPT_HEADERS';\n\n// Google Drive Folder for Checklist Photos\nconst GOOGLE_DRIVE_FOLDER_ID = '1vfsIa4GjwnQJQkHCzpwBH_qaYDs1AKDe';\n\n/**\n * Handle GET Requests (Read data, fetch master, logs, departments, users, and department headers)\n */\nfunction doGet(e) {\n  try {\n    const ss = SpreadsheetApp.getActiveSpreadsheet();\n    initSheetsIfNotExist(ss);\n    \n    const action = (e && e.parameter && e.parameter.action) ? e.parameter.action : 'getAllData';\n    \n    // Quick Drive connectivity test\n    if (action === 'testDrive') {\n      const driveRes = testDriveAndPermissions();\n      return createJsonResponse(driveRes);\n    }\n    \n    // Save logs via GET parameter (fallback for restrictive environments)\n    if (action === 'saveLogsGet' && e.parameter.data) {\n      const records = JSON.parse(decodeURIComponent(e.parameter.data));\n      const count = appendLogRecords(ss, records);\n      return createJsonResponse({ status: 'success', message: 'Saved logs via GET', count: count });\n    }\n    \n    // Default: Get all master items, logs, departments, users, and dept headers\n    const masterData = readMasterSheet(ss.getSheetByName(SHEET_MASTER));\n    const logsData = readLogsSheet(ss.getSheetByName(SHEET_LOGS));\n    const deptsData = readDeptsSheet(ss.getSheetByName(SHEET_DEPTS));\n    const usersData = readUsersSheet(ss.getSheetByName(SHEET_USERS));\n    const deptHeadersData = readDeptHeadersSheet(ss.getSheetByName(SHEET_DEPT_HEADERS));\n    \n    // Get current column headers of INSPECTION_LOGS row 1\n    const logsSheet = ss.getSheetByName(SHEET_LOGS);\n    let logHeaders = [];\n    if (logsSheet && logsSheet.getLastColumn() >= 1) {\n      logHeaders = logsSheet.getRange(1, 1, 1, logsSheet.getLastColumn()).getValues()[0].map(h => String(h || '').trim());\n    }\n\n    return createJsonResponse({\n      status: 'success',\n      serverTime: Utilities.formatDate(new Date(), 'GMT+7', 'yyyy-MM-dd HH:mm:ss'),\n      master: masterData,\n      logs: logsData,\n      log_headers: logHeaders,\n      depts: deptsData,\n      users: usersData,\n      dept_headers: deptHeadersData\n    });\n  } catch (err) {\n    return createJsonResponse({ status: 'error', message: err.toString() });\n  }\n}\n\n/**\n * Handle POST Requests (Save logs, update master STD, manage departments, users & department headers)\n */\n\n/**\n * Helper: Get target Google Drive folder with automatic fallback folder creation\n */\nfunction getOrCreateDriveFolder() {\n  try {\n    if (GOOGLE_DRIVE_FOLDER_ID && GOOGLE_DRIVE_FOLDER_ID.trim()) {\n      try {\n        const targetFolder = DriveApp.getFolderById(GOOGLE_DRIVE_FOLDER_ID.trim());\n        if (targetFolder) return targetFolder;\n      } catch (e) {\n        console.warn('Target folder ID inaccessible, using fallback folder:', e);\n      }\n    }\n    const folderName = 'Plant_Checklist_Photos';\n    const folders = DriveApp.getFoldersByName(folderName);\n    if (folders.hasNext()) {\n      return folders.next();\n    }\n    const newFolder = DriveApp.createFolder(folderName);\n    newFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);\n    return newFolder;\n  } catch (err) {\n    console.warn('getOrCreateDriveFolder error:', err);\n    return null;\n  }\n}\n\n/**\n * Diagnostic Function: Run directly in Apps Script to authorize DriveApp in 1 click\n */\nfunction testDriveAndPermissions() {\n  try {\n    const folder = getOrCreateDriveFolder();\n    if (!folder) throw new Error(\"Cannot get or create Google Drive folder\");\n    Logger.log(\"SUCCESS! Folder Name: \" + folder.getName() + \", ID: \" + folder.getId());\n    return { status: 'success', folderName: folder.getName(), folderId: folder.getId() };\n  } catch (err) {\n    Logger.log(\"ERROR: \" + err.toString());\n    return { status: 'error', message: err.toString() };\n  }\n}\n\n/**\n * Helper: Save Base64 Photo directly to designated Google Drive folder\n */\nfunction savePhotoToGoogleDrive(base64Data, filename) {\n  if (!base64Data || typeof base64Data !== 'string') return '';\n  if (!base64Data.startsWith('data:image/')) return base64Data;\n  try {\n    const folder = getOrCreateDriveFolder();\n    if (!folder) return '';\n    const parts = base64Data.split(',');\n    if (parts.length < 2) return '';\n    const mimeMatch = parts[0].match(/:(.*?);/);\n    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';\n    const decodedBytes = Utilities.base64Decode(parts[1]);\n    const cleanName = filename || ('PHOTO_' + Utilities.formatDate(new Date(), 'GMT+7', 'yyyyMMdd_HHmmss') + '.jpg');\n    const blob = Utilities.newBlob(decodedBytes, mimeType, cleanName);\n    const file = folder.createFile(blob);\n    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);\n    // Return standard Google Drive file URL (viewable by clicking from Google Sheet)\n    return 'https://drive.google.com/file/d/' + file.getId() + '/view';\n  } catch (err) {\n    console.warn('savePhotoToGoogleDrive error:', err);\n    return '';\n  }\n}\n\nfunction doPost(e) {\n  try {\n    const ss = SpreadsheetApp.getActiveSpreadsheet();\n    initSheetsIfNotExist(ss);\n    \n    let payload = {};\n    if (e && e.postData && e.postData.contents) {\n      try {\n        payload = JSON.parse(e.postData.contents);\n      } catch(ex) {\n        payload = e.parameter || {};\n      }\n    } else if (e && e.parameter) {\n      payload = e.parameter;\n    }\n    \n    const action = payload.action || 'saveLogs';\n    \n    // 0. Update an existing Inspection Log record (Edit Feature)\n    if (action === 'updateLog') {\n      const rec = payload.record || {};\n      const success = updateSingleLogRecord(ss, rec);\n      return createJsonResponse({ status: success ? 'success' : 'error', message: success ? 'Log updated' : 'Record not found' });\n    }\n\n    // 1. Save Inspection Logs (Supports dynamic columns & custom headers)\n    if (action === 'saveLogs') {\n      const records = payload.records || (payload.data ? JSON.parse(payload.data) : []);\n      const count = appendLogRecords(ss, records);\n      return createJsonResponse({ status: 'success', message: 'Logs recorded successfully', count: count });\n    }\n    \n    // 2. Full Sync / Update of Master Checklist STD\n    if (action === 'updateMaster') {\n      const items = payload.items || [];\n      const updatedCount = overwriteMasterSheet(ss.getSheetByName(SHEET_MASTER), items);\n      return createJsonResponse({ status: 'success', message: 'Master updated successfully', count: updatedCount });\n    }\n    \n    // 3. Update Departments List\n    if (action === 'updateDepartments') {\n      const depts = payload.departments || [];\n      const updatedCount = overwriteDeptsSheet(ss.getSheetByName(SHEET_DEPTS), depts);\n      return createJsonResponse({ status: 'success', message: 'Departments updated successfully', count: updatedCount });\n    }\n\n    // 4. Update Users List & Permissions\n    if (action === 'updateUsers') {\n      const users = payload.users || [];\n      const updatedCount = overwriteUsersSheet(ss.getSheetByName(SHEET_USERS), users);\n      return createJsonResponse({ status: 'success', message: 'Users updated successfully', count: updatedCount });\n    }\n\n    // 5. Update Department Custom Headers Configuration (Sync across all devices)\n    if (action === 'updateDeptHeaders') {\n      const headersMap = payload.dept_headers || payload.headers || {};\n      const updatedCount = overwriteDeptHeadersSheet(ss.getSheetByName(SHEET_DEPT_HEADERS), headersMap);\n      return createJsonResponse({ status: 'success', message: 'Department headers updated successfully', count: updatedCount });\n    }\n    \n    return createJsonResponse({ status: 'error', message: 'Unknown action: ' + action });\n  } catch (err) {\n    return createJsonResponse({ status: 'error', message: err.toString() });\n  }\n}\n\n/**\n * Helper: Format JSON response with CORS headers\n */\nfunction createJsonResponse(data) {\n  return ContentService.createTextOutput(JSON.stringify(data))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n\n/**\n * Format cell date to standard YYYY-MM-DD\n */\nfunction formatGasDateCell(val, displayVal) {\n  if (displayVal && /^\\d{4}-\\d{2}-\\d{2}$/.test(displayVal.trim())) {\n    return displayVal.trim();\n  }\n  if (val instanceof Date) {\n    return Utilities.formatDate(val, 'GMT+7', 'yyyy-MM-dd');\n  }\n  const str = String(displayVal || val || '').trim();\n  if (!str) return '';\n  \n  // DD/MM/YYYY or DD-MM-YYYY\n  const dmY = str.match(/^(\\d{1,2})[\\/\\-](\\d{1,2})[\\/\\-](\\d{4})/);\n  if (dmY) {\n    let year = parseInt(dmY[3]);\n    if (year > 2500) year -= 543;\n    return year + '-' + String(dmY[2]).padStart(2, '0') + '-' + String(dmY[1]).padStart(2, '0');\n  }\n  // YYYY-MM-DD\n  const ymd = str.match(/^(\\d{4})[\\/\\-](\\d{1,2})[\\/\\-](\\d{1,2})/);\n  if (ymd) {\n    let year = parseInt(ymd[1]);\n    if (year > 2500) year -= 543;\n    return year + '-' + String(ymd[2]).padStart(2, '0') + '-' + String(ymd[3]).padStart(2, '0');\n  }\n  return str;\n}\n\n/**\n * Format cell time to standard HH:mm\n */\nfunction formatGasTimeCell(val, displayVal) {\n  if (displayVal && /^\\d{2}:\\d{2}$/.test(displayVal.trim())) {\n    return displayVal.trim();\n  }\n  if (val instanceof Date) {\n    return Utilities.formatDate(val, 'GMT+7', 'HH:mm');\n  }\n  const str = String(displayVal || val || '').trim();\n  const hm = str.match(/(\\d{1,2}):(\\d{1,2})/);\n  if (hm) {\n    return String(hm[1]).padStart(2, '0') + ':' + String(hm[2]).padStart(2, '0');\n  }\n  return str;\n}\n\n/**\n * Format cell timestamp to standard YYYY-MM-DD HH:mm:ss\n */\nfunction formatGasTimestampCell(val, displayVal, dateStr, timeStr) {\n  if (val instanceof Date) {\n    return Utilities.formatDate(val, 'GMT+7', 'yyyy-MM-dd HH:mm:ss');\n  }\n  if (dateStr && timeStr) {\n    return dateStr + ' ' + (timeStr.length === 5 ? timeStr + ':00' : timeStr);\n  }\n  return String(displayVal || val || '');\n}\n\n/**\n * Helper: Append Log Records to Google Sheets\n * Supports Dynamic Column Auto-Creation & Department Custom Headers\n */\nfunction appendLogRecords(ss, records) {\n  const logsSheet = ss.getSheetByName(SHEET_LOGS);\n  if (!logsSheet || !records || records.length === 0) return 0;\n  \n  // 1. Read existing headers from row 1\n  let lastCol = logsSheet.getLastColumn();\n  if (lastCol < 19) {\n    initSheetsIfNotExist(ss);\n    lastCol = logsSheet.getLastColumn();\n  }\n  let headerRow = logsSheet.getRange(1, 1, 1, lastCol).getValues()[0].map(h => String(h || '').trim());\n  \n  // Ensure Column 20 is 'Custom Headers Summary'\n  if (headerRow.length < 20 || headerRow[19] !== 'Custom Headers Summary') {\n    logsSheet.getRange(1, 20).setValue('Custom Headers Summary')\n      .setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold');\n    if (headerRow.length < 20) headerRow.push('Custom Headers Summary');\n    else headerRow[19] = 'Custom Headers Summary';\n    lastCol = logsSheet.getLastColumn();\n  }\n\n  // 2. Discover any new custom header keys across all incoming records\n  const customKeyToLabel = {};\n  records.forEach(rec => {\n    // Check rec.custom_headers object e.g. { \"roll_no\": \"9901\", \"supplier\": \"SCG\" }\n    if (rec.custom_headers && typeof rec.custom_headers === 'object') {\n      Object.keys(rec.custom_headers).forEach(k => {\n        if (!['inspector', 'order_no', 'machine', 'flute', 'speed'].includes(k)) {\n          const valObj = rec.custom_headers[k];\n          const label = (valObj && typeof valObj === 'object' && valObj.label) ? valObj.label : k;\n          customKeyToLabel[k] = label;\n        }\n      });\n    }\n    // Also check direct properties on rec\n    ['roll_no', 'supplier', 'shift', 'batch_no', 'sample_no'].forEach(k => {\n      if (rec[k] !== undefined && rec[k] !== null && String(rec[k]).trim() !== '') {\n        if (!customKeyToLabel[k]) {\n          const defaultLabels = {\n            'roll_no': '\u0e40\u0e25\u0e02\u0e21\u0e49\u0e27\u0e19 (Roll No)',\n            'supplier': '\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22\u0e40\u0e2d\u0e2d\u0e23\u0e4c (Supplier)',\n            'shift': '\u0e01\u0e30\u0e17\u0e33\u0e07\u0e32\u0e19 (Shift)',\n            'batch_no': 'Batch \u0e01\u0e32\u0e27',\n            'sample_no': '\u0e23\u0e2b\u0e31\u0e2a\u0e15\u0e31\u0e27\u0e2d\u0e22\u0e48\u0e32\u0e07 Lab'\n          };\n          customKeyToLabel[k] = defaultLabels[k] || k;\n        }\n      }\n    });\n  });\n\n  // 3. Auto-extend sheet columns for any custom fields not yet in row 1\n  Object.keys(customKeyToLabel).forEach(k => {\n    const label = customKeyToLabel[k];\n    // Check if column already exists (by label or key)\n    const exists = headerRow.some(h => h.toLowerCase() === label.toLowerCase() || h.toLowerCase() === k.toLowerCase());\n    if (!exists) {\n      const newColIdx = headerRow.length + 1;\n      logsSheet.getRange(1, newColIdx).setValue(label)\n        .setBackground('#1e3a8a').setFontColor('#ffffff').setFontWeight('bold');\n      headerRow.push(label);\n    }\n  });\n\n  // 4. Read existing IDs to avoid duplicate rows\n  const lastRow = logsSheet.getLastRow();\n  const existingIds = new Set();\n  if (lastRow > 1) {\n    const existingValues = logsSheet.getRange(2, 1, lastRow - 1, 1).getValues();\n    for (let i = 0; i < existingValues.length; i++) {\n      if (existingValues[i][0]) existingIds.add(String(existingValues[i][0]));\n    }\n  }\n  \n  const now = new Date();\n  const defaultDateStr = Utilities.formatDate(now, 'GMT+7', 'yyyy-MM-dd');\n  const defaultTimeStr = Utilities.formatDate(now, 'GMT+7', 'HH:mm');\n  const defaultTimestampStr = Utilities.formatDate(now, 'GMT+7', 'yyyy-MM-dd HH:mm:ss');\n  \n  const totalCols = headerRow.length;\n  const rowsToAppend = [];\n\n  records.forEach(rec => {\n    const recId = rec.id || ('LOG-' + Utilities.formatDate(now, 'GMT+7', 'yyyyMMdd-HHmmss') + '-' + Math.floor(Math.random()*1000));\n    if (!existingIds.has(recId)) {\n      existingIds.add(recId);\n      \n      const rDate = rec.date || defaultDateStr;\n      const rTime = rec.time || defaultTimeStr;\n      const rTimestamp = rec.timestamp || (rDate + ' ' + rTime + ':00');\n      \n      // Build summary string of all custom header fields\n      const summaryParts = [];\n      const customHeadersMap = rec.custom_headers || {};\n      Object.keys(customHeadersMap).forEach(k => {\n        if (!['inspector', 'order_no', 'machine', 'flute', 'speed'].includes(k)) {\n          const item = customHeadersMap[k];\n          const l = (item && typeof item === 'object' && item.label) ? item.label : k;\n          const v = (item && typeof item === 'object') ? item.value : item;\n          if (v) summaryParts.push(l + ': ' + v);\n        }\n      });\n      // Direct properties fallback\n      if (rec.roll_no && !summaryParts.some(p => p.includes('Roll') || p.includes('\u0e21\u0e49\u0e27\u0e19'))) summaryParts.push('Roll No: ' + rec.roll_no);\n      if (rec.supplier && !summaryParts.some(p => p.includes('Supplier') || p.includes('\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22'))) summaryParts.push('Supplier: ' + rec.supplier);\n      if (rec.shift && !summaryParts.some(p => p.includes('Shift') || p.includes('\u0e01\u0e30'))) summaryParts.push('Shift: ' + rec.shift);\n      if (rec.batch_no && !summaryParts.some(p => p.includes('Batch'))) summaryParts.push('Batch: ' + rec.batch_no);\n      if (rec.sample_no && !summaryParts.some(p => p.includes('Sample') || p.includes('\u0e15\u0e31\u0e27\u0e2d\u0e22\u0e48\u0e32\u0e07'))) summaryParts.push('Sample: ' + rec.sample_no);\n      \n      const summaryStr = summaryParts.join(' | ');\n\n      // Base row array initialized with blanks\n      const row = new Array(totalCols).fill('');\n      \n      // Standard 19 Columns\n      row[0] = recId;\n      row[1] = rTimestamp;\n      row[2] = rDate;\n      row[3] = rTime;\n      row[4] = rec.dept || '';\n      row[5] = rec.machine || '';\n      row[6] = rec.freq || '';\n      row[7] = rec.item || '';\n      row[8] = rec.std_spec || '';\n      row[9] = rec.measured_value !== undefined && rec.measured_value !== null ? rec.measured_value : '';\n      row[10] = rec.unit || '';\n      row[11] = rec.status || 'IN-SPEC';\n      row[12] = rec.inspector || '';\n      row[13] = rec.order_no || '';\n            // Save Photo to Google Drive\n      let photoVal = 'NO';\n      if (rec.photo) {\n        if (typeof rec.photo === 'string' && rec.photo.startsWith('data:image/')) {\n          const photoFilename = 'PHOTO_' + (rec.dept || 'DEPT') + '_' + (rec.order_no || 'ORD') + '_' + Utilities.formatDate(now, 'GMT+7', 'yyyyMMdd_HHmmss') + '.jpg';\n          const driveLink = savePhotoToGoogleDrive(rec.photo, photoFilename);\n          photoVal = driveLink || 'YES (\u0e21\u0e35\u0e23\u0e39\u0e1b\u0e41\u0e19\u0e1a)';\n        } else if (typeof rec.photo === 'string' && rec.photo.startsWith('http')) {\n          photoVal = rec.photo;\n        } else {\n          photoVal = 'YES (\u0e21\u0e35\u0e23\u0e39\u0e1b\u0e41\u0e19\u0e1a)';\n        }\n      }\n      row[14] = photoVal;\n      row[15] = rec.notes || '';\n      row[16] = rec.flute || '';\n      row[17] = rec.speed || '';\n      row[18] = rec.duration || '';\n      if (totalCols >= 20) {\n        row[19] = summaryStr;\n      }\n\n      // Populate any dynamic custom columns from Column 21 onwards\n      for (let c = 20; c < totalCols; c++) {\n        const colHeader = headerRow[c];\n        const colLower = colHeader.toLowerCase();\n        \n        // Find matching value from rec or custom_headers\n        let matchVal = '';\n        if (rec[colHeader] !== undefined) matchVal = rec[colHeader];\n        else if ((colLower.includes('roll') || colLower.includes('\u0e21\u0e49\u0e27\u0e19')) && (rec.roll_no || rec['\u0e40\u0e25\u0e02\u0e17\u0e35\u0e48\u0e21\u0e49\u0e27\u0e19 / Roll No'] || rec['\u0e40\u0e25\u0e02\u0e17\u0e35\u0e48\u0e21\u0e49\u0e27\u0e19 / Roll'])) {\n          matchVal = rec.roll_no || rec['\u0e40\u0e25\u0e02\u0e17\u0e35\u0e48\u0e21\u0e49\u0e27\u0e19 / Roll No'] || rec['\u0e40\u0e25\u0e02\u0e17\u0e35\u0e48\u0e21\u0e49\u0e27\u0e19 / Roll'];\n        } else if ((colLower.includes('supplier') || colLower.includes('\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22') || colLower.includes('\u0e1c\u0e39\u0e49\u0e1c\u0e25\u0e34\u0e15')) && (rec.supplier || rec['\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22\u0e40\u0e2d\u0e2d\u0e23\u0e4c / \u0e1c\u0e39\u0e49\u0e1c\u0e25\u0e34\u0e15'] || rec['\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22\u0e40\u0e2d\u0e2d\u0e23\u0e4c'])) {\n          matchVal = rec.supplier || rec['\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22\u0e40\u0e2d\u0e2d\u0e23\u0e4c / \u0e1c\u0e39\u0e49\u0e1c\u0e25\u0e34\u0e15'] || rec['\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22\u0e40\u0e2d\u0e2d\u0e23\u0e4c'];\n        } else if ((colLower.includes('grade') || colLower.includes('gram') || colLower.includes('\u0e40\u0e01\u0e23\u0e14') || colLower.includes('\u0e41\u0e01\u0e23\u0e21')) && (rec.paper_grade || rec['\u0e40\u0e01\u0e23\u0e14 / \u0e41\u0e01\u0e23\u0e21'] || rec['\u0e40\u0e01\u0e23\u0e14'])) {\n          matchVal = rec.paper_grade || rec['\u0e40\u0e01\u0e23\u0e14 / \u0e41\u0e01\u0e23\u0e21'] || rec['\u0e40\u0e01\u0e23\u0e14'];\n        } else if (colLower.includes('shift') && rec.shift) matchVal = rec.shift;\n        else if (colLower.includes('batch') && rec.batch_no) matchVal = rec.batch_no;\n        else if (colLower.includes('sample') && rec.sample_no) matchVal = rec.sample_no;\n        else {\n          // Check inside custom_headers object\n          for (let k in customHeadersMap) {\n            const item = customHeadersMap[k];\n            const l = (item && typeof item === 'object' && item.label) ? item.label : k;\n            const v = (item && typeof item === 'object') ? item.value : item;\n            if (l.toLowerCase() === colLower || k.toLowerCase() === colLower) {\n              matchVal = v;\n              break;\n            }\n          }\n        }\n        row[c] = matchVal || '';\n      }\n\n      rowsToAppend.push(row);\n    }\n  });\n  \n  if (rowsToAppend.length > 0) {\n    logsSheet.getRange(lastRow + 1, 1, rowsToAppend.length, totalCols).setValues(rowsToAppend);\n  }\n  \n  return rowsToAppend.length;\n}\n\n/**\n * Helper: Read Master Sheet\n */\n/**\n * Helper: Update a single log record in INSPECTION_LOGS by Record ID\n */\nfunction updateSingleLogRecord(ss, rec) {\n  if (!rec || !rec.id) return false;\n  const logsSheet = ss.getSheetByName(SHEET_LOGS);\n  if (!logsSheet) return false;\n  const lastRow = logsSheet.getLastRow();\n  if (lastRow <= 1) return false;\n\n  const idValues = logsSheet.getRange(2, 1, lastRow - 1, 1).getValues();\n  let targetRow = -1;\n  for (let i = 0; i < idValues.length; i++) {\n    if (String(idValues[i][0]).trim() === String(rec.id).trim()) {\n      targetRow = i + 2;\n      break;\n    }\n  }\n  if (targetRow === -1) return false;\n\n  const lastCol = logsSheet.getLastColumn();\n  const headerRow = logsSheet.getRange(1, 1, 1, lastCol).getValues()[0].map(h => String(h || '').trim());\n  \n  // Update Standard Columns\n  if (rec.std_spec !== undefined) logsSheet.getRange(targetRow, 9).setValue(rec.std_spec);\n  if (rec.measured_value !== undefined) logsSheet.getRange(targetRow, 10).setValue(rec.measured_value);\n  if (rec.unit !== undefined) logsSheet.getRange(targetRow, 11).setValue(rec.unit);\n  if (rec.status !== undefined) logsSheet.getRange(targetRow, 12).setValue(rec.status);\n  if (rec.inspector !== undefined) logsSheet.getRange(targetRow, 13).setValue(rec.inspector);\n  if (rec.order_no !== undefined) logsSheet.getRange(targetRow, 14).setValue(rec.order_no);\n  if (rec.notes !== undefined) logsSheet.getRange(targetRow, 16).setValue(rec.notes);\n  if (rec.flute !== undefined) logsSheet.getRange(targetRow, 17).setValue(rec.flute);\n  if (rec.speed !== undefined) logsSheet.getRange(targetRow, 18).setValue(rec.speed);\n\n  // Update Custom & Material Columns across row\n  for (let c = 0; c < headerRow.length; c++) {\n    const colName = headerRow[c];\n    const colLower = colName.toLowerCase();\n    let newVal = null;\n\n    if (colLower.includes('roll') || colLower.includes('\u0e21\u0e49\u0e27\u0e19')) {\n      if (rec.roll_no !== undefined) newVal = rec.roll_no;\n      else if (rec['\u0e40\u0e25\u0e02\u0e17\u0e35\u0e48\u0e21\u0e49\u0e27\u0e19 / Roll No'] !== undefined) newVal = rec['\u0e40\u0e25\u0e02\u0e17\u0e35\u0e48\u0e21\u0e49\u0e27\u0e19 / Roll No'];\n    } else if (colLower.includes('supplier') || colLower.includes('\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22') || colLower.includes('\u0e1c\u0e39\u0e49\u0e1c\u0e25\u0e34\u0e15')) {\n      if (rec.supplier !== undefined) newVal = rec.supplier;\n      else if (rec['\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22\u0e40\u0e2d\u0e2d\u0e23\u0e4c / \u0e1c\u0e39\u0e49\u0e1c\u0e25\u0e34\u0e15'] !== undefined) newVal = rec['\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22\u0e40\u0e2d\u0e2d\u0e23\u0e4c / \u0e1c\u0e39\u0e49\u0e1c\u0e25\u0e34\u0e15'];\n    } else if (colLower.includes('grade') || colLower.includes('gram') || colLower.includes('\u0e40\u0e01\u0e23\u0e14') || colLower.includes('\u0e41\u0e01\u0e23\u0e21')) {\n      if (rec.paper_grade !== undefined) newVal = rec.paper_grade;\n      else if (rec['\u0e40\u0e01\u0e23\u0e14 / \u0e41\u0e01\u0e23\u0e21'] !== undefined) newVal = rec['\u0e40\u0e01\u0e23\u0e14 / \u0e41\u0e01\u0e23\u0e21'];\n    } else if (rec[colName] !== undefined) {\n      newVal = rec[colName];\n    } else if (rec.custom_headers && rec.custom_headers[colName] !== undefined) {\n      const ch = rec.custom_headers[colName];\n      newVal = (ch && typeof ch === 'object' && ch.value !== undefined) ? ch.value : ch;\n    }\n\n    if (newVal !== null) {\n      logsSheet.getRange(targetRow, c + 1).setValue(newVal);\n    }\n  }\n\n  return true;\n}\n\nfunction readMasterSheet(sheet) {\n  if (!sheet) return [];\n  const rows = sheet.getDataRange().getValues();\n  if (rows.length <= 1) return [];\n  \n  const items = [];\n  for (let r = 1; r < rows.length; r++) {\n    const row = rows[r];\n    const itemTitle = String(row[4] || row[0] || '').trim();\n    if (!itemTitle) continue;\n    \n    items.push({\n      id: String(row[0] || ('STD_' + r)),\n      group_title: String(row[1] || '\u0e0a\u0e38\u0e14\u0e40\u0e0a\u0e47\u0e04\u0e25\u0e34\u0e2a\u0e15\u0e4c\u0e17\u0e31\u0e48\u0e27\u0e44\u0e1b'),\n      dept: String(row[2] || 'PD'),\n      machine: String(row[3] || 'General'),\n      item: itemTitle,\n      freq: String(row[5] || '\u0e17\u0e38\u0e01 1 \u0e0a\u0e31\u0e48\u0e27\u0e42\u0e21\u0e07'),\n      spec_raw: String(row[6] || ''),\n      spec_type: String(row[7] || 'range'),\n      min_val: row[8] !== '' && !isNaN(row[8]) ? parseFloat(row[8]) : null,\n      max_val: row[9] !== '' && !isNaN(row[9]) ? parseFloat(row[9]) : null,\n      unit: String(row[10] || ''),\n      target: String(row[6] || ''),\n      require_val: row[11] === true || String(row[11]).toUpperCase() === 'TRUE' || String(row[11]) === 'YES',\n      require_photo: row[12] === true || String(row[12]).toUpperCase() === 'TRUE' || String(row[12]) === 'YES',\n      active: row[13] !== false && String(row[13]).toUpperCase() !== 'FALSE'\n    });\n  }\n  return items;\n}\n\n/**\n * Helper: Read Logs Sheet with formatted Dates/Times and Dynamic Custom Columns\n */\nfunction readLogsSheet(sheet) {\n  if (!sheet) return [];\n  const rawRows = sheet.getDataRange().getValues();\n  const dispRows = sheet.getDataRange().getDisplayValues();\n  if (rawRows.length <= 1) return [];\n  \n  const headerRow = rawRows[0].map(h => String(h || '').trim());\n  const logs = [];\n  \n  // Read descending so newest logs appear first\n  for (let r = rawRows.length - 1; r >= 1; r--) {\n    const raw = rawRows[r];\n    const disp = dispRows[r];\n    if (!raw[0] && !raw[7]) continue;\n    \n    const dStr = formatGasDateCell(raw[2], disp[2]);\n    const tStr = formatGasTimeCell(raw[3], disp[3]);\n    const tsStr = formatGasTimestampCell(raw[1], disp[1], dStr, tStr);\n    \n    const logItem = {\n      id: String(raw[0] || ('LOG-' + r)),\n      timestamp: tsStr,\n      date: dStr,\n      time: tStr,\n      dept: String(raw[4] || ''),\n      machine: String(raw[5] || ''),\n      freq: String(raw[6] || ''),\n      item: String(raw[7] || ''),\n      std_spec: String(raw[8] || ''),\n      measured_value: raw[9] !== '' ? raw[9] : '-',\n      unit: String(raw[10] || ''),\n      status: String(raw[11] || 'IN-SPEC'),\n      inspector: String(raw[12] || ''),\n      order_no: String(raw[13] || ''),\n      photo: (() => {\n        const pVal = String(raw[14] || '').trim();\n        if (!pVal || pVal === 'NO') return '';\n        if (pVal.startsWith('http') || pVal.startsWith('data:image/')) return pVal;\n        return 'ATTACHED';\n      })(),\n      notes: String(raw[15] || ''),\n      flute: String(raw[16] || ''),\n      speed: String(raw[17] || ''),\n      duration: String(raw[18] || ''),\n      custom_headers_summary: String(raw[19] || '')\n    };\n\n    // Scan ALL columns in headerRow to capture Roll No, Supplier, Grade/Gram, Shift, Batch, etc.\n    logItem.custom_headers = {};\n    for (let c = 0; c < headerRow.length; c++) {\n      const colName = headerRow[c];\n      if (!colName) continue;\n      const colLower = colName.toLowerCase();\n      const rawVal = raw[c] !== undefined && raw[c] !== null ? String(raw[c]).trim() : '';\n      const dispVal = (disp && disp[c] !== undefined && disp[c] !== null) ? String(disp[c]).trim() : '';\n      const cellVal = rawVal || dispVal;\n\n      if (cellVal) {\n        logItem[colName] = cellVal;\n        logItem.custom_headers[colName] = cellVal;\n\n        // Match Roll No (\u0e21\u0e49\u0e27\u0e19, \u0e40\u0e25\u0e02\u0e17\u0e35\u0e48\u0e21\u0e49\u0e27\u0e19, Roll No, Roll)\n        if (colLower.includes('roll') || colLower.includes('\u0e21\u0e49\u0e27\u0e19')) {\n          logItem.roll_no = cellVal;\n          logItem['\u0e40\u0e25\u0e02\u0e17\u0e35\u0e48\u0e21\u0e49\u0e27\u0e19 / Roll No'] = cellVal;\n          logItem['\u0e40\u0e25\u0e02\u0e17\u0e35\u0e48\u0e21\u0e49\u0e27\u0e19 / Roll'] = cellVal;\n          logItem['\u0e40\u0e25\u0e02\u0e17\u0e35\u0e48\u0e21\u0e49\u0e27\u0e19'] = cellVal;\n        }\n        // Match Supplier (\u0e1c\u0e39\u0e49\u0e1c\u0e25\u0e34\u0e15, \u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22\u0e40\u0e2d\u0e2d\u0e23\u0e4c, Supplier)\n        if (colLower.includes('supplier') || colLower.includes('\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22') || colLower.includes('\u0e1c\u0e39\u0e49\u0e1c\u0e25\u0e34\u0e15')) {\n          logItem.supplier = cellVal;\n          logItem['\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22\u0e40\u0e2d\u0e2d\u0e23\u0e4c / \u0e1c\u0e39\u0e49\u0e1c\u0e25\u0e34\u0e15'] = cellVal;\n          logItem['\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22\u0e40\u0e2d\u0e2d\u0e23\u0e4c'] = cellVal;\n          logItem['\u0e1c\u0e39\u0e49\u0e1c\u0e25\u0e34\u0e15'] = cellVal;\n        }\n        // Match Grade / Gram (\u0e40\u0e01\u0e23\u0e14, \u0e41\u0e01\u0e23\u0e21, Grade, Gram)\n        if (colLower.includes('grade') || colLower.includes('gram') || colLower.includes('\u0e40\u0e01\u0e23\u0e14') || colLower.includes('\u0e41\u0e01\u0e23\u0e21')) {\n          logItem.paper_grade = cellVal;\n          logItem['\u0e40\u0e01\u0e23\u0e14 / \u0e41\u0e01\u0e23\u0e21'] = cellVal;\n          logItem['\u0e40\u0e01\u0e23\u0e14'] = cellVal;\n          logItem['\u0e41\u0e01\u0e23\u0e21'] = cellVal;\n        }\n        // Match Shift\n        if (colLower.includes('shift') || colLower.includes('\u0e01\u0e30')) {\n          logItem.shift = cellVal;\n        }\n        // Match Batch\n        if (colLower.includes('batch')) {\n          logItem.batch_no = cellVal;\n        }\n      }\n    }\n    \n    logs.push(logItem);\n  }\n  return logs;\n}\n\n/**\n * Helper: Read Departments Sheet\n */\nfunction readDeptsSheet(sheet) {\n  if (!sheet) return [];\n  const rows = sheet.getDataRange().getValues();\n  if (rows.length <= 1) return [];\n  \n  const depts = [];\n  for (let r = 1; r < rows.length; r++) {\n    const row = rows[r];\n    if (!row[1] && !row[2]) continue;\n    depts.push({\n      id: String(row[0] || ('dept_' + r)),\n      code: String(row[1] || ''),\n      name: String(row[2] || ''),\n      icon: String(row[3] || 'fa-industry'),\n      color: String(row[4] || 'blue'),\n      desc: String(row[5] || '')\n    });\n  }\n  return depts;\n}\n\n/**\n * Helper: Read Users Sheet\n */\nfunction readUsersSheet(sheet) {\n  if (!sheet) return [];\n  const rows = sheet.getDataRange().getValues();\n  if (rows.length <= 1) return [];\n  \n  const users = [];\n  for (let r = 1; r < rows.length; r++) {\n    const row = rows[r];\n    const username = String(row[1] || '').trim();\n    if (!username) continue;\n    \n    let allowedTabs = [];\n    const tabsRaw = String(row[6] || '').trim();\n    if (tabsRaw.startsWith('[') && tabsRaw.endsWith(']')) {\n      try {\n        allowedTabs = JSON.parse(tabsRaw);\n      } catch(e) {\n        allowedTabs = tabsRaw.replace(/[\\[\\]\"]/g, '').split(',').map(s => s.trim()).filter(Boolean);\n      }\n    } else if (tabsRaw) {\n      allowedTabs = tabsRaw.split(',').map(s => s.trim()).filter(Boolean);\n    }\n    if (allowedTabs.length === 0) {\n      allowedTabs = ['inspection', 'dashboard', 'investigation', 'history', 'qr_hub'];\n    }\n    \n    users.push({\n      id: String(row[0] || ('usr_' + r)),\n      username: username,\n      password: String(row[2] || ''),\n      name: String(row[3] || username),\n      role: String(row[4] || 'operator'),\n      dept: String(row[5] || 'ALL'),\n      allowed_tabs: allowedTabs,\n      active: row[7] !== false && String(row[7]).toUpperCase() !== 'FALSE'\n    });\n  }\n  return users;\n}\n\n/**\n * Helper: Read Department Headers Configuration Sheet\n */\nfunction readDeptHeadersSheet(sheet) {\n  if (!sheet) return getDefaultDeptHeaders();\n  const rows = sheet.getDataRange().getValues();\n  if (rows.length <= 1) return getDefaultDeptHeaders();\n  \n  const deptHeaders = {};\n  for (let r = 1; r < rows.length; r++) {\n    const row = rows[r];\n    const deptCode = String(row[0] || '').trim();\n    const jsonStr = String(row[1] || '').trim();\n    if (deptCode && jsonStr) {\n      try {\n        deptHeaders[deptCode] = JSON.parse(jsonStr);\n      } catch(e) {\n        console.warn('Failed to parse dept headers JSON for ' + deptCode, e);\n      }\n    }\n  }\n\n  // Ensure core departments exist\n  const def = getDefaultDeptHeaders();\n  Object.keys(def).forEach(k => {\n    if (!deptHeaders[k] || !Array.isArray(deptHeaders[k]) || deptHeaders[k].length === 0) {\n      deptHeaders[k] = def[k];\n    }\n  });\n\n  return deptHeaders;\n}\n\n/**\n * Overwrite Department Headers Configuration Sheet\n */\nfunction overwriteDeptHeadersSheet(sheet, headersMap) {\n  if (!sheet) return 0;\n  sheet.clearContents();\n  const headers = ['Department Code', 'Headers JSON', 'Updated At'];\n  sheet.appendRow(headers);\n  sheet.getRange(1, 1, 1, headers.length).setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold');\n  \n  const map = headersMap || getDefaultDeptHeaders();\n  const keys = Object.keys(map);\n  if (keys.length > 0) {\n    const nowStr = Utilities.formatDate(new Date(), 'GMT+7', 'yyyy-MM-dd HH:mm:ss');\n    const rows = keys.map(k => [\n      k,\n      JSON.stringify(map[k]),\n      nowStr\n    ]);\n    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);\n    return rows.length;\n  }\n  return 0;\n}\n\n/**\n * Default Department Headers Configuration\n */\nfunction getDefaultDeptHeaders() {\n  return {\n    \"PD\": [\n      { id: \"inspector\", label: \"\u0e1c\u0e39\u0e49\u0e17\u0e33\u0e01\u0e32\u0e23\u0e15\u0e23\u0e27\u0e08\u0e40\u0e0a\u0e47\u0e04 (Inspector)\", type: \"text\", required: true, enabled: true, icon: \"fa-user-check\", iconColor: \"text-blue-400\", placeholder: \"\u0e23\u0e30\u0e1a\u0e38\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e15\u0e23\u0e27\u0e08\u0e40\u0e0a\u0e47\u0e04...\" },\n      { id: \"order_no\", label: \"\u0e2b\u0e21\u0e32\u0e22\u0e40\u0e25\u0e02 Order / Lot\", type: \"text\", required: true, enabled: true, icon: \"fa-hashtag\", iconColor: \"text-indigo-400\", placeholder: \"\u0e40\u0e0a\u0e48\u0e19 ORD-6902, Lot A...\" },\n      { id: \"machine\", label: \"\u0e40\u0e04\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e08\u0e31\u0e01\u0e23\u0e40\u0e1b\u0e49\u0e32\u0e2b\u0e21\u0e32\u0e22 (Machine)\", type: \"machine_select\", required: true, enabled: true, icon: \"fa-gear\", iconColor: \"text-amber-400\" },\n      { id: \"flute\", label: \"\u0e25\u0e2d\u0e19 (Flute)\", type: \"flute_select\", required: true, enabled: true, icon: \"fa-water\", iconColor: \"text-cyan-400\", placeholder: \"\u0e40\u0e0a\u0e48\u0e19 B, C, BC, E...\" },\n      { id: \"speed\", label: \"Speed (\u0e04\u0e27\u0e32\u0e21\u0e40\u0e23\u0e47\u0e27 m/min)\", type: \"text\", required: true, enabled: true, icon: \"fa-gauge-high\", iconColor: \"text-emerald-400\", placeholder: \"\u0e40\u0e0a\u0e48\u0e19 150, 180 m/min...\" }\n    ],\n    \"QC\": [\n      { id: \"inspector\", label: \"\u0e1c\u0e39\u0e49\u0e17\u0e33\u0e01\u0e32\u0e23\u0e15\u0e23\u0e27\u0e08\u0e40\u0e0a\u0e47\u0e04 (Inspector)\", type: \"text\", required: true, enabled: true, icon: \"fa-user-check\", iconColor: \"text-blue-400\", placeholder: \"\u0e23\u0e30\u0e1a\u0e38\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e15\u0e23\u0e27\u0e08\u0e40\u0e0a\u0e47\u0e04...\" },\n      { id: \"order_no\", label: \"\u0e2b\u0e21\u0e32\u0e22\u0e40\u0e25\u0e02 Order / Lot\", type: \"text\", required: true, enabled: true, icon: \"fa-hashtag\", iconColor: \"text-indigo-400\", placeholder: \"\u0e40\u0e0a\u0e48\u0e19 ORD-6902, Lot A...\" },\n      { id: \"machine\", label: \"\u0e40\u0e04\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e08\u0e31\u0e01\u0e23\u0e40\u0e1b\u0e49\u0e32\u0e2b\u0e21\u0e32\u0e22 (Machine)\", type: \"machine_select\", required: true, enabled: true, icon: \"fa-gear\", iconColor: \"text-amber-400\" },\n      { id: \"flute\", label: \"\u0e25\u0e2d\u0e19 (Flute)\", type: \"flute_select\", required: true, enabled: true, icon: \"fa-water\", iconColor: \"text-cyan-400\", placeholder: \"\u0e40\u0e0a\u0e48\u0e19 B, C, BC, E...\" },\n      { id: \"speed\", label: \"Speed (\u0e04\u0e27\u0e32\u0e21\u0e40\u0e23\u0e47\u0e27 m/min)\", type: \"text\", required: true, enabled: true, icon: \"fa-gauge-high\", iconColor: \"text-emerald-400\", placeholder: \"\u0e40\u0e0a\u0e48\u0e19 150, 180 m/min...\" }\n    ],\n    \"Boiler\": [\n      { id: \"inspector\", label: \"\u0e1c\u0e39\u0e49\u0e17\u0e33\u0e01\u0e32\u0e23\u0e15\u0e23\u0e27\u0e08\u0e40\u0e0a\u0e47\u0e04 (Inspector)\", type: \"text\", required: true, enabled: true, icon: \"fa-user-check\", iconColor: \"text-blue-400\", placeholder: \"\u0e23\u0e30\u0e1a\u0e38\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e15\u0e23\u0e27\u0e08\u0e40\u0e0a\u0e47\u0e04...\" },\n      { id: \"machine\", label: \"\u0e40\u0e04\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e08\u0e31\u0e01\u0e23 / \u0e08\u0e38\u0e14\u0e15\u0e23\u0e27\u0e08 (Machine)\", type: \"machine_select\", required: true, enabled: true, icon: \"fa-fire-burner\", iconColor: \"text-rose-400\" },\n      { id: \"shift\", label: \"\u0e01\u0e30\u0e01\u0e32\u0e23\u0e17\u0e33\u0e07\u0e32\u0e19 (Shift)\", type: \"text\", required: false, enabled: true, icon: \"fa-clock\", iconColor: \"text-amber-400\", placeholder: \"\u0e40\u0e0a\u0e48\u0e19 \u0e01\u0e30 A, \u0e01\u0e30 B, \u0e01\u0e30\u0e40\u0e0a\u0e49\u0e32...\" }\n    ],\n    \"GLUE\": [\n      { id: \"inspector\", label: \"\u0e1c\u0e39\u0e49\u0e17\u0e33\u0e01\u0e32\u0e23\u0e15\u0e23\u0e27\u0e08\u0e40\u0e0a\u0e47\u0e04 (Inspector)\", type: \"text\", required: true, enabled: true, icon: \"fa-user-check\", iconColor: \"text-blue-400\", placeholder: \"\u0e23\u0e30\u0e1a\u0e38\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e15\u0e23\u0e27\u0e08\u0e40\u0e0a\u0e47\u0e04...\" },\n      { id: \"machine\", label: \"\u0e08\u0e38\u0e14\u0e15\u0e23\u0e27\u0e08 / \u0e2a\u0e32\u0e22\u0e01\u0e32\u0e23\u0e1c\u0e25\u0e34\u0e15 (Machine)\", type: \"machine_select\", required: true, enabled: true, icon: \"fa-flask-vial\", iconColor: \"text-amber-400\" },\n      { id: \"batch_no\", label: \"Batch \u0e01\u0e32\u0e27 / \u0e16\u0e31\u0e07\u0e1c\u0e2a\u0e21\", type: \"text\", required: false, enabled: true, icon: \"fa-barcode\", iconColor: \"text-teal-400\", placeholder: \"\u0e40\u0e0a\u0e48\u0e19 Batch #01, Tank A...\" }\n    ],\n    \"LAB\": [\n      { id: \"inspector\", label: \"\u0e1c\u0e39\u0e49\u0e17\u0e33\u0e01\u0e32\u0e23\u0e17\u0e14\u0e2a\u0e2d\u0e1a (Tester/Lab)\", type: \"text\", required: true, enabled: true, icon: \"fa-microscope\", iconColor: \"text-teal-400\", placeholder: \"\u0e23\u0e30\u0e1a\u0e38\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e15\u0e23\u0e27\u0e08 Lab...\" },\n      { id: \"order_no\", label: \"\u0e23\u0e2b\u0e31\u0e2a\u0e15\u0e31\u0e27\u0e2d\u0e22\u0e48\u0e32\u0e07 / Lot \u0e27\u0e31\u0e15\u0e16\u0e38\u0e14\u0e34\u0e1a\", type: \"text\", required: true, enabled: true, icon: \"fa-hashtag\", iconColor: \"text-indigo-400\", placeholder: \"\u0e40\u0e0a\u0e48\u0e19 Sample #A1, Lot 4200...\" },\n      { id: \"machine\", label: \"\u0e40\u0e04\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e08\u0e31\u0e01\u0e23 / \u0e1b\u0e23\u0e30\u0e40\u0e20\u0e17\u0e17\u0e14\u0e2a\u0e2d\u0e1a\", type: \"machine_select\", required: false, enabled: true, icon: \"fa-gear\", iconColor: \"text-slate-400\" }\n    ],\n    \"IQC\": [\n      { id: \"inspector\", label: \"\u0e1c\u0e39\u0e49\u0e15\u0e23\u0e27\u0e08\u0e23\u0e31\u0e1a (IQC Inspector)\", type: \"text\", required: true, enabled: true, icon: \"fa-user-check\", iconColor: \"text-blue-400\", placeholder: \"\u0e23\u0e30\u0e1a\u0e38\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e15\u0e23\u0e27\u0e08\u0e23\u0e31\u0e1a...\" },\n      { id: \"roll_no\", label: \"\u0e40\u0e25\u0e02\u0e17\u0e35\u0e48\u0e21\u0e49\u0e27\u0e19 / Roll No\", type: \"text\", required: true, enabled: true, icon: \"fa-scroll\", iconColor: \"text-purple-400\", placeholder: \"\u0e40\u0e0a\u0e48\u0e19 Roll #9921, PDR-01...\" },\n      { id: \"supplier\", label: \"\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22\u0e40\u0e2d\u0e2d\u0e23\u0e4c / \u0e1c\u0e39\u0e49\u0e1c\u0e25\u0e34\u0e15\", type: \"text\", required: false, enabled: true, icon: \"fa-truck\", iconColor: \"text-emerald-400\", placeholder: \"\u0e40\u0e0a\u0e48\u0e19 SCG, \u0e04\u0e49\u0e32\u0e41\u0e1b\u0e49\u0e07...\" },\n      { id: \"order_no\", label: \"\u0e40\u0e25\u0e02 PO / \u0e43\u0e1a\u0e23\u0e31\u0e1a\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\", type: \"text\", required: false, enabled: true, icon: \"fa-file-invoice\", iconColor: \"text-indigo-400\", placeholder: \"\u0e40\u0e0a\u0e48\u0e19 PO-2610-001...\" }\n    ]\n  };\n}\n\n/**\n * Overwrite Master Checklist Sheet\n */\nfunction overwriteMasterSheet(sheet, items) {\n  if (!sheet) return 0;\n  sheet.clearContents();\n  \n  const headers = [\n    'ID', 'Group Title', 'Department', 'Machine', 'Item Name', 'Frequency', \n    'Standard Spec', 'Spec Type', 'Min Value', 'Max Value', 'Unit', \n    'Require Value', 'Require Photo', 'Active'\n  ];\n  sheet.appendRow(headers);\n  sheet.getRange(1, 1, 1, headers.length).setBackground('#1e3a8a').setFontColor('#ffffff').setFontWeight('bold');\n  \n  if (items && items.length > 0) {\n    const rows = items.map(it => [\n      it.id || '',\n      it.group_title || '\u0e0a\u0e38\u0e14\u0e40\u0e0a\u0e47\u0e04\u0e25\u0e34\u0e2a\u0e15\u0e4c\u0e17\u0e31\u0e48\u0e27\u0e44\u0e1b',\n      it.dept || 'PD',\n      it.machine || 'General',\n      it.item || '',\n      it.freq || '\u0e17\u0e38\u0e01 1 \u0e0a\u0e31\u0e48\u0e27\u0e42\u0e21\u0e07',\n      it.spec_raw || it.target || '',\n      it.spec_type || 'range',\n      it.min_val !== null && it.min_val !== undefined ? it.min_val : '',\n      it.max_val !== null && it.max_val !== undefined ? it.max_val : '',\n      it.unit || '',\n      it.require_val === true ? 'TRUE' : 'FALSE',\n      it.require_photo === true ? 'TRUE' : 'FALSE',\n      it.active !== false ? 'TRUE' : 'FALSE'\n    ]);\n    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);\n    return rows.length;\n  }\n  return 0;\n}\n\n/**\n * Overwrite Departments Sheet\n */\nfunction overwriteDeptsSheet(sheet, depts) {\n  if (!sheet) return 0;\n  sheet.clearContents();\n  const headers = ['ID', 'Code', 'Name', 'Icon', 'Color', 'Description'];\n  sheet.appendRow(headers);\n  sheet.getRange(1, 1, 1, headers.length).setBackground('#0f172a').setFontColor('#ffffff').setFontWeight('bold');\n  \n  if (depts && depts.length > 0) {\n    const rows = depts.map(d => [\n      d.id || '',\n      d.code || '',\n      d.name || '',\n      d.icon || 'fa-industry',\n      d.color || 'blue',\n      d.desc || ''\n    ]);\n    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);\n    return rows.length;\n  }\n  return 0;\n}\n\n/**\n * Overwrite Users Sheet\n */\nfunction overwriteUsersSheet(sheet, users) {\n  if (!sheet) return 0;\n  sheet.clearContents();\n  const headers = ['ID', 'Username', 'Password', 'Name', 'Role', 'Department', 'Allowed Tabs', 'Active'];\n  sheet.appendRow(headers);\n  sheet.getRange(1, 1, 1, headers.length).setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold');\n  \n  if (users && users.length > 0) {\n    const rows = users.map(u => [\n      u.id || '',\n      u.username || '',\n      u.password || '',\n      u.name || '',\n      u.role || 'operator',\n      u.dept || 'ALL',\n      Array.isArray(u.allowed_tabs) ? u.allowed_tabs.join(',') : String(u.allowed_tabs || ''),\n      u.active !== false ? 'TRUE' : 'FALSE'\n    ]);\n    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);\n    return rows.length;\n  }\n  return 0;\n}\n\n/**\n * Initialize sheets and headers if not exist\n */\nfunction initSheetsIfNotExist(ss) {\n  // 1. Logs Sheet\n  let logsSheet = ss.getSheetByName(SHEET_LOGS);\n  if (!logsSheet) {\n    logsSheet = ss.insertSheet(SHEET_LOGS);\n    logsSheet.appendRow([\n      'Record ID', 'Timestamp', 'Date', 'Time', 'Department', 'Machine',\n      'Frequency', 'Inspection Item', 'Standard Spec', 'Measured Value',\n      'Unit', 'Status', 'Inspector', 'Order No', 'Photo Attached', 'Notes',\n      'Flute', 'Speed', 'Duration', 'Custom Headers Summary'\n    ]);\n    logsSheet.getRange(1, 1, 1, 20).setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold');\n  } else {\n    // Check if Flute, Speed, Duration & Custom Headers Summary headers exist\n    const lastCol = logsSheet.getLastColumn();\n    if (lastCol < 20) {\n      if (lastCol < 17) logsSheet.getRange(1, 17).setValue('Flute');\n      if (lastCol < 18) logsSheet.getRange(1, 18).setValue('Speed');\n      if (lastCol < 19) logsSheet.getRange(1, 19).setValue('Duration');\n      if (lastCol < 20) logsSheet.getRange(1, 20).setValue('Custom Headers Summary');\n    }\n  }\n  \n  // 2. Master Sheet\n  let masterSheet = ss.getSheetByName(SHEET_MASTER);\n  if (!masterSheet) {\n    masterSheet = ss.insertSheet(SHEET_MASTER);\n    masterSheet.appendRow([\n      'ID', 'Group Title', 'Department', 'Machine', 'Item Name', 'Frequency', \n      'Standard Spec', 'Spec Type', 'Min Value', 'Max Value', 'Unit', \n      'Require Value', 'Require Photo', 'Active'\n    ]);\n    masterSheet.getRange(1, 1, 1, 14).setBackground('#1e3a8a').setFontColor('#ffffff').setFontWeight('bold');\n  }\n  \n  // 3. Departments Sheet\n  let deptsSheet = ss.getSheetByName(SHEET_DEPTS);\n  if (!deptsSheet) {\n    deptsSheet = ss.insertSheet(SHEET_DEPTS);\n    deptsSheet.appendRow(['ID', 'Code', 'Name', 'Icon', 'Color', 'Description']);\n    deptsSheet.getRange(1, 1, 1, 6).setBackground('#0f172a').setFontColor('#ffffff').setFontWeight('bold');\n  }\n\n  // 4. Users Sheet\n  let usersSheet = ss.getSheetByName(SHEET_USERS);\n  if (!usersSheet) {\n    usersSheet = ss.insertSheet(SHEET_USERS);\n    usersSheet.appendRow(['ID', 'Username', 'Password', 'Name', 'Role', 'Department', 'Allowed Tabs', 'Active']);\n    usersSheet.getRange(1, 1, 1, 8).setBackground('#0f172a').setFontColor('#ffffff').setFontWeight('bold');\n    \n    // Seed initial default users\n    const defaultUsers = [\n      ['usr_admin', 'admin', 'admin1234', '\u0e1c\u0e39\u0e49\u0e14\u0e39\u0e41\u0e25\u0e23\u0e30\u0e1a\u0e1a\u0e2a\u0e39\u0e07\u0e2a\u0e38\u0e14 (Admin)', 'admin', 'ALL', 'inspection,dashboard,investigation,master,history,qr_hub,users_depts,settings', 'TRUE'],\n      ['usr_pd', 'pd_user', 'pd1234', '\u0e17\u0e35\u0e21\u0e07\u0e32\u0e19\u0e1d\u0e48\u0e32\u0e22\u0e1c\u0e25\u0e34\u0e15 (PD)', 'operator', 'PD', 'inspection,dashboard,investigation,history,qr_hub', 'TRUE'],\n      ['usr_qc', 'qc_user', 'qc1234', '\u0e40\u0e08\u0e49\u0e32\u0e2b\u0e19\u0e49\u0e32\u0e17\u0e35\u0e48\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a (QC)', 'inspector', 'QC', 'inspection,dashboard,investigation,history,qr_hub', 'TRUE']\n    ];\n    usersSheet.getRange(2, 1, defaultUsers.length, 8).setValues(defaultUsers);\n  }\n\n  // 5. Department Headers Configuration Sheet\n  let deptHeadersSheet = ss.getSheetByName(SHEET_DEPT_HEADERS);\n  if (!deptHeadersSheet) {\n    deptHeadersSheet = ss.insertSheet(SHEET_DEPT_HEADERS);\n    overwriteDeptHeadersSheet(deptHeadersSheet, getDefaultDeptHeaders());\n  }\n}\n";
 
       navigator.clipboard.writeText(code);
       Swal.fire({
         icon: 'success',
-        title: 'คัดลอกโค้ด Apps Script v8.0 แล้ว!',
+        title: 'คัดลอกโค้ด Apps Script v11.0 แล้ว!',
         text: 'นำไปวางใน Extensions > Apps Script และกด Deploy > New deployment (Web app: Anyone)',
         timer: 2000,
         showConfirmButton: false
@@ -6189,9 +7012,32 @@
       const modal = document.getElementById('photoViewerModal');
       const img = document.getElementById('photoViewerImg');
       const title = document.getElementById('photoViewerTitle');
+      const extLink = document.getElementById('photoViewerExternalLink');
       if (modal && img) {
-        img.src = photoSrc;
+        let displayUrl = photoSrc;
+        let driveWebUrl = photoSrc;
+
+        // Extract Google Drive File ID if present for high-speed direct CDN rendering
+        if (photoSrc && typeof photoSrc === 'string' && photoSrc.includes('drive.google.com')) {
+          const idMatch = photoSrc.match(/\/d\/([a-zA-Z0-9_-]+)/) || photoSrc.match(/id=([a-zA-Z0-9_-]+)/);
+          if (idMatch && idMatch[1]) {
+            displayUrl = 'https://lh3.googleusercontent.com/d/' + idMatch[1];
+            driveWebUrl = 'https://drive.google.com/file/d/' + idMatch[1] + '/view';
+          }
+        }
+
+        img.src = displayUrl;
         if (title) title.innerHTML = `<i class="fa-solid fa-image text-blue-400 mr-1"></i> หลักฐาน: ${itemTitle}`;
+        if (extLink) {
+          if (photoSrc && photoSrc.startsWith('http')) {
+            extLink.href = driveWebUrl;
+            extLink.classList.remove('hidden');
+            extLink.classList.add('flex');
+          } else {
+            extLink.classList.add('hidden');
+            extLink.classList.remove('flex');
+          }
+        }
         modal.classList.remove('hidden');
       }
     }
