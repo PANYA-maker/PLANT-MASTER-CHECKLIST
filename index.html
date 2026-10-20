@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th" class="h-full bg-slate-950 text-slate-100">
+<html lang="th" class="h-full light bg-slate-50 text-slate-900">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,10 +37,10 @@
   </script>
 
   <script>
-    // Enforce Permanent Dark Mode (ปิดระบบโหมดสว่าง)
-    document.documentElement.classList.remove('light');
-    document.documentElement.classList.add('dark');
-    try { localStorage.removeItem('plant_theme'); } catch(e) {}
+    // Enforce Default Light Mode (โหมดสว่างสบายตา สไตล์ Enterprise มองเห็นชัดเจน 100%)
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+    try { localStorage.setItem('plant_theme', 'light'); } catch(e) {}
   </script>
 
   <!-- FontAwesome Icons -->
@@ -81,221 +81,534 @@
       transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
 
-    /* ================= COMPLETE HIGH-CONTRAST LIGHT MODE ================= */
+    /* ================= MEDIUM SLATE GRAY THEME (โทนเทากลางเข้ม สบายตา ชัดเจน 100% ไม่ขาวจ้า) ================= */
     html.light, html.light body {
-      background-color: #f1f5f9 !important;
+      background-color: #e2e8f0 !important; /* Medium Slate-200 Base: เข้มขึ้น คุมโทน ตัดแสงสะท้อนจ้า 100% */
       color: #0f172a !important;
     }
 
+    /* Top Navigation Header */
     html.light header {
-      background-color: #ffffff !important;
+      background-color: #f1f5f9 !important;
+      border-bottom: 2px solid #cbd5e1 !important;
+      box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    html.light #mainTabNav {
       border-color: #cbd5e1 !important;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
     }
 
-    html.light .bg-slate-950 {
-      background-color: #ffffff !important;
-    }
-
-    html.light .bg-slate-900 {
-      background-color: #ffffff !important;
-    }
-
-    html.light [class*="bg-slate-900/"],
+    /* Surface & Container Backgrounds (Cards, Panels, Modals - ปรับจากการ์ดขาวจ้าเป็น Slate-100 สุขุม) */
+    html.light .bg-slate-950,
+    html.light .bg-slate-900,
     html.light [class*="bg-slate-950/"],
+    html.light [class*="bg-slate-900/"] {
+      background-color: #f1f5f9 !important;
+      border: 1.5px solid #cbd5e1 !important;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06) !important;
+    }
+
+    /* Inset Panels & Sub-sections (เข้มขึ้นเป็น Slate-200) */
     html.light [class*="bg-slate-800/"] {
-      background-color: #f8fafc !important;
+      background-color: #e2e8f0 !important;
+      border-color: #cbd5e1 !important;
     }
 
     html.light .bg-slate-800 {
-      background-color: #f1f5f9 !important;
+      background-color: #e2e8f0 !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
     }
 
     html.light .border-slate-800,
     html.light .border-slate-700,
     html.light [class*="border-slate-800/"],
-    html.light [class*="border-slate-700/"] {
+    html.light [class*="border-slate-700/"],
+    html.light .border-indigo-900\/50 {
       border-color: #cbd5e1 !important;
     }
 
-    /* Sharp Deep Text Colors */
-    html.light .text-white,
+    /* Page Header Section Banners (Medium Slate Enterprise Gradient - ไม่ขาวจ้า สบายตา) */
+    html.light [class*="from-slate-900"],
+    html.light [class*="via-slate-900"],
+    html.light [class*="to-indigo-950"],
+    html.light [class*="to-blue-950"],
+    html.light [class*="to-purple-950"],
+    html.light [class*="to-cyan-950"] {
+      background-image: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 55%, #e2e8f0 100%) !important;
+      background-color: #f1f5f9 !important;
+      border: 1.5px solid #cbd5e1 !important;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06) !important;
+    }
+
+    /* Primary Heading & Typography (คม ชัด ลึก) */
+    html.light h1, 
+    html.light h2, 
+    html.light h3, 
+    html.light h4, 
+    html.light h5, 
+    html.light h6,
+    html.light label {
+      color: #0f172a !important;
+      font-weight: 700;
+    }
+
+    /* Deep High-Contrast Text Colors on Medium Slate Surfaces */
+    html.light .text-white:not(button):not([class*="bg-blue-"]):not([class*="bg-indigo-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-purple-"]):not([class*="from-"]):not(.badge-in-spec):not(.badge-out-of-spec) {
+      color: #0f172a !important;
+    }
+
     html.light .text-slate-100,
     html.light .text-slate-200 {
       color: #0f172a !important;
     }
 
     html.light .text-slate-300 {
-      color: #1e293b !important;
+      color: #0f172a !important;
+      font-weight: 600 !important;
     }
 
     html.light .text-slate-400 {
-      color: #334155 !important; /* Dark Slate-700 - very crisp & readable! */
+      color: #334155 !important; /* Slate-700 - คมชัดลึก 100% */
+      font-weight: 600 !important;
     }
 
     html.light .text-slate-500 {
       color: #475569 !important;
     }
 
-    /* Fix Gradient Text in Light Mode (Disable transparent text) */
+    /* Brand Logo Gradient Text */
     html.light .bg-clip-text {
-      background-clip: border-box !important;
-      -webkit-background-clip: border-box !important;
-      -webkit-text-fill-color: #0f172a !important;
-      color: #0f172a !important;
-      background: none !important;
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      color: #1e3a8a !important;
     }
 
-    /* Colored Text in Light Mode (Deep & High Contrast) */
+    /* Colored Text Accents in Medium Slate Mode (Deep & High Contrast) */
     html.light .text-blue-300,
     html.light .text-blue-400 {
       color: #1d4ed8 !important;
+      font-weight: 600 !important;
     }
 
     html.light .text-indigo-300,
     html.light .text-indigo-400 {
-      color: #4338ca !important;
+      color: #3730a3 !important;
+      font-weight: 600 !important;
     }
 
     html.light .text-amber-200,
     html.light .text-amber-300,
     html.light .text-amber-400 {
       color: #92400e !important;
+      font-weight: 600 !important;
     }
 
     html.light .text-emerald-300,
     html.light .text-emerald-400 {
-      color: #065f46 !important;
+      color: #14532d !important;
+      font-weight: 600 !important;
     }
 
     html.light .text-rose-300,
     html.light .text-rose-400 {
       color: #9f1239 !important;
+      font-weight: 600 !important;
     }
 
     html.light .text-cyan-300,
     html.light .text-cyan-400 {
-      color: #0e7490 !important;
+      color: #0369a1 !important;
+      font-weight: 600 !important;
     }
 
     html.light .text-purple-300,
     html.light .text-purple-400 {
-      color: #6b21a8 !important;
+      color: #581c87 !important;
+      font-weight: 600 !important;
     }
 
-    /* Form Controls */
+    /* Primary Action Buttons (Solid Vibrant Backgrounds KEEP WHITE TEXT) */
+    html.light button.text-white,
+    html.light .bg-blue-600,
+    html.light .bg-blue-700,
+    html.light .bg-indigo-600,
+    html.light .bg-indigo-700,
+    html.light .bg-emerald-600,
+    html.light .bg-emerald-700,
+    html.light .bg-rose-600,
+    html.light .bg-purple-600,
+    html.light [class*="bg-gradient-to-r from-blue-600"],
+    html.light [class*="bg-gradient-to-r from-emerald-600"],
+    html.light [class*="bg-gradient-to-r from-indigo-600"],
+    html.light [class*="from-blue-600"],
+    html.light [class*="from-emerald-600"],
+    html.light [class*="from-indigo-600"],
+    html.light [class*="from-purple-600"],
+    html.light [class*="from-amber-600"] {
+      color: #ffffff !important;
+    }
+
+    html.light button.text-white *,
+    html.light .bg-blue-600 *,
+    html.light .bg-indigo-600 *,
+    html.light .bg-emerald-600 *,
+    html.light .bg-rose-600 *,
+    html.light [class*="from-blue-600"] *,
+    html.light [class*="from-emerald-600"] *,
+    html.light [class*="from-indigo-600"] *,
+    html.light [class*="from-amber-600"] * {
+      color: #ffffff !important;
+    }
+
+    /* Secondary Action Buttons (Convert dark muddy buttons to elegant light pills) */
+    html.light button[class*="bg-indigo-950"],
+    html.light button[class*="bg-indigo-900"] {
+      background-color: #e0e7ff !important;
+      border: 1.5px solid #a5b4fc !important;
+      color: #3730a3 !important;
+      font-weight: 600 !important;
+    }
+    html.light button[class*="bg-indigo-950"] *,
+    html.light button[class*="bg-indigo-900"] * {
+      color: #3730a3 !important;
+    }
+    html.light button[class*="bg-indigo-950"]:hover,
+    html.light button[class*="bg-indigo-900"]:hover {
+      background-color: #c7d2fe !important;
+      color: #1e1b4b !important;
+    }
+
+    html.light button[class*="bg-purple-950"],
+    html.light button[class*="bg-purple-900"] {
+      background-color: #f3e8ff !important;
+      border: 1.5px solid #d8b4fe !important;
+      color: #6b21a8 !important;
+      font-weight: 600 !important;
+    }
+    html.light button[class*="bg-purple-950"] *,
+    html.light button[class*="bg-purple-900"] * {
+      color: #6b21a8 !important;
+    }
+    html.light button[class*="bg-purple-950"]:hover,
+    html.light button[class*="bg-purple-900"]:hover {
+      background-color: #e9d5ff !important;
+      color: #4c1d95 !important;
+    }
+
+    html.light button[class*="bg-blue-950"],
+    html.light button[class*="bg-blue-900"] {
+      background-color: #dbeafe !important;
+      border: 1.5px solid #93c5fd !important;
+      color: #1d4ed8 !important;
+      font-weight: 600 !important;
+    }
+    html.light button[class*="bg-blue-950"] *,
+    html.light button[class*="bg-blue-900"] * {
+      color: #1d4ed8 !important;
+    }
+    html.light button[class*="bg-blue-950"]:hover,
+    html.light button[class*="bg-blue-900"]:hover {
+      background-color: #bfdbfe !important;
+      color: #1e40af !important;
+    }
+
+    html.light button[class*="bg-slate-800"],
+    html.light button.bg-slate-800 {
+      background-color: #cbd5e1 !important;
+      border: 1.5px solid #94a3b8 !important;
+      color: #0f172a !important;
+      font-weight: 600 !important;
+    }
+    html.light button[class*="bg-slate-800"] *,
+    html.light button.bg-slate-800 * {
+      color: #0f172a !important;
+    }
+    html.light button[class*="bg-slate-800"]:hover,
+    html.light button.bg-slate-800:hover {
+      background-color: #94a3b8 !important;
+      color: #ffffff !important;
+    }
+
+    html.light button[class*="bg-rose-950"],
+    html.light button[class*="bg-rose-900"] {
+      background-color: #fee2e2 !important;
+      border: 1.5px solid #fca5a5 !important;
+      color: #991b1b !important;
+      font-weight: 600 !important;
+    }
+    html.light button[class*="bg-rose-950"] *,
+    html.light button[class*="bg-rose-900"] * {
+      color: #991b1b !important;
+    }
+    html.light button[class*="bg-rose-950"]:hover,
+    html.light button[class*="bg-rose-900"]:hover {
+      background-color: #fecdd3 !important;
+      color: #7f1d1d !important;
+    }
+
+    /* Navigation Tabs (เข้มชัดเจน ตัดขอบสมบูรณ์) */
+    html.light .tab-btn.active,
+    html.light .tab-btn.bg-blue-600 {
+      background-color: #2563eb !important;
+      color: #ffffff !important;
+      border-color: #1d4ed8 !important;
+      box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3) !important;
+    }
+    html.light .tab-btn.active *,
+    html.light .tab-btn.bg-blue-600 * {
+      color: #ffffff !important;
+    }
+    html.light .tab-btn:not(.active):not(.bg-blue-600) {
+      background-color: #cbd5e1 !important;
+      color: #0f172a !important;
+      border: 1.5px solid #94a3b8 !important;
+      font-weight: 700 !important;
+    }
+    html.light .tab-btn:not(.active):not(.bg-blue-600):hover {
+      background-color: #94a3b8 !important;
+      color: #ffffff !important;
+    }
+
+    /* Form Inputs, Selects & Textareas (ขาวนวล ขอบเทาเข้ม คอนทราสต์สูง) */
     html.light input:not([type="checkbox"]):not([type="radio"]),
     html.light select,
     html.light textarea {
       background-color: #ffffff !important;
       color: #0f172a !important;
       border: 1.5px solid #94a3b8 !important;
-      font-weight: 500 !important;
+      font-weight: 600 !important;
     }
 
     html.light input:focus,
     html.light select:focus,
     html.light textarea:focus {
       border-color: #2563eb !important;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25) !important;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25) !important;
+      outline: none !important;
     }
 
     html.light input::placeholder,
     html.light textarea::placeholder {
       color: #64748b !important;
+      font-weight: normal !important;
     }
 
-    /* Table Styles */
+    /* Tables (Medium Slate Contrast & Zebra Striping เพื่อความสบายตาในการดูข้อมูล) */
     html.light table {
       color: #0f172a !important;
+      background-color: #ffffff !important;
     }
 
     html.light thead,
-    html.light thead th {
-      background-color: #f1f5f9 !important;
+    html.light thead th,
+    html.light thead tr {
+      background-color: #cbd5e1 !important;
       color: #0f172a !important;
-      border-bottom: 2px solid #cbd5e1 !important;
-      font-weight: 700 !important;
+      border-bottom: 2px solid #94a3b8 !important;
+      font-weight: 800 !important;
     }
 
-    html.light thead tr {
+    html.light tbody tr:nth-child(even) {
       background-color: #f1f5f9 !important;
+    }
+
+    html.light tbody tr:nth-child(odd) {
+      background-color: #ffffff !important;
     }
 
     html.light tbody tr {
-      border-bottom-color: #e2e8f0 !important;
+      border-bottom: 1px solid #cbd5e1 !important;
     }
 
     html.light tbody tr:hover {
-      background-color: #f8fafc !important;
+      background-color: #e2e8f0 !important;
     }
 
-    /* Mobile Inspection Cards */
-    html.light .responsive-checklist-table tr.inspection-card-row {
-      background-color: #ffffff !important;
-      border: 1.5px solid #cbd5e1 !important;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+    html.light tbody tr.bg-rose-950\/20 {
+      background-color: #fee2e2 !important;
+      border-color: #fca5a5 !important;
     }
 
-    /* Badges */
+    /* Badges (สีเข้ม คมชัดขึ้น) */
     html.light .badge-in-spec {
       background-color: #dcfce7 !important;
-      color: #166534 !important;
-      border: 1px solid #86efac !important;
+      color: #14532d !important;
+      border: 1.5px solid #86efac !important;
+      font-weight: 800 !important;
+    }
+
+        html.light .badge-skipped,
+    .badge-skipped {
+      background-color: #cbd5e1 !important;
+      color: #1e293b !important;
+      border: 1.5px solid #94a3b8 !important;
       font-weight: 700 !important;
     }
 
     html.light .badge-out-of-spec {
       background-color: #fee2e2 !important;
       color: #991b1b !important;
-      border: 1px solid #fca5a5 !important;
-      font-weight: 700 !important;
+      border: 1.5px solid #fca5a5 !important;
+      font-weight: 800 !important;
     }
 
+    /* Spec & Status Pills */
     html.light [class*="bg-amber-950/40"],
     html.light [class*="bg-amber-950/80"] {
       background-color: #fef3c7 !important;
       border-color: #fcd34d !important;
+      color: #92400e !important;
+      font-weight: 700 !important;
     }
 
     html.light .bg-blue-950,
-    html.light [class*="bg-blue-950/80"] {
-      background-color: #eff6ff !important;
-      border-color: #bfdbfe !important;
-    }
-
-    html.light #inspectionDueBanner {
-      background: linear-gradient(to right, #eff6ff, #f8fafc, #f1f5f9) !important;
+    html.light [class*="bg-blue-950/80"],
+    html.light [class*="bg-blue-950/40"] {
+      background-color: #dbeafe !important;
       border-color: #93c5fd !important;
+      color: #1e40af !important;
+      font-weight: 700 !important;
     }
 
+    html.light [class*="bg-emerald-950/20"] {
+      background-color: #dcfce7 !important;
+      border-color: #86efac !important;
+      color: #14532d !important;
+      font-weight: 700 !important;
+    }
+
+    html.light [class*="bg-rose-950/20"],
+    html.light [class*="bg-rose-950/30"],
+    html.light [class*="bg-rose-950/40"] {
+      background-color: #fee2e2 !important;
+      border-color: #fca5a5 !important;
+      color: #991b1b !important;
+      font-weight: 700 !important;
+    }
+
+    html.light [class*="bg-indigo-950"] {
+      background-color: #e0e7ff !important;
+      border-color: #a5b4fc !important;
+      color: #3730a3 !important;
+      font-weight: 700 !important;
+    }
+
+    /* Out of Spec Alert Banner in Dashboard */
+    html.light #alertBannerSection {
+      background: linear-gradient(135deg, #fee2e2 0%, #fecdd3 100%) !important;
+      border: 2px solid #f87171 !important;
+      box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.15) !important;
+    }
+    html.light #alertBannerSection .text-rose-300,
+    html.light #alertBannerSection .text-rose-400,
+    html.light #alertBannerSection .text-white {
+      color: #991b1b !important;
+    }
+    html.light #alertListPreview > div {
+      background-color: #ffffff !important;
+      border: 1.5px solid #fca5a5 !important;
+      color: #991b1b !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    }
+    html.light #alertListPreview > div b {
+      color: #b91c1c !important;
+    }
+    html.light #alertListPreview > div .text-slate-400 {
+      color: #475569 !important;
+    }
+
+    /* Defect Investigation Root-Cause Chips & Alerts */
+    html.light #invResultsSection [class*="bg-rose-900"] {
+      background-color: #ffffff !important;
+      border: 1.5px solid #fca5a5 !important;
+      color: #991b1b !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    }
+    html.light #invResultsSection [class*="bg-rose-900"] span {
+      color: #991b1b !important;
+    }
+    html.light #invResultsSection [class*="bg-rose-900"] .text-rose-300 {
+      color: #b91c1c !important;
+    }
+    html.light #invResultsSection [class*="bg-rose-900"] .text-slate-300,
+    html.light #invResultsSection [class*="bg-rose-900"] .text-slate-400 {
+      color: #475569 !important;
+    }
+    html.light #invResultsSection [class*="bg-rose-950"] {
+      background-color: #fee2e2 !important;
+      border-color: #fca5a5 !important;
+      color: #991b1b !important;
+    }
+
+    /* Inspection Due Banner */
+    html.light #inspectionDueBanner {
+      background: linear-gradient(135deg, #dbeafe 0%, #e2e8f0 100%) !important;
+      border: 1.5px solid #93c5fd !important;
+    }
+
+    /* Modals (Edit Log, Custom STD, Add Item, Photo, Users, Depts) */
     html.light #loginScreenView {
-      background-color: #f1f5f9 !important;
+      background: linear-gradient(135deg, #cbd5e1 0%, #e2e8f0 50%, #f1f5f9 100%) !important;
     }
 
     html.light #loginScreenView > div {
-      background-color: #ffffff !important;
-      border: 1px solid #cbd5e1 !important;
+      background-color: #f1f5f9 !important;
+      border: 2px solid #cbd5e1 !important;
+      box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1) !important;
     }
 
     html.light #customSpecModal > div,
     html.light #multiRowModal > div,
-    html.light #photoViewerModal > div {
-      background-color: #ffffff !important;
-      border: 1.5px solid #cbd5e1 !important;
+    html.light #photoViewerModal > div,
+    html.light #editLogModal > div,
+    html.light #allOutOfSpecModal > div,
+    html.light #userModal > div,
+    html.light #deptModal > div,
+    html.light #deptHeaderModal > div {
+      background-color: #f1f5f9 !important;
+      border: 2px solid #cbd5e1 !important;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.3) !important;
     }
 
     html.light #customSpecModal .bg-slate-950,
-    html.light #multiRowModal .bg-slate-950 {
-      background-color: #f8fafc !important;
+    html.light #multiRowModal .bg-slate-950,
+    html.light #editLogModal .bg-slate-950,
+    html.light #allOutOfSpecModal .bg-slate-950,
+    html.light #userModal .bg-slate-950,
+    html.light #deptModal .bg-slate-950,
+    html.light #deptHeaderModal .bg-slate-950 {
+      background-color: #e2e8f0 !important;
       border-color: #cbd5e1 !important;
     }
 
+    /* Mobile Inspection Cards in Medium Slate Mode */
+    html.light .responsive-checklist-table tr.inspection-card-row {
+      background: #f1f5f9 !important;
+      border: 1.5px solid #cbd5e1 !important;
+      box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    html.light .responsive-checklist-table tr.inspection-card-row:hover {
+      border-color: #94a3b8 !important;
+      box-shadow: 0 4px 8px rgba(15, 23, 42, 0.12) !important;
+    }
+
+    html.light .cell-actions {
+      border-top: 1.5px solid #cbd5e1 !important;
+    }
+
+    /* Custom Scrollbar */
     html.light ::-webkit-scrollbar-track {
-      background: #f1f5f9;
+      background: #cbd5e1;
     }
     html.light ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: #94a3b8;
+      border-radius: 4px;
+    }
+    html.light ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
     }
 
     /* Mobile-first Responsive Checklist Table */
@@ -317,7 +630,7 @@
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
         gap: 0.625rem !important;
-        background: #0f172a !important;
+        background: var(--card-bg, #0f172a);
         border: 1px solid #1e293b !important;
         border-radius: 1rem !important;
         padding: 0.875rem !important;
@@ -361,7 +674,7 @@
     }
   </style>
 </head>
-<body class="h-full bg-slate-950 text-slate-100 flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+<body class="h-full light bg-slate-200 text-slate-900 flex flex-col antialiased selection:bg-blue-600 selection:text-white">
 
   <!-- ================= STANDALONE FULL-SCREEN LOGIN VIEW (บังคับเข้าสู่ระบบก่อนใช้งาน) ================= -->
   <div id="loginScreenView" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-4 min-h-screen overflow-y-auto">
@@ -602,12 +915,13 @@
           </div>
           <button 
             type="button" 
+            id="btnDeptHeaderConfig" 
             onclick="openDeptHeaderConfigModal()" 
             class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm active:scale-95"
-            title="ปรับแต่ง/เพิ่ม/ลดหัวเช็คลิสต์ของแต่ละแผนก"
+            title="ปรับแต่ง/เพิ่ม/ลดหัวเช็คลิสต์ของแต่ละแผนก (เฉพาะ Admin)"
           >
             <i class="fa-solid fa-sliders text-indigo-400 text-[11px]"></i>
-            <span>ปรับแต่งหัวเช็คลิสต์แผนกนี้</span>
+            <span>ปรับแต่งหัวเช็คลิสต์ (Admin)</span>
           </button>
         </div>
 
@@ -733,18 +1047,40 @@
           </p>
         </div>
 
-        <!-- Fast Date & Scope Switcher -->
+        <!-- Fast Date, Department, Machine & Scope Filters -->
         <div class="flex items-center gap-2 flex-wrap">
-          <div class="flex items-center bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5">
-            <i class="fa-solid fa-calendar-day text-blue-400 mr-2 text-xs"></i>
-            <input type="date" id="dashDateFilter" onchange="renderDashboard()" class="bg-transparent text-white text-xs focus:outline-none cursor-pointer font-mono">
+          <!-- Date Range (วันที่เริ่มต้น ถึง วันที่สิ้นสุด ค่าเริ่มต้นเป็นวันปัจจุบัน) -->
+          <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 shadow-sm">
+            <i class="fa-regular fa-calendar text-blue-400 text-xs"></i>
+            <span class="text-[11px] text-slate-400 font-sans font-medium">วันที่:</span>
+            <input type="date" id="dashStartDate" onchange="handleDashDateChange()" class="bg-transparent text-white text-xs font-mono focus:outline-none cursor-pointer" title="วันที่เริ่มต้น">
+            <span class="text-slate-400 text-xs font-sans">ถึง</span>
+            <input type="date" id="dashEndDate" onchange="handleDashDateChange()" class="bg-transparent text-white text-xs font-mono focus:outline-none cursor-pointer" title="วันที่สิ้นสุด">
           </div>
-          
-          <button onclick="setDashboardDateToday()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition shadow-sm">
-            📅 วันนี้
+
+          <!-- Department Filter (ตัวกรองแผนก) -->
+          <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 shadow-sm">
+            <i class="fa-solid fa-building-user text-indigo-400 text-xs"></i>
+            <select id="dashDeptFilter" onchange="handleDashDeptChange()" class="bg-transparent text-white text-xs focus:outline-none cursor-pointer font-sans font-semibold">
+              <option value="ALL">ทุกแผนก (All Depts)</option>
+            </select>
+          </div>
+
+          <!-- Machine Filter (ตัวกรองเครื่องจักร) -->
+          <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 shadow-sm">
+            <i class="fa-solid fa-gear text-amber-400 text-xs"></i>
+            <select id="dashMachineFilter" onchange="renderDashboard()" class="bg-transparent text-white text-xs focus:outline-none cursor-pointer font-sans font-semibold">
+              <option value="ALL">ทุกเครื่องจักร (All Machines)</option>
+            </select>
+          </div>
+
+          <button onclick="setDashboardDateToday()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-sm flex items-center gap-1">
+            <i class="fa-solid fa-calendar-day text-[11px]"></i>
+            <span>วันนี้</span>
           </button>
-          <button onclick="setDashboardDateAll()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700">
-            🌐 ดูทั้งหมด
+          <button onclick="setDashboardDateAll()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700 flex items-center gap-1">
+            <i class="fa-solid fa-globe text-[11px]"></i>
+            <span>ทั้งหมด</span>
           </button>
           <button onclick="syncWithGoogleSheets(false)" class="px-3 py-1.5 rounded-xl bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/50 text-xs font-semibold transition flex items-center gap-1">
             <i class="fa-solid fa-rotate text-xs"></i>
@@ -840,13 +1176,19 @@
 
       <!-- OUT OF SPEC ALERT BANNER (แจ้งเตือนจุดที่หลุดค่ามาตรฐาน) -->
       <div id="alertBannerSection" class="hidden p-4 rounded-2xl bg-gradient-to-r from-red-950/80 via-red-900/40 to-slate-900 border border-red-500/50 shadow-xl space-y-3">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between flex-wrap gap-2">
           <div class="flex items-center gap-2 text-rose-300 font-bold text-sm">
             <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
             <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
             <span>พบรายการตรวจเช็คที่ <span class="text-white underline font-bold">หลุดเกณฑ์มาตรฐาน (Out of Spec)</span></span>
           </div>
-          <span class="px-2.5 py-0.5 rounded-full bg-rose-500 text-white text-xs font-mono font-bold" id="alertCountBadge">0 จุด</span>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full bg-rose-500 text-white text-xs font-mono font-bold" id="alertCountBadge">0 จุด</span>
+            <button onclick="openAllOutOfSpecModal()" class="px-3 py-1 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="เปิดดูรายการหลุดเกณฑ์ทั้งหมด">
+              <i class="fa-solid fa-list-ul"></i>
+              <span>ดูทั้งหมดทุกจุด</span>
+            </button>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2" id="alertListPreview">
@@ -1270,19 +1612,30 @@
       <div class="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
         <div class="p-3 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2 flex-wrap">
-            <select id="histDeptFilter" onchange="handleHistDeptChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
-              <option value="ALL">ทุกแผนก</option>
+            <!-- Date Range Filter (วันที่เริ่มต้น ถึง วันที่สิ้นสุด ค่าเริ่มต้นเป็นวันปัจจุบัน) -->
+            <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1">
+              <i class="fa-regular fa-calendar text-blue-400 text-xs"></i>
+              <span class="text-[11px] text-slate-400 font-sans font-medium">วันที่:</span>
+              <input type="date" id="histStartDate" onchange="renderHistoryTable()" class="bg-transparent text-white text-xs font-mono focus:outline-none cursor-pointer" title="วันที่เริ่มต้น">
+              <span class="text-slate-400 text-xs font-sans">ถึง</span>
+              <input type="date" id="histEndDate" onchange="renderHistoryTable()" class="bg-transparent text-white text-xs font-mono focus:outline-none cursor-pointer" title="วันที่สิ้นสุด">
+              <button onclick="setHistoryDateToday()" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold transition ml-1" title="เลือกเฉพาะวันนี้">วันนี้</button>
+              <button onclick="setHistoryDateAll()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-medium transition" title="ดูข้อมูลทุกช่วงเวลา">ทั้งหมด</button>
+            </div>
+
+            <select id="histDeptFilter" onchange="handleHistDeptChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none font-sans font-semibold">
+              <option value="ALL">ทุกแผนก (All Depts)</option>
             </select>
-            <select id="histMachineFilter" onchange="renderHistoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
-              <option value="ALL">ทุกเครื่องจักร</option>
+            <select id="histMachineFilter" onchange="renderHistoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none font-sans font-semibold">
+              <option value="ALL">ทุกเครื่องจักร (All Machines)</option>
             </select>
-            <select id="histStatusFilter" onchange="renderHistoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
-              <option value="ALL">ทุกสถานะ</option>
+            <select id="histStatusFilter" onchange="renderHistoryTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none font-sans font-semibold">
+              <option value="ALL">ทุกสถานะ (All Status)</option>
               <option value="IN-SPEC">เฉพาะปกติ (In-Spec)</option>
-              <option value="SKIPPED">ไม่ได้ตรวจ (-)</option>
+              <option value="SKIPPED">งดตรวจ / ไม่ได้ตรวจ (-)</option>
               <option value="OUT-OF-SPEC">เฉพาะหลุดสเป็ค (Out-of-Spec)</option>
             </select>
-            <input type="text" id="histSearchInput" oninput="renderHistoryTable()" placeholder="ค้นหาทุกคอลัมน์..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-xs text-white focus:outline-none w-56">
+            <input type="text" id="histSearchInput" oninput="renderHistoryTable()" placeholder="ค้นหาทุกคอลัมน์..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-xs text-white focus:outline-none w-48 font-sans">
           </div>
           <span class="text-xs text-slate-400 font-mono" id="histTotalCountBadge">รวม 0 รายการ</span>
         </div>
@@ -1723,7 +2076,60 @@
     </div>
   </div>
 
-    <!-- Modal: Edit Inspection Log (แก้ไขข้อมูลที่บันทึกแล้ว) -->
+  <!-- Modal: All Out of Spec Points (ดูรายการหลุดเกณฑ์มาตรฐานทั้งหมด / แยกตามแผนก) -->
+  <div id="allOutOfSpecModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/80 flex-wrap gap-2">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-rose-600/20 text-rose-400 flex items-center justify-center text-base border border-rose-500/30">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <span id="allOutOfSpecModalTitle">รายการตรวจเช็คที่หลุดเกณฑ์มาตรฐาน (Out of Spec)</span>
+              <span id="allOutOfSpecModalCountBadge" class="text-xs font-mono text-rose-300 bg-rose-950 px-2.5 py-0.5 rounded-full border border-rose-800 font-bold">0 จุด</span>
+            </h3>
+            <p class="text-xs text-slate-400" id="allOutOfSpecModalSubtitle">แสดงรายการที่ต้องแก้ไขทั้งหมดตามช่วงเวลาและเงื่อนไขที่เลือก</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="allOutOfSpecSearch" oninput="filterAllOutOfSpecModalTable()" placeholder="ค้นหารายการ, เครื่อง, ผู้ตรวจ..." class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none w-48 sm:w-60">
+          <button onclick="closeAllOutOfSpecModal()" class="text-slate-400 hover:text-white p-1 text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-5 overflow-y-auto max-h-[75vh]">
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-xs text-slate-300 whitespace-nowrap">
+            <thead class="bg-slate-950 text-slate-400 font-mono text-[11px] sticky top-0 border-b border-slate-800 uppercase">
+              <tr>
+                <th class="py-2.5 px-3">วัน-เวลา</th>
+                <th class="py-2.5 px-3">แผนก / เครื่อง</th>
+                <th class="py-2.5 px-3">รายการตรวจ</th>
+                <th class="py-2.5 px-3 text-center">เกณฑ์ STD</th>
+                <th class="py-2.5 px-3 text-center">ค่าที่วัดได้</th>
+                <th class="py-2.5 px-3 text-center">สถานะ</th>
+                <th class="py-2.5 px-3">ผู้ตรวจ / Order</th>
+                <th class="py-2.5 px-3 text-center">รูป</th>
+              </tr>
+            </thead>
+            <tbody id="allOutOfSpecTableBody" class="divide-y divide-slate-800/60 font-sans">
+              <!-- Injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="p-3.5 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between text-xs text-slate-400">
+        <span id="allOutOfSpecModalFooterInfo"></span>
+        <button onclick="closeAllOutOfSpecModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-medium transition">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Inspection Log (แก้ไขข้อมูลที่บันทึกแล้ว) -->
   <div id="editLogModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
       <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
@@ -1752,8 +2158,35 @@
             <div class="text-sm font-bold text-white mt-0.5" id="editLogItemTitle">ความกว้างกระดาษ</div>
           </div>
           <div class="text-right">
-            <div class="text-[10px] text-slate-400">เกณฑ์มาตรฐาน (STD)</div>
+            <div class="text-[10px] text-slate-400">เกณฑ์เดิมในระบบ</div>
             <div class="text-xs font-bold text-amber-300 font-mono" id="editLogStdSpec">100 - 105 mm</div>
+          </div>
+        </div>
+
+        <!-- Editable STD Spec Field (Especially useful when manual STD was typed incorrectly) -->
+        <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1">
+          <div class="flex items-center justify-between">
+            <label class="block font-semibold text-amber-200 text-xs">
+              <i class="fa-solid fa-sliders mr-1 text-amber-400"></i> เกณฑ์มาตรฐานที่ใช้ประเมิน (STD Spec) *
+            </label>
+            <span class="text-[10px] text-amber-300/80 font-normal">แก้ไขได้กรณีคีย์เกณฑ์ STD ผิด</span>
+          </div>
+          <div class="flex gap-2">
+            <input 
+              type="text" 
+              id="editLogStdSpecInput" 
+              oninput="autoEvalEditLogStatus()" 
+              placeholder="เช่น 100 - 105 หรือ 100±5 หรือ >=50" 
+              class="flex-1 bg-slate-950 border border-amber-500/50 rounded-xl px-3 py-2 text-xs sm:text-sm text-amber-200 font-mono font-bold focus:outline-none focus:border-amber-400"
+            >
+            <button 
+              type="button" 
+              onclick="revertEditLogStdToOriginal()" 
+              class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold transition" 
+              title="ดึงเกณฑ์เดิมกลับมา"
+            >
+              <i class="fa-solid fa-rotate-left mr-1"></i> เกณฑ์เดิม
+            </button>
           </div>
         </div>
 
@@ -2182,7 +2615,7 @@
 
     // Theme Management (Dark / Light Mode)
     function initTheme() {
-      const savedTheme = localStorage.getItem('plant_theme') || 'dark';
+      const savedTheme = localStorage.getItem('plant_theme') || 'light';
       applyTheme(savedTheme);
     }
 
@@ -2464,12 +2897,15 @@
         renderEntryForm();
       }
       if (tabId === 'dashboard') {
+        populateDashDeptDropdown();
+        populateDashMachineDropdown();
         renderDashboard();
         runDefectInvestigation();
         if (appState.gasUrl) syncWithGoogleSheets(true);
       }
       if (tabId === 'master') renderMasterView();
       if (tabId === 'history') {
+        populateDeptDropdowns();
         renderHistoryTable();
         if (appState.gasUrl) syncWithGoogleSheets(true);
       }
@@ -2518,6 +2954,14 @@
           depts.map(d => `<option value="${d.code}">${d.code}</option>`).join('');
       }
 
+      // Dashboard Dept & Machine Dropdowns
+      if (typeof populateDashDeptDropdown === 'function') {
+        populateDashDeptDropdown();
+      }
+      if (typeof populateDashMachineDropdown === 'function') {
+        populateDashMachineDropdown();
+      }
+
       // History Machine Dropdown
       if (typeof populateHistMachineDropdown === 'function') {
         populateHistMachineDropdown();
@@ -2559,9 +3003,9 @@
       // Save currently typed values before re-rendering
       captureCurrentHeaderInputs();
 
-      const userDefaultName = appState.currentUser ? (appState.currentUser.name || appState.currentUser.username || '') : '';
-      if (!appState.headerValues['inspector'] && userDefaultName) {
-        appState.headerValues['inspector'] = userDefaultName;
+      // Leave inspector input completely blank by default per user request
+      if (appState.headerValues['inspector'] === undefined) {
+        appState.headerValues['inspector'] = '';
       }
 
       let html = '';
@@ -2715,6 +3159,16 @@
     let tempDeptHeadersConfig = [];
 
     function openDeptHeaderConfigModal() {
+      const user = appState.currentUser;
+      const isAdmin = user && (user.role === 'admin' || user.dept === 'ALL' || (user.allowed_tabs && user.allowed_tabs.includes('settings')));
+      if (!isAdmin) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'เฉพาะ Admin เท่านั้น',
+          html: 'การปรับแต่งหัวเช็คลิสต์และข้อมูลส่วนหัวของแผนก สงวนสิทธิ์สำหรับ <b>ผู้ดูแลระบบ (Admin)</b> เท่านั้น<br><span class="text-xs text-slate-500">เพื่อป้องกันไม่ให้โครงสร้างหัวข้อมูลถูกรีเซ็ตหรือเปลี่ยนแปลงโดยไม่ตั้งใจ</span>'
+        });
+        return;
+      }
       const currentDept = appState.selectedDept || 'PD';
       const modal = document.getElementById('deptHeaderConfigModal');
       const badge = document.getElementById('dhcModalDeptCode');
@@ -2853,6 +3307,12 @@
     }
 
     function resetDeptHeaderToDefault() {
+      const user = appState.currentUser;
+      const isAdmin = user && (user.role === 'admin' || user.dept === 'ALL' || (user.allowed_tabs && user.allowed_tabs.includes('settings')));
+      if (!isAdmin) {
+        Swal.fire({ icon: 'warning', title: 'เฉพาะ Admin เท่านั้น', text: 'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถคืนค่าเริ่มต้นหัวเช็คลิสต์ได้' });
+        return;
+      }
       const currentDept = appState.selectedDept || 'PD';
       const def = DEFAULT_DEPT_HEADERS[currentDept] || [
         { id: "inspector", label: "ผู้ทำการตรวจเช็ค (Inspector)", type: "text", required: true, enabled: true, icon: "fa-user-check", iconColor: "text-blue-400", placeholder: "ระบุชื่อผู้ตรวจเช็ค..." },
@@ -2916,33 +3376,69 @@
       const currentDept = appState.selectedDept || 'PD';
       const deptItems = appState.master.filter(it => it.dept === currentDept && it.active !== false);
 
-      // Collect frequencies actually present in this department
-      const uniqueFreqsInDept = [];
+      // Collect distinct Checklist Groups + Frequency combinations
+      // This solves the problem where different checklists with the same frequency merged together!
+      const checklistGroups = [];
+      const seenGroupKeys = new Set();
+
       deptItems.forEach(it => {
-        const f = (it.freq || '').trim();
-        if (f && !uniqueFreqsInDept.includes(f)) {
-          uniqueFreqsInDept.push(f);
+        const gName = (it.group_title || it.item || 'ชุดเช็คลิสต์ทั่วไป').trim();
+        const f = (it.freq || 'ทุก 1 ชม.').trim();
+        const key = `${gName}___${f}`;
+        if (!seenGroupKeys.has(key)) {
+          seenGroupKeys.add(key);
+          checklistGroups.push({
+            key: key,
+            groupTitle: gName,
+            freq: f,
+            label: `${gName} (${f})`
+          });
         }
       });
 
-      // If selectedFreq is not in current dept, reset to ALL
-      if (appState.selectedFreq !== 'ALL' && !uniqueFreqsInDept.includes(appState.selectedFreq)) {
-        appState.selectedFreq = 'ALL';
+      // Current active checklist filter (defaults to 'ALL')
+      if (!appState.selectedChecklistKey) appState.selectedChecklistKey = 'ALL';
+      if (appState.selectedChecklistKey !== 'ALL' && !seenGroupKeys.has(appState.selectedChecklistKey)) {
+        appState.selectedChecklistKey = 'ALL';
       }
 
-      const freqs = ['ALL', ...uniqueFreqsInDept];
+      const allPills = [
+        { key: 'ALL', groupTitle: 'ทั้งหมด', freq: '', label: 'ทุกรายการเช็คลิสต์' },
+        ...checklistGroups
+      ];
 
-      container.innerHTML = freqs.map(f => {
-        const isSelected = appState.selectedFreq === f;
-        const count = f === 'ALL' ? deptItems.length : deptItems.filter(it => (it.freq || '').trim() === f).length;
-        const label = f === 'ALL' ? 'ทุกความถี่' : f;
+      container.innerHTML = allPills.map(p => {
+        const isSelected = appState.selectedChecklistKey === p.key;
+        let count = 0;
+        if (p.key === 'ALL') {
+          count = deptItems.length;
+        } else {
+          count = deptItems.filter(it => `${(it.group_title || it.item || 'ชุดเช็คลิสต์ทั่วไป').trim()}___${(it.freq || 'ทุก 1 ชม.').trim()}` === p.key).length;
+        }
+
         return `
-          <button onclick="selectEntryFreq('${f}')" class="px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5 ${isSelected ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400' : 'bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800'}">
-            <span>${label}</span>
-            <span class="px-1.5 py-0.2 rounded-full text-[10px] ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400 font-mono'}">${count}</span>
+          <button 
+            type="button"
+            onclick="selectEntryChecklistGroup('${p.key.replace(/'/g, "\\'")}')" 
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5 shadow-sm active:scale-95 ${
+              isSelected 
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white ring-2 ring-blue-400 shadow-md' 
+                : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-700'
+            }"
+            title="${p.label}"
+          >
+            <i class="fa-solid fa-list-check text-[11px] ${isSelected ? 'text-white' : 'text-indigo-400'}"></i>
+            <span>${p.label}</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] ${isSelected ? 'bg-white/20 text-white font-bold' : 'bg-slate-800 text-slate-400 font-mono'}">${count}</span>
           </button>
         `;
       }).join('');
+    }
+
+    function selectEntryChecklistGroup(key) {
+      appState.selectedChecklistKey = key;
+      renderEntryFreqFilters();
+      renderEntryForm();
     }
 
     function selectEntryFreq(freq) {
@@ -3111,14 +3607,18 @@
       document.getElementById('customSpecModalDefaultStd').innerText = `${it.spec_raw || it.target || '-'} ${it.unit || ''}`;
       
       const typeSelect = document.getElementById('customSpecModalType');
+      const lastSavedType = localStorage.getItem('PLANT_LAST_CUSTOM_STD_TYPE') || 'tol_percent';
+      const lastSavedTol = localStorage.getItem('PLANT_LAST_CUSTOM_STD_TOL') || '5';
+
       if (activeSpec.tol_mode) {
         typeSelect.value = activeSpec.tol_mode;
         document.getElementById('customSpecModalTarget').value = activeSpec.target_val !== undefined ? activeSpec.target_val : '';
-        document.getElementById('customSpecModalTol').value = activeSpec.tol_val !== undefined ? activeSpec.tol_val : '';
+        document.getElementById('customSpecModalTol').value = activeSpec.tol_val !== undefined ? activeSpec.tol_val : lastSavedTol;
       } else {
-        typeSelect.value = activeSpec.spec_type || 'tol_percent';
+        // Auto-fill previously remembered STD Mode and Tolerance for quick entry!
+        typeSelect.value = (activeSpec.spec_type && activeSpec.spec_type !== 'custom_std') ? activeSpec.spec_type : lastSavedType;
         document.getElementById('customSpecModalTarget').value = '';
-        document.getElementById('customSpecModalTol').value = '';
+        document.getElementById('customSpecModalTol').value = lastSavedTol;
       }
       
       document.getElementById('customSpecModalMin').value = activeSpec.min_val !== null && activeSpec.min_val !== undefined ? activeSpec.min_val : '';
@@ -3138,6 +3638,7 @@
       const type = document.getElementById('customSpecModalType').value;
       const targetVal = parseFloat(document.getElementById('customSpecModalTarget').value);
       const tolVal = parseFloat(document.getElementById('customSpecModalTol').value);
+      if (!isNaN(tolVal)) localStorage.setItem('PLANT_LAST_CUSTOM_STD_TOL', tolVal);
       const preview = document.getElementById('customSpecTolerancePreviewText');
       const unit = document.getElementById('customSpecModalUnit').value.trim();
 
@@ -3164,6 +3665,7 @@
     }
 
     function handleCustomSpecModalTypeChange(type) {
+      if (type) localStorage.setItem('PLANT_LAST_CUSTOM_STD_TYPE', type);
       const tolRow = document.getElementById('customSpecModalToleranceRow');
       const minMaxRow = document.getElementById('customSpecModalMinMaxRow');
       const tolLabel = document.getElementById('customSpecModalTolLabel');
@@ -3334,7 +3836,13 @@
 
       let items = appState.master.filter(it => it.dept === appState.selectedDept && it.active !== false);
 
-      if (appState.selectedFreq !== 'ALL') {
+      // Filter by selected Checklist Name + Frequency
+      if (appState.selectedChecklistKey && appState.selectedChecklistKey !== 'ALL') {
+        items = items.filter(it => {
+          const key = `${(it.group_title || it.item || 'ชุดเช็คลิสต์ทั่วไป').trim()}___${(it.freq || 'ทุก 1 ชม.').trim()}`;
+          return key === appState.selectedChecklistKey;
+        });
+      } else if (appState.selectedFreq && appState.selectedFreq !== 'ALL') {
         items = items.filter(it => it.freq === appState.selectedFreq);
       }
 
@@ -3520,6 +4028,13 @@
 
             <!-- Col 3: Item Title & Rules -->
             <td class="cell-item py-3 px-3">
+              ${it.group_title ? `
+                <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-950/70 border border-indigo-800/60 text-[10px] font-bold text-indigo-300 font-sans mb-1">
+                  <i class="fa-solid fa-list-check text-[9px] text-indigo-400"></i>
+                  <span>${it.group_title}</span>
+                  <span class="text-slate-400 font-normal">(${it.freq || 'ทุก 1 ชม.'})</span>
+                </div>
+              ` : ''}
               <div class="font-bold md:font-semibold text-white text-sm md:text-xs sm:text-sm leading-snug">${it.item}</div>
               <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                 ${it.require_val ? `<span class="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 text-[9px] font-bold">บังคับค่า</span>` : ''}
@@ -3893,7 +4408,7 @@
         }
       }
 
-      const inspector = appState.headerValues['inspector'] || (appState.currentUser ? appState.currentUser.name : '');
+      const inspector = appState.headerValues['inspector'] ? appState.headerValues['inspector'].trim() : '';
       const orderNo = appState.headerValues['order_no'] || '-';
       const flute = appState.headerValues['flute'] || '';
       const speed = appState.headerValues['speed'] || '';
@@ -4111,10 +4626,222 @@
       renderDashboard();
     }
 
-    function renderDashboard() {
-      const dateInput = document.getElementById('dashDateFilter');
-      const selectedDate = dateInput ? dateInput.value : appState.dashboardSelectedDate;
+        // ================= DASHBOARD FILTERS & MODAL HANDLERS =================
+    function populateDashDeptDropdown() {
+      const select = document.getElementById('dashDeptFilter');
+      if (!select) return;
+      const currentVal = select.value || 'ALL';
+      select.innerHTML = '<option value="ALL">ทุกแผนก (All Depts)</option>' + 
+        appState.depts.map(d => `<option value="${d.code}">${d.name} (${d.code})</option>`).join('');
+      if (appState.depts.some(d => d.code === currentVal)) {
+        select.value = currentVal;
+      } else {
+        select.value = 'ALL';
+      }
+    }
+
+    function populateDashMachineDropdown() {
+      const select = document.getElementById('dashMachineFilter');
+      if (!select) return;
+      const currentVal = select.value || 'ALL';
+      const currentDept = document.getElementById('dashDeptFilter') ? document.getElementById('dashDeptFilter').value : 'ALL';
+      
+      const machines = new Set();
+      appState.master.forEach(it => {
+        if (it.machine && (currentDept === 'ALL' || it.dept === currentDept)) {
+          machines.add(it.machine);
+        }
+      });
+      appState.logs.forEach(l => {
+        if (l.machine && (currentDept === 'ALL' || l.dept === currentDept)) {
+          machines.add(l.machine);
+        }
+      });
+
+      const sorted = Array.from(machines).filter(m => m !== 'General / All' && m !== '-').sort();
+      select.innerHTML = '<option value="ALL">ทุกเครื่องจักร (All Machines)</option>' + sorted.map(m => `<option value="${m}">${m}</option>`).join('');
+      if (sorted.includes(currentVal)) {
+        select.value = currentVal;
+      } else {
+        select.value = 'ALL';
+      }
+    }
+
+    function handleDashDeptChange() {
+      populateDashMachineDropdown();
+      renderDashboard();
+    }
+
+    function handleDashDateChange() {
+      appState.dashboardScopeMode = 'daterange';
+      const s = document.getElementById('dashStartDate');
+      const e = document.getElementById('dashEndDate');
+      if (s) delete s.dataset.cleared;
+      if (e) delete e.dataset.cleared;
+      renderDashboard();
+    }
+
+    function setDashboardDateToday() {
       const today = getTodayDateString();
+      const s = document.getElementById('dashStartDate');
+      const e = document.getElementById('dashEndDate');
+      if (s) { s.value = today; delete s.dataset.cleared; }
+      if (e) { e.value = today; delete e.dataset.cleared; }
+
+      appState.dashboardScopeMode = 'today';
+      appState.lastInvestigationResults = null;
+      const banner = document.getElementById('dashActiveFilterBanner');
+      if (banner) banner.classList.add('hidden');
+
+      renderDashboard();
+    }
+
+    function setDashboardDateAll() {
+      const s = document.getElementById('dashStartDate');
+      const e = document.getElementById('dashEndDate');
+      if (s) { s.value = ''; s.dataset.cleared = 'true'; }
+      if (e) { e.value = ''; e.dataset.cleared = 'true'; }
+
+      appState.dashboardScopeMode = 'all';
+      appState.lastInvestigationResults = null;
+      const banner = document.getElementById('dashActiveFilterBanner');
+      if (banner) banner.classList.add('hidden');
+
+      renderDashboard();
+    }
+
+    // Modal logic for viewing all out-of-spec inspection points
+    let currentModalOutOfSpecLogs = [];
+
+    function openAllOutOfSpecModal() {
+      const logs = appState.currentOutOfSpecLogs || appState.logs.filter(l => l.status === 'OUT-OF-SPEC');
+      currentModalOutOfSpecLogs = logs;
+      
+      const titleEl = document.getElementById('allOutOfSpecModalTitle');
+      const countEl = document.getElementById('allOutOfSpecModalCountBadge');
+      const subEl = document.getElementById('allOutOfSpecModalSubtitle');
+      const searchEl = document.getElementById('allOutOfSpecSearch');
+      if (searchEl) searchEl.value = '';
+
+      if (titleEl) titleEl.innerText = 'รายการตรวจเช็คที่หลุดเกณฑ์มาตรฐานทั้งหมด (Out of Spec)';
+      if (countEl) countEl.innerText = logs.length + ' จุด';
+      if (subEl) subEl.innerText = 'แสดงรายการที่หลุดสเป็คทั้งหมดตามช่วงเวลาและตัวกรองที่เลือกบนแดชบอร์ด';
+
+      renderModalOutOfSpecTable(logs);
+      document.getElementById('allOutOfSpecModal').classList.remove('hidden');
+    }
+
+    function showDeptOutOfSpecModal(deptCode) {
+      const d = appState.depts.find(x => x.code === deptCode);
+      const deptName = d ? d.name : deptCode;
+      const filteredDashboardLogs = appState.currentDashboardFilteredLogs || appState.logs;
+      const logs = filteredDashboardLogs.filter(l => l.dept === deptCode && l.status === 'OUT-OF-SPEC');
+      currentModalOutOfSpecLogs = logs;
+
+      const titleEl = document.getElementById('allOutOfSpecModalTitle');
+      const countEl = document.getElementById('allOutOfSpecModalCountBadge');
+      const subEl = document.getElementById('allOutOfSpecModalSubtitle');
+      const searchEl = document.getElementById('allOutOfSpecSearch');
+      if (searchEl) searchEl.value = '';
+
+      if (titleEl) titleEl.innerText = `รายการหลุดเกณฑ์มาตรฐาน: แผนก ${deptName} (${deptCode})`;
+      if (countEl) countEl.innerText = logs.length + ' จุด';
+      if (subEl) subEl.innerText = `แสดงรายการที่หลุดสเป็คเฉพาะของแผนก ${deptName} (${deptCode}) ตามช่วงเวลาที่เลือก`;
+
+      renderModalOutOfSpecTable(logs);
+      document.getElementById('allOutOfSpecModal').classList.remove('hidden');
+    }
+
+    function closeAllOutOfSpecModal() {
+      document.getElementById('allOutOfSpecModal').classList.add('hidden');
+    }
+
+    function filterAllOutOfSpecModalTable() {
+      const q = (document.getElementById('allOutOfSpecSearch') ? document.getElementById('allOutOfSpecSearch').value : '').trim().toLowerCase();
+      if (!q) {
+        renderModalOutOfSpecTable(currentModalOutOfSpecLogs);
+        return;
+      }
+      const filtered = currentModalOutOfSpecLogs.filter(l => {
+        return (l.item || '').toLowerCase().includes(q) ||
+               (l.dept || '').toLowerCase().includes(q) ||
+               (l.machine || '').toLowerCase().includes(q) ||
+               (l.inspector || '').toLowerCase().includes(q) ||
+               (l.measured_value || '').toLowerCase().includes(q) ||
+               (l.notes || '').toLowerCase().includes(q);
+      });
+      renderModalOutOfSpecTable(filtered);
+    }
+
+    function renderModalOutOfSpecTable(logs) {
+      const tbody = document.getElementById('allOutOfSpecTableBody');
+      const footerInfo = document.getElementById('allOutOfSpecModalFooterInfo');
+      if (!tbody) return;
+
+      if (footerInfo) footerInfo.innerText = `แสดงทั้งหมด ${logs.length} รายการ`;
+
+      if (logs.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="py-12 text-center text-slate-500 font-sans">
+              <i class="fa-solid fa-circle-check text-emerald-500 text-3xl mb-2 block"></i>
+              <span class="font-bold text-slate-700">ไม่พบรายการที่หลุดเกณฑ์มาตรฐานในช่วงนี้</span>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = logs.map(l => {
+        const canEdit = canUserEditLog(l);
+        const hasPhoto = !!l.photo && l.photo !== 'NO';
+        return `
+          <tr class="hover:bg-rose-950/10 transition bg-rose-50/40 border-b border-rose-200">
+            <td class="py-2.5 px-3 font-mono text-xs font-semibold text-slate-800">${l.date} ${l.time || ''}</td>
+            <td class="py-2.5 px-3">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 border border-slate-400 text-slate-800">${l.dept}</span>
+              <span class="text-[10px] text-slate-600 font-mono ml-1 font-semibold">${l.machine || ''}</span>
+            </td>
+            <td class="py-2.5 px-3 font-medium text-slate-900">${l.item}</td>
+            <td class="py-2.5 px-3 text-center text-amber-700 font-mono text-[11px] font-bold">STD: ${l.std_spec || '-'}</td>
+            <td class="py-2.5 px-3 text-center font-mono font-bold text-sm text-rose-600">
+              ${l.measured_value} ${l.unit || ''}
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold badge-out-of-spec animate-pulse">
+                OUT-OF-SPEC
+              </span>
+            </td>
+            <td class="py-2.5 px-3 text-xs text-slate-700">
+              <div>${l.inspector || '-'}</div>
+              ${l.order_no && l.order_no !== '-' ? `<div class="text-[10px] text-slate-500 font-mono">Ord: ${l.order_no}</div>` : ''}
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              ${hasPhoto ? `
+                <button onclick="viewPhoto('${l.photo}', '${l.item}')" class="px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-300 hover:bg-blue-100 text-xs font-semibold transition" title="ดูรูปถ่าย">
+                  <i class="fa-solid fa-image"></i>
+                </button>
+              ` : '<span class="text-slate-400">-</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderDashboard() {
+      const startEl = document.getElementById('dashStartDate');
+      const endEl = document.getElementById('dashEndDate');
+      const deptEl = document.getElementById('dashDeptFilter');
+      const machineEl = document.getElementById('dashMachineFilter');
+
+      const today = getTodayDateString();
+      if (startEl && !startEl.value && !startEl.dataset.cleared) startEl.value = today;
+      if (endEl && !endEl.value && !endEl.dataset.cleared) endEl.value = today;
+
+      const startD = startEl ? startEl.value : '';
+      const endD = endEl ? endEl.value : '';
+      const selDept = deptEl ? deptEl.value : 'ALL';
+      const selMachine = machineEl ? machineEl.value : 'ALL';
 
       let logs = appState.logs;
 
@@ -4122,14 +4849,47 @@
         logs = appState.lastInvestigationResults;
         document.getElementById('kpiDateLabel').innerHTML = `<i class="fa-solid fa-filter text-indigo-400 mr-1"></i> ตามช่วงเวลาที่สืบค้น`;
         document.getElementById('dashboardScopeSubtext').innerHTML = `แสดงผลตาม <b>ช่วงเวลาที่สืบค้นและวิเคราะห์</b>`;
-      } else if (selectedDate && selectedDate !== 'ALL') {
-        logs = logs.filter(l => normalizeDateStr(l.date) === selectedDate || normalizeDateStr(l.timestamp) === selectedDate);
-        document.getElementById('kpiDateLabel').innerHTML = `<i class="fa-regular fa-calendar-check text-blue-400 mr-1"></i> ประจำวันที่ ${selectedDate}`;
-        document.getElementById('dashboardScopeSubtext').innerHTML = `แสดงผลข้อมูลการตรวจเช็คของ <b>${selectedDate === today ? 'วันปัจจุบัน (Today)' : selectedDate}</b>`;
       } else {
-        document.getElementById('kpiDateLabel').innerHTML = `<i class="fa-regular fa-calendar-check text-blue-400 mr-1"></i> รวมทุกวัน`;
-        document.getElementById('dashboardScopeSubtext').innerHTML = `แสดงผลข้อมูลการตรวจเช็ค <b>ทั้งหมดในระบบ</b>`;
+        // Date Range filtering
+        if (startD && endD) {
+          logs = logs.filter(l => {
+            const d = normalizeDateStr(l.date) || normalizeDateStr(l.timestamp);
+            return d >= startD && d <= endD;
+          });
+          if (startD === endD) {
+            document.getElementById('kpiDateLabel').innerHTML = `<i class="fa-regular fa-calendar-check text-blue-400 mr-1"></i> ประจำวันที่ ${startD}`;
+            document.getElementById('dashboardScopeSubtext').innerHTML = `แสดงผลข้อมูลของ <b>${startD === today ? 'วันปัจจุบัน (Today)' : startD}</b>`;
+          } else {
+            document.getElementById('kpiDateLabel').innerHTML = `<i class="fa-regular fa-calendar-check text-blue-400 mr-1"></i> ${startD} ถึง ${endD}`;
+            document.getElementById('dashboardScopeSubtext').innerHTML = `แสดงผลข้อมูลช่วงวันที่ <b>${startD} ถึง ${endD}</b>`;
+          }
+        } else if (startD) {
+          logs = logs.filter(l => (normalizeDateStr(l.date) || normalizeDateStr(l.timestamp)) >= startD);
+          document.getElementById('kpiDateLabel').innerHTML = `<i class="fa-regular fa-calendar-check text-blue-400 mr-1"></i> ตั้งแต่ ${startD}`;
+          document.getElementById('dashboardScopeSubtext').innerHTML = `แสดงผลข้อมูลตั้งแต่ <b>${startD}</b>`;
+        } else if (endD) {
+          logs = logs.filter(l => (normalizeDateStr(l.date) || normalizeDateStr(l.timestamp)) <= endD);
+          document.getElementById('kpiDateLabel').innerHTML = `<i class="fa-regular fa-calendar-check text-blue-400 mr-1"></i> ถึง ${endD}`;
+          document.getElementById('dashboardScopeSubtext').innerHTML = `แสดงผลข้อมูลถึง <b>${endD}</b>`;
+        } else {
+          document.getElementById('kpiDateLabel').innerHTML = `<i class="fa-regular fa-calendar-check text-blue-400 mr-1"></i> รวมทุกวัน`;
+          document.getElementById('dashboardScopeSubtext').innerHTML = `แสดงผลข้อมูล <b>ทั้งหมดในระบบ</b>`;
+        }
+
+        // Filter by Department
+        if (selDept !== 'ALL') {
+          logs = logs.filter(l => l.dept === selDept);
+          document.getElementById('dashboardScopeSubtext').innerHTML += ` | แผนก: <b>${selDept}</b>`;
+        }
+
+        // Filter by Machine
+        if (selMachine !== 'ALL') {
+          logs = logs.filter(l => (l.machine || 'General') === selMachine);
+          document.getElementById('dashboardScopeSubtext').innerHTML += ` | เครื่อง: <b>${selMachine}</b>`;
+        }
       }
+
+      appState.currentDashboardFilteredLogs = logs;
 
       const totalChecks = logs.length;
       const outOfSpecLogs = logs.filter(l => l.status === 'OUT-OF-SPEC');
@@ -4166,12 +4926,14 @@
 
       // Alert Banner
       const alertBanner = document.getElementById('alertBannerSection');
+      appState.currentOutOfSpecLogs = outOfSpecLogs;
       if (outOfSpecLogs.length > 0) {
         alertBanner.classList.remove('hidden');
         document.getElementById('alertCountBadge').innerText = outOfSpecLogs.length + ' จุด';
         
         const previewContainer = document.getElementById('alertListPreview');
-        previewContainer.innerHTML = outOfSpecLogs.slice(0, 8).map(l => `
+        const previewLimit = 7;
+        let previewHtml = outOfSpecLogs.slice(0, previewLimit).map(l => `
           <div class="px-2.5 py-1.5 rounded-lg bg-red-900/60 border border-red-700/60 text-[11px] text-red-200 flex flex-col gap-0.5 font-sans">
             <div class="flex items-center justify-between font-bold">
               <span>[${l.dept} / ${l.machine}]</span>
@@ -4181,6 +4943,17 @@
             <div class="text-[10px] text-slate-400 font-mono">STD: ${l.std_spec}</div>
           </div>
         `).join('');
+
+        if (outOfSpecLogs.length > previewLimit) {
+          const remCount = outOfSpecLogs.length - previewLimit;
+          previewHtml += `
+            <button onclick="openAllOutOfSpecModal()" class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 border border-rose-500 text-white font-bold text-xs flex flex-col items-center justify-center gap-1 transition shadow-md cursor-pointer">
+              <div class="flex items-center gap-1.5"><i class="fa-solid fa-list-ul"></i> <span>ดูอีก ${remCount} จุดที่เหลือ</span></div>
+              <span class="text-[10px] text-rose-200 font-normal">(คลิกเพื่อเปิดดูทั้งหมด)</span>
+            </button>
+          `;
+        }
+        previewContainer.innerHTML = previewHtml;
       } else {
         alertBanner.classList.add('hidden');
       }
@@ -4363,9 +5136,16 @@
                   </div>
                 </div>
               </div>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isHealthy ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500 text-white animate-pulse'}">
-                ${isHealthy ? '● ปกติ' : `▲ หลุด ${deptOutOfSpec.length} จุด`}
-              </span>
+              ${isHealthy ? `
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  ● ปกติ
+                </span>
+              ` : `
+                <button onclick="showDeptOutOfSpecModal('${d.code}')" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 hover:bg-rose-500 text-white animate-pulse transition shadow-sm flex items-center gap-1 cursor-pointer" title="คลิกเพื่อดูจุดที่หลุดสเป็คของแผนก ${d.name}">
+                  <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+                  <span>หลุด ${deptOutOfSpec.length} จุด (คลิกดู)</span>
+                </button>
+              `}
             </div>
 
             <!-- Progress & Core Numbers Weighted by Frequency -->
@@ -4405,7 +5185,7 @@
                 <span class="font-mono text-slate-200 font-semibold">${lastTime}</span>
               </div>
 
-              <div class="grid grid-cols-2 gap-1.5">
+              <div class="grid grid-cols-${deptOutOfSpec.length > 0 ? '3' : '2'} gap-1.5">
                 <button onclick="quickInspectDept('${d.code}')" class="py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold transition flex items-center justify-center gap-1 shadow-sm">
                   <i class="fa-solid fa-clipboard-check text-[10px]"></i>
                   <span>ตรวจทันที</span>
@@ -4414,6 +5194,12 @@
                   <i class="fa-solid fa-list-ul text-[10px] ${remainingTargetChecks > 0 ? 'text-amber-400' : 'text-slate-400'}"></i>
                   <span>ดูที่ค้าง (${remainingTargetChecks})</span>
                 </button>
+                ${deptOutOfSpec.length > 0 ? `
+                  <button onclick="showDeptOutOfSpecModal('${d.code}')" class="py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold transition flex items-center justify-center gap-1 shadow-sm" title="ดูรายการที่หลุดสเป็คของแผนกนี้">
+                    <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
+                    <span>หลุด (${deptOutOfSpec.length})</span>
+                  </button>
+                ` : ''}
               </div>
             </div>
 
@@ -4869,29 +5655,34 @@
 
       tbody.innerHTML = filteredLogs.slice(0, 50).map(l => {
         const isPass = l.status === 'IN-SPEC';
+        const isSkip = l.status === 'SKIPPED';
+        const isOut = l.status === 'OUT-OF-SPEC';
         const hasPhoto = !!l.photo;
+        const rowClass = isOut ? 'bg-rose-950/20' : (isSkip ? 'bg-slate-200/40' : '');
+        const valColor = isSkip ? 'text-slate-600' : (isPass ? 'text-emerald-600' : 'text-rose-600');
+        const badgeClass = isSkip ? 'badge-skipped' : (isPass ? 'badge-in-spec' : 'badge-out-of-spec animate-pulse');
         return `
-          <tr class="hover:bg-slate-800/50 transition ${!isPass ? 'bg-red-950/20' : ''}">
-            <td class="py-2 px-3 font-mono text-slate-300 font-semibold">${l.date} ${l.time || '-'}</td>
+          <tr class="hover:bg-slate-800/50 transition ${rowClass}">
+            <td class="py-2 px-3 font-mono text-slate-700 font-semibold">${l.date} ${l.time || '-'}</td>
             <td class="py-2 px-3">
-              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-200">${l.dept}</span>
-              <span class="text-[10px] text-slate-400 ml-1">${l.machine || ''}</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 border border-slate-400 text-slate-800">${l.dept}</span>
+              <span class="text-[10px] text-slate-500 ml-1 font-semibold">${l.machine || ''}</span>
             </td>
-            <td class="py-2 px-3 text-[10px] text-slate-400 font-mono">${l.freq || '-'}</td>
-            <td class="py-2 px-3 text-slate-200 font-medium">${l.item}</td>
-            <td class="py-2 px-3 text-slate-400 font-mono text-[11px]">${l.std_spec}</td>
-            <td class="py-2 px-3 font-mono font-bold text-sm ${isPass ? 'text-emerald-400' : 'text-rose-400'}">
+            <td class="py-2 px-3 text-[10px] text-slate-500 font-mono">${l.freq || '-'}</td>
+            <td class="py-2 px-3 text-slate-900 font-medium">${l.item}</td>
+            <td class="py-2 px-3 text-slate-600 font-mono text-[11px] font-semibold">${l.std_spec}</td>
+            <td class="py-2 px-3 font-mono font-bold text-sm ${valColor}">
               ${l.measured_value} ${l.unit || ''}
             </td>
             <td class="py-2 px-3 text-center">
               ${hasPhoto ? `
-                <button onclick="viewPhoto('${l.photo}', '${l.item}')" class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 text-[10px] font-bold transition">
+                <button onclick="viewPhoto('${l.photo}', '${l.item}')" class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-600 hover:bg-blue-500/40 text-[10px] font-bold transition">
                   <i class="fa-solid fa-image mr-1"></i> ดูรูป
                 </button>
-              ` : '<span class="text-slate-600 text-[10px]">-</span>'}
+              ` : '<span class="text-slate-400 text-[10px]">-</span>'}
             </td>
             <td class="py-2 px-3 text-center">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isPass ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500 text-white'}">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">
                 ${l.status}
               </span>
             </td>
@@ -5118,8 +5909,9 @@
                   <tr><td colspan="8" class="py-8 text-center text-slate-500">ไม่พบข้อมูลการตรวจเช็คในช่วงเวลาและเงื่อนไขที่ระบุ</td></tr>
                 ` : matchingLogs.map(l => {
                   const isPass = l.status === 'IN-SPEC';
+                  const isSkip = l.status === 'SKIPPED';
                   return `
-                    <tr class="hover:bg-slate-800/40 transition ${!isPass ? 'bg-rose-950/20' : ''}">
+                    <tr class="hover:bg-slate-800/40 transition ${l.status === 'OUT-OF-SPEC' ? 'bg-rose-950/20' : (l.status === 'SKIPPED' ? 'bg-slate-200/40' : '')}">
                       <td class="py-2 px-3 font-mono font-semibold text-slate-200">${l.date} ${l.time}</td>
                       <td class="py-2 px-3">
                         <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-200">${l.dept}</span>
@@ -5127,11 +5919,11 @@
                       </td>
                       <td class="py-2 px-3 font-medium text-white">${l.item}</td>
                       <td class="py-2 px-3 text-amber-300 font-mono text-[11px]">${l.std_spec}</td>
-                      <td class="py-2 px-3 font-mono font-bold text-sm ${isPass ? 'text-emerald-400' : 'text-rose-400'}">
+                      <td class="py-2 px-3 font-mono font-bold text-sm ${isSkip ? 'text-slate-600' : (isPass ? 'text-emerald-600' : 'text-rose-600')}">
                         ${l.measured_value} ${l.unit || ''}
                       </td>
                       <td class="py-2 px-3 text-center">
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPass ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500 text-white animate-pulse'}">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isSkip ? 'badge-skipped' : (isPass ? 'badge-in-spec' : 'badge-out-of-spec animate-pulse')}">
                           ${l.status}
                         </span>
                       </td>
@@ -5781,11 +6573,11 @@
           render: l => {
             const isPass = l.status === 'IN-SPEC';
             const isSkip = l.status === 'SKIPPED';
-            const colClass = isSkip ? 'text-slate-400' : (isPass ? 'text-emerald-400' : 'text-rose-400');
-            const badgeClass = isSkip ? 'bg-slate-800 text-slate-300 border border-slate-700' : (isPass ? 'badge-in-spec' : 'badge-out-of-spec animate-pulse');
+            const colClass = isSkip ? 'text-slate-600 font-bold' : (isPass ? 'text-emerald-600' : 'text-rose-600');
+            const badgeClass = isSkip ? 'badge-skipped' : (isPass ? 'badge-in-spec' : 'badge-out-of-spec animate-pulse');
             return `
               <div>
-                <div class="font-mono font-bold text-sm ${colClass}">${l.measured_value || '-'} <span class="text-xs text-slate-400 font-normal">${l.unit || ''}</span></div>
+                <div class="font-mono font-bold text-sm ${colClass}">${l.measured_value || '-'} <span class="text-xs text-slate-500 font-normal">${l.unit || ''}</span></div>
                 <div class="mt-1"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">${l.status || '-'}</span></div>
               </div>
             `;
@@ -5822,14 +6614,43 @@
         {
           key: 'actions',
           label: 'จัดการ',
-          render: l => `
-            <button onclick="openEditLogModal('${l.id}')" class="px-2.5 py-1 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/40 text-xs font-semibold flex items-center gap-1 transition shadow-sm" title="แก้ไขข้อมูลผลตรวจนี้">
-              <i class="fa-solid fa-pen-to-square"></i>
-              <span>แก้ไข</span>
-            </button>
-          `
+          render: l => {
+            const canEdit = canUserEditLog(l);
+            if (canEdit) {
+              return `
+                <button onclick="openEditLogModal('${l.id}')" class="px-2.5 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1 transition shadow-sm" title="แก้ไขข้อมูลผลตรวจนี้">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                  <span>แก้ไข</span>
+                </button>
+              `;
+            } else {
+              return `
+                <button disabled class="px-2.5 py-1 rounded-xl bg-slate-200 text-slate-400 border border-slate-300 text-xs font-medium flex items-center gap-1 cursor-not-allowed opacity-60" title="ล็อค: แก้ไขได้เฉพาะข้อมูลแผนก ${appState.currentUser ? appState.currentUser.dept : ''}">
+                  <i class="fa-solid fa-lock text-[10px]"></i>
+                  <span>ล็อค (${l.dept})</span>
+                </button>
+              `;
+            }
+          }
         }
       ];
+    }
+
+        function setHistoryDateToday() {
+      const today = getTodayDateString();
+      const s = document.getElementById('histStartDate');
+      const e = document.getElementById('histEndDate');
+      if (s) { s.value = today; delete s.dataset.cleared; }
+      if (e) { e.value = today; delete e.dataset.cleared; }
+      renderHistoryTable();
+    }
+
+    function setHistoryDateAll() {
+      const s = document.getElementById('histStartDate');
+      const e = document.getElementById('histEndDate');
+      if (s) { s.value = ''; s.dataset.cleared = 'true'; }
+      if (e) { e.value = ''; e.dataset.cleared = 'true'; }
+      renderHistoryTable();
     }
 
     function renderHistoryTable() {
@@ -5840,6 +6661,16 @@
       const status = document.getElementById('histStatusFilter') ? document.getElementById('histStatusFilter').value : 'ALL';
       const search = document.getElementById('histSearchInput') ? document.getElementById('histSearchInput').value.trim().toLowerCase() : '';
 
+      // Initialize Date Inputs to Today by default if not set
+      const sInput = document.getElementById('histStartDate');
+      const eInput = document.getElementById('histEndDate');
+      const todayStr = getTodayDateString();
+      if (sInput && !sInput.value && !sInput.dataset.cleared) sInput.value = todayStr;
+      if (eInput && !eInput.value && !eInput.dataset.cleared) eInput.value = todayStr;
+
+      const startD = sInput ? sInput.value : '';
+      const endD = eInput ? eInput.value : '';
+
       const cols = getHistoryColumns();
 
       if (thead) {
@@ -5847,6 +6678,19 @@
       }
 
       let logs = appState.logs;
+
+      // Filter by Date Range (Start Date to End Date)
+      if (startD && endD) {
+        logs = logs.filter(l => {
+          const d = normalizeDateStr(l.date) || normalizeDateStr(l.timestamp);
+          return d >= startD && d <= endD;
+        });
+      } else if (startD) {
+        logs = logs.filter(l => (normalizeDateStr(l.date) || normalizeDateStr(l.timestamp)) >= startD);
+      } else if (endD) {
+        logs = logs.filter(l => (normalizeDateStr(l.date) || normalizeDateStr(l.timestamp)) <= endD);
+      }
+
       if (dept !== 'ALL') logs = logs.filter(l => l.dept === dept);
       if (machine !== 'ALL') logs = logs.filter(l => (l.machine || 'General') === machine);
       if (status !== 'ALL') logs = logs.filter(l => l.status === status);
@@ -5885,9 +6729,11 @@
       }
 
       tbody.innerHTML = logs.slice(0, 100).map(l => {
-        const isPass = l.status === 'IN-SPEC';
+        const isOut = l.status === 'OUT-OF-SPEC';
+        const isSkip = l.status === 'SKIPPED';
+        const rowClass = isOut ? 'bg-rose-950/20' : (isSkip ? 'bg-slate-200/40 text-slate-600' : '');
         return `
-          <tr class="hover:bg-slate-800/40 transition ${!isPass ? 'bg-rose-950/20' : ''}">
+          <tr class="hover:bg-slate-800/40 transition ${rowClass}">
             ${cols.map(c => `<td class="py-2.5 px-3 whitespace-nowrap align-middle">${c.render(l)}</td>`).join('')}
           </tr>
         `;
@@ -5895,10 +6741,35 @@
     }
 
     // ================= EDIT LOG RECORD LOGIC =================
+        // Helper: Check if current logged-in user has permission to edit this log record
+    function canUserEditLog(log) {
+      if (!log) return false;
+      const user = appState.currentUser;
+      if (!user) return false;
+      // Admin role or ALL department has master permission across the entire plant
+      if (user.role === 'admin' || user.dept === 'ALL' || (user.allowed_tabs && user.allowed_tabs.includes('settings'))) {
+        return true;
+      }
+      // Non-admin can ONLY edit logs belonging to their own assigned department
+      const userDept = (user.dept || '').trim().toUpperCase();
+      const logDept = (log.dept || '').trim().toUpperCase();
+      return userDept !== '' && userDept === logDept;
+    }
+
     function openEditLogModal(logId) {
       const log = appState.logs.find(l => l.id === logId);
       if (!log) {
         Swal.fire({ icon: 'error', title: 'ไม่พบรายการ', text: 'ไม่พบรายการที่ต้องการแก้ไข' });
+        return;
+      }
+
+      // Check department editing permission
+      if (!canUserEditLog(log)) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'ไม่มีสิทธิ์แก้ไขข้อมูล',
+          html: `บัญชีของคุณ <b>(${appState.currentUser ? appState.currentUser.name : '-'})</b> มีสิทธิ์แก้ไขเฉพาะข้อมูลของแผนก <b>${appState.currentUser ? appState.currentUser.dept : '-'}</b> เท่านั้น<br><br><span class="text-xs text-slate-500">รายการนี้เป็นของแผนก: <b>${log.dept}</b> (กรุณาแจ้ง Admin หากต้องการแก้ไข)</span>`
+        });
         return;
       }
 
@@ -5907,6 +6778,11 @@
       document.getElementById('editLogDeptMachine').innerText = `${log.dept} / ${log.machine} (@${log.date} ${log.time})`;
       document.getElementById('editLogItemTitle').innerText = log.item;
       document.getElementById('editLogStdSpec').innerText = `${log.std_spec || '-'} ${log.unit || ''}`;
+      const stdInput = document.getElementById('editLogStdSpecInput');
+      if (stdInput) {
+        stdInput.value = log.std_spec || '';
+        stdInput.dataset.originalStd = log.std_spec || '';
+      }
       document.getElementById('editLogMeasuredValue').value = log.measured_value || '';
       document.getElementById('editLogUnitDisplay').innerText = log.unit || '';
       document.getElementById('editLogStatus').value = log.status || 'IN-SPEC';
@@ -5997,9 +6873,18 @@
       return item;
     }
 
+    function revertEditLogStdToOriginal() {
+      const stdInput = document.getElementById('editLogStdSpecInput');
+      if (stdInput && stdInput.dataset.originalStd !== undefined) {
+        stdInput.value = stdInput.dataset.originalStd;
+        autoEvalEditLogStatus();
+      }
+    }
+
     function autoEvalEditLogStatus() {
       const valStr = document.getElementById('editLogMeasuredValue').value.trim();
       const statusSelect = document.getElementById('editLogStatus');
+      const stdInput = document.getElementById('editLogStdSpecInput');
       const logId = document.getElementById('editLogId').value;
       const log = appState.logs.find(l => l.id === logId);
       if (!log || !statusSelect) return;
@@ -6009,11 +6894,9 @@
         return;
       }
 
-      // Check against master item if found, else parse from log.std_spec
-      let evalItem = appState.master.find(m => m.item === log.item && m.dept === log.dept);
-      if (!evalItem && log.std_spec) {
-        evalItem = parseSpecStringToItem(log.std_spec, log.item);
-      }
+      // Read current STD spec from input (or fallback to log.std_spec)
+      const currentStd = stdInput && stdInput.value.trim() ? stdInput.value.trim() : (log.std_spec || '');
+      let evalItem = parseSpecStringToItem(currentStd, log.item);
       if (evalItem) {
         const evalRes = evaluateItemSpec(evalItem, valStr);
         if (evalRes.hasValue) {
@@ -6028,6 +6911,8 @@
       if (logIndex === -1) return;
 
       const log = appState.logs[logIndex];
+      const stdInput = document.getElementById('editLogStdSpecInput');
+      const newStdSpec = stdInput ? stdInput.value.trim() : (log.std_spec || '');
       const newMeasuredVal = document.getElementById('editLogMeasuredValue').value.trim();
       const newStatus = document.getElementById('editLogStatus').value;
       const newInspector = document.getElementById('editLogInspector').value.trim();
@@ -6040,6 +6925,10 @@
       const newNotes = document.getElementById('editLogNotes').value.trim();
 
       // Apply modifications to local object
+      if (newStdSpec) {
+        log.std_spec = newStdSpec;
+        log['เกณฑ์มาตรฐาน / STD'] = newStdSpec;
+      }
       log.measured_value = newMeasuredVal;
       log.status = newStatus;
       log.inspector = newInspector;
