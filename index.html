@@ -789,7 +789,7 @@
           <div>
             <div class="flex items-center gap-2">
               <span class="font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-blue-300 bg-clip-text text-transparent">PLANT MASTER CHECKLIST</span>
-              <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full font-mono">v6.2 LIVE (ล่าสุด)</span>
+              <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full font-mono">v6.3 LIVE (ล่าสุด)</span>
             </div>
             <p class="text-xs text-slate-400 hidden sm:block">ระบบบันทึกเช็คลิสต์ & แดชบอร์ดตรวจสอบคุณภาพภาพรวมโรงงาน</p>
           </div>
@@ -2405,6 +2405,25 @@
       localStorage.setItem('PLANT_DEPT_HEADERS_V2', JSON.stringify(appState.deptHeaders));
     }
 
+    // Auto-clean oversized legacy inspection logs from localStorage (Prevent QuotaExceededError)
+    (() => {
+      try {
+        const rawLogs = localStorage.getItem('PLANT_INSPECTION_LOGS_V6');
+        if (rawLogs && rawLogs.length > 200000) {
+          console.info('Auto-pruning oversized legacy logs from localStorage (was ' + (rawLogs.length/1024).toFixed(0) + ' KB)...');
+          const parsed = JSON.parse(rawLogs);
+          if (Array.isArray(parsed)) {
+            const trimmed = parsed.slice(0, 100);
+            localStorage.setItem('PLANT_INSPECTION_LOGS_V6', JSON.stringify(trimmed));
+            console.info('Successfully pruned offline cache to 100 logs.');
+          }
+        }
+      } catch (e) {
+        console.warn('Pruning legacy logs error, clearing key to release quota:', e);
+        try { localStorage.removeItem('PLANT_INSPECTION_LOGS_V6'); } catch (_) {}
+      }
+    })();
+
     let appState = {
       deptHeaders: loadDeptHeaders(),
       headerValues: {},
@@ -2601,16 +2620,52 @@
       return item;
     }
 
-    // Save state helper
-    function saveState() {
-      localStorage.setItem('PLANT_MASTER_STD_V6', JSON.stringify(appState.master));
-      localStorage.setItem('PLANT_INSPECTION_LOGS_V6', JSON.stringify(appState.logs));
-      localStorage.setItem('PLANT_DEPTS_V6', JSON.stringify(appState.depts));
-      localStorage.setItem('PLANT_USERS_V6', JSON.stringify(appState.users));
-      localStorage.setItem('PLANT_CURRENT_USER_V6', JSON.stringify(appState.currentUser));
-      if (appState.gasUrl) {
-        localStorage.setItem('PLANT_GAS_URL', appState.gasUrl);
+    // Helper: Safely cache recent logs in localStorage without exceeding the 5MB browser quota
+    function safeSaveLogsToStorage(logs) {
+      if (!Array.isArray(logs)) return;
+      try {
+        // Cache only the latest 100 logs for offline fallback (~150KB, leaving 97% storage free)
+        const slice100 = logs.slice(0, 100);
+        localStorage.setItem('PLANT_INSPECTION_LOGS_V6', JSON.stringify(slice100));
+      } catch (e) {
+        console.warn('LocalStorage quota warning for logs, trimming further:', e);
+        try {
+          const slice30 = logs.slice(0, 30);
+          localStorage.setItem('PLANT_INSPECTION_LOGS_V6', JSON.stringify(slice30));
+        } catch (e2) {
+          console.warn('LocalStorage full, removing offline logs key to allow other data to save:', e2);
+          try { localStorage.removeItem('PLANT_INSPECTION_LOGS_V6'); } catch (_) {}
+        }
       }
+    }
+
+    // Save state helper with bulletproof QuotaExceededError protection
+    function saveState() {
+      try {
+        localStorage.setItem('PLANT_MASTER_STD_V6', JSON.stringify(appState.master));
+      } catch (e) { console.warn('Master save warning:', e); }
+
+      safeSaveLogsToStorage(appState.logs);
+
+      try {
+        localStorage.setItem('PLANT_DEPTS_V6', JSON.stringify(appState.depts));
+      } catch (e) { console.warn('Depts save warning:', e); }
+
+      try {
+        localStorage.setItem('PLANT_USERS_V6', JSON.stringify(appState.users));
+      } catch (e) { console.warn('Users save warning:', e); }
+
+      try {
+        if (appState.currentUser) {
+          localStorage.setItem('PLANT_CURRENT_USER_V6', JSON.stringify(appState.currentUser));
+        }
+      } catch (e) { console.warn('CurrentUser save warning:', e); }
+
+      try {
+        if (appState.gasUrl) {
+          localStorage.setItem('PLANT_GAS_URL', appState.gasUrl);
+        }
+      } catch (e) { console.warn('GasUrl save warning:', e); }
     }
 
     // Theme Management (Dark / Light Mode)
