@@ -2844,7 +2844,7 @@
 
     function renderTabNav() {
       const nav = document.getElementById('mainTabNav');
-      const allowed = appState.currentUser.allowed_tabs || ['inspection', 'dashboard', 'history'];
+      const allowed = (appState.currentUser && appState.currentUser.allowed_tabs) ? appState.currentUser.allowed_tabs : ['inspection', 'dashboard', 'history'];
 
       const allTabs = [
         { id: 'inspection', name: 'รายการตรวจเช็คลิสต์', icon: 'fa-clipboard-check', badge: 'เริ่มตรวจ' },
@@ -4331,12 +4331,14 @@
         const data = await res.json();
         if (data.status === 'success' && data.users && Array.isArray(data.users)) {
           appState.users = data.users;
-          const cur = appState.users.find(u => u.username === appState.currentUser.username);
-          if (cur) {
-            appState.currentUser = cur;
-            localStorage.setItem('PLANT_CURRENT_USER_V6', JSON.stringify(appState.currentUser));
-            renderUserProfileBar();
-            renderTabNav();
+          if (appState.currentUser && appState.currentUser.username) {
+            const cur = appState.users.find(u => u.username === appState.currentUser.username);
+            if (cur) {
+              appState.currentUser = cur;
+              localStorage.setItem('PLANT_CURRENT_USER_V6', JSON.stringify(appState.currentUser));
+              renderUserProfileBar();
+              renderTabNav();
+            }
           }
           saveState();
           renderUsersTable();
@@ -7755,6 +7757,9 @@
           switchTab(allowed[0]);
         }
 
+        // Trigger auto cloud sync immediately upon successful login
+        syncWithGoogleSheets(true);
+
         Swal.fire({
           icon: 'success',
           title: 'เข้าสู่ระบบสำเร็จ!',
@@ -7864,12 +7869,14 @@
           // Merge Users if present from Google Sheet USERS tab
           if (data.users && Array.isArray(data.users) && data.users.length > 0) {
             appState.users = data.users;
-            const cur = appState.users.find(u => u.username === appState.currentUser.username);
-            if (cur) {
-              appState.currentUser = cur;
-              localStorage.setItem('PLANT_CURRENT_USER_V6', JSON.stringify(appState.currentUser));
-              renderUserProfileBar();
-              renderTabNav();
+            if (appState.currentUser && appState.currentUser.username) {
+              const cur = appState.users.find(u => u.username === appState.currentUser.username);
+              if (cur) {
+                appState.currentUser = cur;
+                localStorage.setItem('PLANT_CURRENT_USER_V6', JSON.stringify(appState.currentUser));
+                renderUserProfileBar();
+                renderTabNav();
+              }
             }
             renderUsersTable();
             updated = true;
