@@ -4387,14 +4387,36 @@
       }
     }
 
-    function submitInspectionBatch() {
+        function submitInspectionBatch(forceSave = false) {
       const dept = appState.selectedDept || 'PD';
       const deptHeaders = getDeptHeaders(dept).filter(f => f.enabled !== false);
       captureCurrentHeaderInputs();
 
-      // 1. Validate Dynamic Required Header Fields for this department
+      // 1. Process and Validate Dynamic Header Fields with Intelligent Fallbacks
       for (let f of deptHeaders) {
-        const val = appState.headerValues[f.id] !== undefined ? String(appState.headerValues[f.id]).trim() : '';
+        let val = appState.headerValues[f.id] !== undefined ? String(appState.headerValues[f.id]).trim() : '';
+        // If inspector was left blank, seamlessly use current logged in user name as fallback
+        if (f.id === 'inspector' && !val && appState.currentUser) {
+          val = (appState.currentUser.name || appState.currentUser.username || '').trim();
+          appState.headerValues['inspector'] = val;
+        }
+        // If order_no is blank, fallback to '-'
+        if (f.id === 'order_no' && !val) {
+          val = '-';
+          appState.headerValues['order_no'] = '-';
+        }
+        // If flute is blank, fallback to '-'
+        if (f.id === 'flute' && !val) {
+          val = '-';
+          appState.headerValues['flute'] = '-';
+        }
+        // If speed is blank, fallback to '-'
+        if (f.id === 'speed' && !val) {
+          val = '-';
+          appState.headerValues['speed'] = '-';
+        }
+
+        // If still required and completely empty (and no fallback available)
         if (f.required && !val) {
           let targetElId = 'entryHeaderField_' + f.id;
           if (f.id === 'inspector') targetElId = 'entryInspectorInput';
@@ -4408,15 +4430,23 @@
         }
       }
 
-      const inspector = appState.headerValues['inspector'] ? appState.headerValues['inspector'].trim() : '';
+      const inspector = appState.headerValues['inspector'] ? appState.headerValues['inspector'].trim() : (appState.currentUser ? appState.currentUser.name : '-');
       const orderNo = appState.headerValues['order_no'] || '-';
       const flute = appState.headerValues['flute'] || '';
       const speed = appState.headerValues['speed'] || '';
       const machineSelect = document.getElementById('entryMachineFilter');
       const machine = appState.selectedMachine || (machineSelect ? machineSelect.value : (appState.headerValues['machine'] || 'ALL'));
 
+      // Filter items strictly matching current active view in renderEntryForm
       let items = appState.master.filter(it => it.dept === dept && it.active !== false);
-      if (appState.selectedFreq !== 'ALL') items = items.filter(it => it.freq === appState.selectedFreq);
+      if (appState.selectedChecklistKey && appState.selectedChecklistKey !== 'ALL') {
+        items = items.filter(it => {
+          const key = `${(it.group_title || it.item || 'ชุดเช็คลิสต์ทั่วไป').trim()}___${(it.freq || 'ทุก 1 ชม.').trim()}`;
+          return key === appState.selectedChecklistKey;
+        });
+      } else if (appState.selectedFreq && appState.selectedFreq !== 'ALL') {
+        items = items.filter(it => it.freq === appState.selectedFreq);
+      }
       if (machine !== 'ALL') items = items.filter(it => (it.machine || 'General') === machine);
 
       if (items.length === 0) {
@@ -4424,28 +4454,76 @@
         return;
       }
 
-      // 2. Strict Check for Required Checklist Items (require_val & require_photo)
-      for (let it of items) {
-        const activeSpec = getActiveItemSpec(it);
+      // Helper to retrieve current live value from DOM input or state
+      const getValFor = (it) => {
         const input = document.getElementById('input-val-' + it.id);
-        const valStr = appState.entryValues[it.id] !== undefined ? String(appState.entryValues[it.id]).trim() : (input ? input.value.trim() : '');
-        const photo = appState.entryPhotos[it.id] || '';
+        const domVal = input ? input.value.trim() : '';
+        const stateVal = appState.entryValues[it.id] !== undefined ? String(appState.entryValues[it.id]).trim() : '';
+        return domVal !== '' ? domVal : stateVal;
+      };
 
-        // Check if item strictly requires value
-        if (it.require_val === true && valStr === '') {
-          const focusId = activeSpec.spec_type === 'pass_fail' ? ('pass-fail-container-' + it.id) : ('input-val-' + it.id);
-          highlightAndFocus(focusId, `รายการ <b>"${it.item}"</b> เป็นรายการที่ <u>บังคับใส่ค่า</u><br><span class="text-xs text-slate-300">กรุณาแตะกรอกค่าหรือติ๊กผ่าน/ไม่ผ่านก่อนกดบันทึก</span>`);
+      const filledItems = items.filter(it => getValFor(it) !== '');
+      if (filledItems.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'ยังไม่ได้กรอกค่าใดๆ',
+          text: 'กรุณากรอกตัวเลขหรือเลือกผลตรวจอย่างน้อย 1 รายการก่อนกดบันทึก'
+        });
+        return;
+      }
+
+      // Active groups where user entered at least one value
+      const activeGroups = new Set(filledItems.map(it => (it.group_title || it.item || 'ชุดเช็คลิสต์ทั่วไป').trim()));
+      const activeGroupItems = items.filter(it => appState.selectedChecklistKey !== 'ALL' || activeGroups.has((it.group_title || it.item || 'ชุดเช็คลิสต์ทั่วไป').trim()));
+
+      // Check for unfilled required items and missing photos
+      const unfilledRequired = activeGroupItems.filter(it => it.require_val === true && getValFor(it) === '');
+      const missingPhotoItems = activeGroupItems.filter(it => it.require_photo === true && getValFor(it) !== '' && getValFor(it) !== '-' && !appState.entryPhotos[it.id]);
+
+      if (!forceSave) {
+        // If there are required items that were left empty in this checklist:
+        if (unfilledRequired.length > 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'มีรายการที่ยังไม่ได้กรอก',
+            html: `พบรายการบังคับใส่ค่าที่ยังไม่ได้กรอก <b>${unfilledRequired.length} รายการ</b> (เช่น "${unfilledRequired[0].item}")<br><br>คุณต้องการบันทึกเฉพาะ <b>${filledItems.length} รายการที่กรอกแล้ว</b> หรือไม่?`,
+            showCancelButton: true,
+            confirmButtonText: `บันทึกเฉพาะ ${filledItems.length} รายการที่กรอกแล้ว`,
+            cancelButtonText: 'กลับไปกรอกเพิ่ม',
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#64748b'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              submitInspectionBatch(true);
+            }
+          });
           return;
         }
 
-        // Check if item strictly requires photo (Skipped '-' items do not require photo)
-        if (it.require_photo === true && valStr !== '' && valStr !== '-' && !photo) {
-          const photoBtnId = 'photo-file-' + it.id;
-          highlightAndFocus(document.getElementById(photoBtnId) ? photoBtnId : ('input-val-' + it.id), `รายการ <b>"${it.item}"</b> กำหนดให้ต้องถ่ายรูปหลักฐานประกอบก่อนบันทึก`);
+        // If an item requires photo but operator didn't attach one:
+        if (missingPhotoItems.length > 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'ยังไม่ได้แนบรูปถ่าย',
+            html: `รายการ <b>"${missingPhotoItems[0].item}"</b> กำหนดให้ต้องถ่ายรูปหลักฐาน แต่ยังไม่ได้แนบรูป<br><br>ต้องการบันทึกผลตรวจโดยไม่แนบรูป หรือกลับไปถ่ายรูป?`,
+            showCancelButton: true,
+            confirmButtonText: 'บันทึกโดยไม่แนบรูป',
+            cancelButtonText: 'กลับไปถ่ายรูป',
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#64748b'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              submitInspectionBatch(true);
+            }
+          });
           return;
         }
+      }
 
-        // Check if item is custom_std and user has entered value (and not skipped with '-')
+      // Check custom_std without spec
+      for (let it of filledItems) {
+        const activeSpec = getActiveItemSpec(it);
+        const valStr = getValFor(it);
         if (it.spec_type === 'custom_std' && !activeSpec.isCustom && valStr !== '' && valStr !== '-') {
           Swal.fire({
             icon: 'warning',
@@ -4460,74 +4538,61 @@
         }
       }
 
-      // 3. Calculate Elapsed Inspection Duration
+      // Proceed to save filled items
+      const newRecords = [];
+      const dateStr = getTodayDateString();
+      const timeStr = getNowTimeString();
       const durationSec = Math.max(1, Math.floor((Date.now() - (appState.inspectionStartTime || Date.now())) / 1000));
       const durationStr = formatDuration(durationSec);
       const durationShort = formatDurationShort(durationSec);
 
-      // 4. Collect Values with Custom Spec & Duration
-      const newRecords = [];
-      const dateStr = getTodayDateString();
-      const timeStr = getNowTimeString();
-
-      for (let it of items) {
-        const input = document.getElementById('input-val-' + it.id);
-        const noteInput = document.getElementById('input-note-' + it.id);
+      for (let it of filledItems) {
+        const valStr = getValFor(it);
         const photo = appState.entryPhotos[it.id] || '';
-        const valStr = appState.entryValues[it.id] !== undefined ? String(appState.entryValues[it.id]).trim() : (input ? input.value.trim() : '');
+        const noteInput = document.getElementById('input-note-' + it.id);
+        const activeSpec = getActiveItemSpec(it);
+        const evalResult = evaluateItemSpec(it, valStr);
 
-        if (valStr !== '') {
-          const activeSpec = getActiveItemSpec(it);
-          const evalResult = evaluateItemSpec(it, valStr);
+        const customHeadersMap = {};
+        deptHeaders.forEach(f => {
+          if (!['inspector', 'order_no', 'machine', 'flute', 'speed'].includes(f.id)) {
+            const val = appState.headerValues[f.id] !== undefined ? String(appState.headerValues[f.id]).trim() : '';
+            customHeadersMap[f.id] = { label: f.label, value: val };
+          }
+        });
 
-          // Collect custom header values
-          const customHeadersMap = {};
-          deptHeaders.forEach(f => {
-            if (!['inspector', 'order_no', 'machine', 'flute', 'speed'].includes(f.id)) {
-              const val = appState.headerValues[f.id] !== undefined ? String(appState.headerValues[f.id]).trim() : '';
-              customHeadersMap[f.id] = { label: f.label, value: val };
-            }
-          });
+        const recObj = {
+          id: 'LOG-' + Date.now() + '-' + Math.floor(Math.random()*10000),
+          timestamp: dateStr + ' ' + timeStr + ':00',
+          date: dateStr,
+          time: timeStr,
+          dept: dept,
+          machine: it.machine || machine,
+          freq: it.freq,
+          item: it.item,
+          std_spec: activeSpec.spec_raw,
+          measured_value: evalResult.isSkipped ? '-' : evalResult.measuredDisplay,
+          unit: activeSpec.unit || it.unit || '',
+          status: evalResult.isSkipped ? 'SKIPPED' : (evalResult.isPass ? 'IN-SPEC' : 'OUT-OF-SPEC'),
+          inspector: inspector,
+          order_no: orderNo,
+          flute: flute,
+          speed: speed,
+          duration: durationStr,
+          duration_short: durationShort,
+          duration_seconds: durationSec,
+          photo: photo,
+          notes: noteInput ? noteInput.value.trim() : '',
+          custom_headers: customHeadersMap
+        };
 
-          const recObj = {
-            id: 'LOG-' + Date.now() + '-' + Math.floor(Math.random()*10000),
-            timestamp: dateStr + ' ' + timeStr + ':00',
-            date: dateStr,
-            time: timeStr,
-            dept: dept,
-            machine: it.machine || machine,
-            freq: it.freq,
-            item: it.item,
-            std_spec: activeSpec.spec_raw,
-            measured_value: evalResult.isSkipped ? '-' : evalResult.measuredDisplay,
-            unit: activeSpec.unit || it.unit || '',
-            status: evalResult.isSkipped ? 'SKIPPED' : (evalResult.isPass ? 'IN-SPEC' : 'OUT-OF-SPEC'),
-            inspector: inspector,
-            order_no: orderNo,
-            flute: flute,
-            speed: speed,
-            duration: durationStr,
-            duration_short: durationShort,
-            duration_seconds: durationSec,
-            photo: photo,
-            notes: noteInput ? noteInput.value.trim() : '',
-            custom_headers: customHeadersMap
-          };
+        deptHeaders.forEach(f => {
+          if (!['inspector', 'order_no', 'machine', 'flute', 'speed'].includes(f.id)) {
+            recObj[f.id] = appState.headerValues[f.id] !== undefined ? String(appState.headerValues[f.id]).trim() : '';
+          }
+        });
 
-          // Attach direct custom properties for dynamic Google Sheet column creation
-          deptHeaders.forEach(f => {
-            if (!['inspector', 'order_no', 'machine', 'flute', 'speed'].includes(f.id)) {
-              recObj[f.id] = appState.headerValues[f.id] !== undefined ? String(appState.headerValues[f.id]).trim() : '';
-            }
-          });
-
-          newRecords.push(recObj);
-        }
-      }
-
-      if (newRecords.length === 0) {
-        Swal.fire({ icon: 'info', title: 'ยังไม่ได้กรอกค่าใดๆ', text: 'กรุณากรอกตัวเลขอย่างน้อย 1 รายการเพื่อบันทึก' });
-        return;
+        newRecords.push(recObj);
       }
 
       // 1. Instant Local Save (0ms delay)
@@ -4536,7 +4601,7 @@
       appState.entryValues = {};
       saveState();
 
-      // 2. Non-blocking Background Sync to Google Sheets (Runs quietly in background)
+      // 2. Non-blocking Background Sync to Google Sheets
       if (appState.gasUrl) {
         sendLogsToGoogleBackground(newRecords);
       }
