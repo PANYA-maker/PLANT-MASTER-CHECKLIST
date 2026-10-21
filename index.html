@@ -789,7 +789,7 @@
           <div>
             <div class="flex items-center gap-2">
               <span class="font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-blue-300 bg-clip-text text-transparent">PLANT MASTER CHECKLIST</span>
-              <span class="px-2 py-0.5 text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full font-mono">v6.0 LIVE</span>
+              <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full font-mono">v6.2 LIVE (ล่าสุด)</span>
             </div>
             <p class="text-xs text-slate-400 hidden sm:block">ระบบบันทึกเช็คลิสต์ & แดชบอร์ดตรวจสอบคุณภาพภาพรวมโรงงาน</p>
           </div>
@@ -7829,7 +7829,19 @@
       try {
         if (syncText) syncText.innerHTML = '<span class="text-amber-400">🟡 กำลังซิงค์...</span>';
 
-        const res = await fetch(appState.gasUrl + '?action=getAllData');
+        let res;
+        try {
+          res = await fetch(appState.gasUrl + '?action=getAllData');
+        } catch (fetchErr) {
+          if (appState.gasUrl !== HARDCODED_GAS_URL) {
+            console.warn('Fallback to HARDCODED_GAS_URL due to error:', fetchErr);
+            appState.gasUrl = HARDCODED_GAS_URL;
+            localStorage.setItem('PLANT_GAS_URL', HARDCODED_GAS_URL);
+            res = await fetch(HARDCODED_GAS_URL + '?action=getAllData');
+          } else {
+            throw fetchErr;
+          }
+        }
         const data = await res.json();
         if (data.status === 'success') {
           let updated = false;
@@ -7926,6 +7938,24 @@
       } catch (err) {
         console.warn('Sync error:', err);
         if (syncText) syncText.innerHTML = '<span class="text-slate-400">⚪ ออฟไลน์ (บันทึกลงเครื่อง)</span>';
+        if (!isSilent) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'การเชื่อมต่อ Google Sheets ขัดข้อง',
+            html: `ไม่สามารถดึงข้อมูลได้ในขณะนี้: <b>${err.message || err}</b><br><br><span class="text-xs text-slate-400">หากเพิ่งอัปเดตไฟล์ กรุณากดปุ่มด้านล่างเพื่อล้างข้อมูลแคชและเชื่อมต่อใหม่</span>`,
+            showCancelButton: true,
+            confirmButtonText: '🔄 รีเซ็ตการเชื่อมต่อและดึงใหม่',
+            cancelButtonText: 'ปิด',
+            confirmButtonColor: '#3b82f6',
+            cancelButtonColor: '#64748b'
+          }).then((r) => {
+            if (r.isConfirmed) {
+              localStorage.removeItem('PLANT_GAS_URL');
+              appState.gasUrl = HARDCODED_GAS_URL;
+              syncWithGoogleSheets(false);
+            }
+          });
+        }
       } finally {
         if (icon && !isSilent) icon.classList.remove('animate-spin');
       }
