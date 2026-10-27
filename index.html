@@ -2213,11 +2213,19 @@
         <div class="grid grid-cols-2 gap-3 hidden" id="customSpecModalMinMaxRow">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1" id="customSpecModalMinLabel">ค่าต่ำสุด (Min)</label>
-            <input type="number" step="any" id="customSpecModalMin" placeholder="เช่น 150" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-amber-500">
+            <input type="number" step="any" id="customSpecModalMin" oninput="handleCustomSpecMinInput(this.value)" placeholder="เช่น 150" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-amber-500">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1" id="customSpecModalMaxLabel">ค่าสูงสุด (Max)</label>
             <input type="number" step="any" id="customSpecModalMax" placeholder="เช่น 180" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-amber-500">
+          </div>
+          <!-- Live Preview Banner for Actual Width (+5 mm) -->
+          <div id="actualWidthAutoCalcBanner" class="col-span-2 hidden p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-xs text-amber-300 flex items-center justify-between">
+            <span class="flex items-center gap-1.5 font-sans">
+              <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+              <span class="text-slate-300">เกณฑ์มาตรฐานที่คำนวณได้:</span>
+            </span>
+            <b class="text-xs sm:text-sm font-mono text-emerald-400" id="actualWidthAutoCalcPreview">-</b>
           </div>
         </div>
 
@@ -4339,54 +4347,89 @@
       document.getElementById('customSpecModalItemId').value = itemId;
       document.getElementById('customSpecModalItemTitle').innerText = `${it.item} (${it.machine || 'General'})`;
       document.getElementById('customSpecModalDefaultStd').innerText = `${it.spec_raw || it.target || '-'} ${it.unit || ''}`;
-      
+
       const itemName = (it.item || '').toLowerCase();
       const isBurstingTS = itemName.includes('bursting') && (itemName.includes('ts') || itemName.includes('top'));
       const isBurstingBS = itemName.includes('bursting') && (itemName.includes('bs') || itemName.includes('bottom'));
       const isRingCrush = itemName.includes('ring crush') || itemName.includes('rct');
       const isLockedGte = isBurstingTS || isBurstingBS || isRingCrush;
-      const isActualWidth = itemName.includes('หน้ากว้าง') || itemName.includes('width');
+      const isActualWidth = (it.dept === 'IQC' || !it.dept) && (itemName.includes('หน้ากว้าง') || itemName.includes('width'));
 
       const typeSelect = document.getElementById('customSpecModalType');
       const lockedNotice = document.getElementById('lockedGteNotice');
       const minLabel = document.getElementById('customSpecModalMinLabel');
       const minInput = document.getElementById('customSpecModalMin');
+      const maxLabel = document.getElementById('customSpecModalMaxLabel');
+      const maxInput = document.getElementById('customSpecModalMax');
+      const autoBanner = document.getElementById('actualWidthAutoCalcBanner');
       const lastSavedType = localStorage.getItem('PLANT_LAST_CUSTOM_STD_TYPE') || 'tol_percent';
       const lastSavedTol = localStorage.getItem('PLANT_LAST_CUSTOM_STD_TOL') || '5';
 
       if (isLockedGte) {
         typeSelect.value = 'gte';
         typeSelect.disabled = true;
+        if (autoBanner) autoBanner.classList.add('hidden');
         if (lockedNotice) {
           lockedNotice.classList.remove('hidden');
-          lockedNotice.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> ล็อคโหมดเป็น มากกว่าหรือเท่ากับ (≥) ตามมาตรฐานการทดสอบกระดาษ';
+          lockedNotice.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> ล็อคโหมดเป็น มากกว่าหรือเท่ากับ (≥) ตามมาตรฐาน กรุณาระบุตัวเลขอย่างเดียว';
         }
         if (minLabel) minLabel.innerText = 'เกณฑ์มาตรฐานขั้นต่ำ (≥ Target STD)';
         if (minInput) {
           minInput.placeholder = 'ระบุตัวเลขค่าเกณฑ์ เช่น 294';
+          minInput.disabled = false;
           minInput.value = (activeSpec.min_val !== null && activeSpec.min_val !== undefined) ? activeSpec.min_val : (activeSpec.target_val || '');
+        }
+        if (maxLabel) maxLabel.innerText = 'ค่าสูงสุด (Max)';
+        if (maxInput) {
+          maxInput.disabled = true;
+          maxInput.placeholder = 'ไม่ระบุ';
+          maxInput.value = '';
         }
         handleCustomSpecModalTypeChange('gte');
       } else if (isActualWidth) {
+        // Locked to Single Value Entry -> Auto calculate MIN = val, MAX = val + 5
         typeSelect.value = 'range';
         typeSelect.disabled = true;
         if (lockedNotice) {
           lockedNotice.classList.remove('hidden');
-          lockedNotice.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> ล็อคโหมดเป็น ช่วงค่าโดยตรง (Min-Max) ตามมาตรฐานหน้ากว้าง';
+          lockedNotice.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> ล็อคโหมด <b>หน้ากว้าง (ใส่ค่า MIN ช่องเดียว ระบบคำนวณ MAX = MIN + 5 ให้อัตโนมัติ)</b>';
         }
-        if (minLabel) minLabel.innerText = 'ค่าต่ำสุด (Min)';
-        if (minInput) minInput.placeholder = 'เช่น 1500';
+        if (minLabel) minLabel.innerHTML = '<i class="fa-solid fa-ruler-horizontal mr-1 text-amber-400"></i> ค่าหน้ากว้าง MIN (ใส่ค่านี้ค่าเดียว)';
+        if (minInput) {
+          minInput.placeholder = 'ระบุค่าหน้ากว้าง เช่น 1180';
+          minInput.disabled = false;
+        }
+        if (maxLabel) maxLabel.innerHTML = '<i class="fa-solid fa-calculator mr-1 text-emerald-400"></i> ค่าสูงสุด MAX (คำนวณอัตโนมัติ: MIN + 5)';
+        if (maxInput) {
+          maxInput.disabled = true;
+          maxInput.placeholder = 'คำนวณอัตโนมัติ (MIN + 5)';
+        }
+
         handleCustomSpecModalTypeChange('range');
+
+        // Set current or existing value
+        const currentMin = (activeSpec.min_val !== null && activeSpec.min_val !== undefined) ? activeSpec.min_val : '';
+        if (minInput) minInput.value = currentMin;
+        handleCustomSpecMinInput(currentMin);
       } else {
         typeSelect.disabled = false;
+        if (autoBanner) autoBanner.classList.add('hidden');
         if (lockedNotice) lockedNotice.classList.add('hidden');
         if (minLabel) minLabel.innerText = 'ค่าต่ำสุด (Min)';
-        if (minInput) minInput.placeholder = 'เช่น 150';
+        if (minInput) {
+          minInput.placeholder = 'เช่น 150';
+          minInput.disabled = false;
+        }
+        if (maxLabel) maxLabel.innerText = 'ค่าสูงสุด (Max)';
+        if (maxInput) {
+          maxInput.disabled = false;
+          maxInput.placeholder = 'เช่น 180';
+        }
 
         if (activeSpec.tol_mode) {
           typeSelect.value = activeSpec.tol_mode;
           document.getElementById('customSpecModalTarget').value = activeSpec.target_val !== undefined ? activeSpec.target_val : '';
-          document.getElementById('customSpecModalTol').value = activeSpec.tol_val !== undefined ? activeSpec.tol_val : lastSavedTol;
+          document.getElementById('customSpecModalTol').value = activeSpec.tol_val !== undefined ? activeSpec.tol_val : '5';
         } else {
           // Auto-fill previously remembered STD Mode and Tolerance for quick entry!
           typeSelect.value = (activeSpec.spec_type && activeSpec.spec_type !== 'custom_std') ? activeSpec.spec_type : lastSavedType;
@@ -4394,14 +4437,49 @@
           document.getElementById('customSpecModalTol').value = lastSavedTol;
         }
       }
-      
-      document.getElementById('customSpecModalMin').value = activeSpec.min_val !== null && activeSpec.min_val !== undefined ? activeSpec.min_val : '';
-      document.getElementById('customSpecModalMax').value = activeSpec.max_val !== null && activeSpec.max_val !== undefined ? activeSpec.max_val : '';
-      document.getElementById('customSpecModalUnit').value = activeSpec.unit || it.unit || '';
+
+      if (!isActualWidth && !isLockedGte) {
+        document.getElementById('customSpecModalMin').value = activeSpec.min_val !== null && activeSpec.min_val !== undefined ? activeSpec.min_val : '';
+        document.getElementById('customSpecModalMax').value = activeSpec.max_val !== null && activeSpec.max_val !== undefined ? activeSpec.max_val : '';
+      }
+      document.getElementById('customSpecModalUnit').value = activeSpec.unit || it.unit || (isActualWidth ? 'mm' : '');
       document.getElementById('customSpecModalDesc').value = activeSpec.desc || '';
 
       handleCustomSpecModalTypeChange(typeSelect.value);
+      if (isActualWidth) {
+        const mxInp = document.getElementById('customSpecModalMax');
+        if (mxInp) {
+          mxInp.disabled = true;
+          mxInp.placeholder = 'คำนวณอัตโนมัติ (MIN + 5)';
+        }
+      }
       document.getElementById('customSpecModal').classList.remove('hidden');
+    }
+
+    function handleCustomSpecMinInput(val) {
+      const itemId = document.getElementById('customSpecModalItemId').value;
+      const it = appState.master.find(m => m.id === itemId);
+      const itemName = ((it && it.item) || '').toLowerCase();
+      const isActualWidth = (it && (it.dept === 'IQC' || !it.dept)) && (itemName.includes('หน้ากว้าง') || itemName.includes('width'));
+
+      if (isActualWidth) {
+        const minNum = parseFloat(val);
+        const maxInput = document.getElementById('customSpecModalMax');
+        const banner = document.getElementById('actualWidthAutoCalcBanner');
+        const preview = document.getElementById('actualWidthAutoCalcPreview');
+        const unit = document.getElementById('customSpecModalUnit').value.trim() || 'mm';
+
+        if (!isNaN(minNum)) {
+          const maxNum = minNum + 5;
+          if (maxInput) maxInput.value = maxNum;
+          if (banner) banner.classList.remove('hidden');
+          if (preview) preview.innerHTML = `<span class="text-emerald-400 font-bold">MIN ${minNum} ~ MAX ${maxNum} ${unit}</span> <span class="text-[10px] text-amber-300 font-normal ml-1">(+5 อัตโนมัติ)</span>`;
+        } else {
+          if (maxInput) maxInput.value = '';
+          if (banner) banner.classList.remove('hidden');
+          if (preview) preview.innerHTML = `<span class="text-slate-400">รอใส่ค่า MIN (ช่องเดียว)...</span>`;
+        }
+      }
     }
 
     function closeCustomSpecModal() {
@@ -4474,7 +4552,11 @@
         } else {
           minMaxRow.classList.remove('opacity-40', 'pointer-events-none');
           minInput.disabled = false;
-          maxInput.disabled = false;
+          const curItemId = document.getElementById('customSpecModalItemId').value;
+          const curIt = appState.master.find(m => m.id === curItemId);
+          const curItemName = ((curIt && curIt.item) || '').toLowerCase();
+          const isActWidth = (curIt && (curIt.dept === 'IQC' || !curIt.dept)) && (curItemName.includes('หน้ากว้าง') || curItemName.includes('width'));
+          maxInput.disabled = Boolean(isActWidth);
         }
       }
     }
@@ -4487,15 +4569,45 @@
       const type = document.getElementById('customSpecModalType').value;
       const minVal = document.getElementById('customSpecModalMin').value;
       const maxVal = document.getElementById('customSpecModalMax').value;
-      const unit = document.getElementById('customSpecModalUnit').value.trim();
+      const unit = document.getElementById('customSpecModalUnit').value.trim() || 'mm';
       const desc = document.getElementById('customSpecModalDesc').value.trim();
+
+      const itemName = ((it && it.item) || '').toLowerCase();
+      const isActualWidth = (it && (it.dept === 'IQC' || !it.dept)) && (itemName.includes('หน้ากว้าง') || itemName.includes('width'));
 
       let specRaw = '';
       let savedMin = null;
       let savedMax = null;
       let actualSpecType = type;
 
-      if (type === 'tol_percent' || type === 'tol_value') {
+      if (isActualWidth) {
+        // Strict Actual Width Calculation: MIN is typed value, MAX is MIN + 5
+        const minNum = parseFloat(minVal);
+        if (isNaN(minNum)) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'กรุณากรอกค่าหน้ากว้าง MIN',
+            text: 'กรุณากรอกตัวเลขค่าหน้ากว้าง (ใส่ช่องเดียว เช่น 1180) เพื่อให้ระบบคำนวณ MAX = MIN + 5',
+            confirmButtonColor: '#f59e0b'
+          });
+          return;
+        }
+        savedMin = minNum;
+        savedMax = minNum + 5;
+        specRaw = `${savedMin} ~ ${savedMax}`;
+
+        appState.customStds[itemId] = {
+          spec_type: 'range',
+          min_val: savedMin,
+          max_val: savedMax,
+          target_val: savedMin,
+          tol_val: 5,
+          spec_raw: specRaw,
+          unit: unit,
+          desc: desc || `หน้ากว้าง MIN ${savedMin} ~ MAX ${savedMax} (+5 mm)`,
+          isCustom: true
+        };
+      } else if (type === 'tol_percent' || type === 'tol_value') {
         const targetVal = parseFloat(document.getElementById('customSpecModalTarget').value);
         const tolVal = parseFloat(document.getElementById('customSpecModalTol').value);
         if (isNaN(targetVal) || isNaN(tolVal)) {
@@ -4840,7 +4952,7 @@
               <div class="flex items-center justify-between md:inline-block bg-slate-950/70 md:bg-transparent p-2 md:p-0 rounded-xl md:rounded-none border border-slate-800/80 md:border-0">
                 <span class="md:hidden text-xs text-slate-400 font-sans font-medium">เกณฑ์ (STD):</span>
                 
-                ${it.spec_type === 'custom_std' ? `
+                ${(it.spec_type === 'custom_std' || (it.dept === 'IQC' && (it.item.includes('หน้ากว้าง') || it.item.toLowerCase().includes('width')))) ? `
                   <div class="flex items-center gap-1.5 flex-wrap">
                     ${!activeSpec.isCustom ? `
                       <button type="button" onclick="openCustomSpecModal('${it.id}')" class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-2 border-dashed border-amber-500/60 text-xs font-bold transition flex items-center gap-1.5 animate-pulse shadow-sm shadow-amber-500/20">
