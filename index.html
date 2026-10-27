@@ -3478,10 +3478,10 @@
       const currentDept = appState.selectedDept || 'PD';
       if (deptBadge) deptBadge.innerText = currentDept;
 
-      const fields = getDeptHeaders(currentDept).filter(f => f.enabled !== false);
-      const colSpanClass = fields.length <= 2 ? 'sm:grid-cols-2' : (fields.length === 3 ? 'sm:grid-cols-3' : (fields.length === 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-5'));
-      
-      container.className = `grid grid-cols-1 ${colSpanClass} gap-3`;
+            const fields = getDeptHeaders(currentDept).filter(f => f.enabled !== false);
+      const colSpanClass = fields.length <= 2 ? 'sm:grid-cols-2' : (fields.length === 3 ? 'sm:grid-cols-3' : (fields.length === 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5'));
+
+      container.className = `grid grid-cols-1 ${colSpanClass} gap-3 items-start`;
 
       // Save currently typed values before re-rendering
       captureCurrentHeaderInputs();
@@ -3512,8 +3512,8 @@
 
         if (f.type === 'machine_select' || f.id === 'machine') {
           html += `
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+            <div class="min-w-0">
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1 truncate" title="${f.label}">
                 ${iconHtml} ${f.label} ${reqStar}
               </label>
               <select 
@@ -3527,8 +3527,8 @@
           `;
         } else if (f.type === 'flute_select' || f.id === 'flute') {
           html += `
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+            <div class="min-w-0">
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1 truncate" title="${f.label}">
                 ${iconHtml} ${f.label} ${reqStar}
               </label>
               <div class="relative">
@@ -3546,8 +3546,8 @@
           `;
         } else if (f.id === 'inspector') {
           html += `
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+            <div class="min-w-0">
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1 truncate" title="${f.label}">
                 ${iconHtml} ${f.label} ${reqStar}
               </label>
               <input 
@@ -3562,8 +3562,8 @@
           `;
         } else if (f.id === 'order_no') {
           html += `
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+            <div class="min-w-0">
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1 truncate" title="${f.label}">
                 ${iconHtml} ${f.label} ${reqStar}
               </label>
               <input 
@@ -3578,8 +3578,8 @@
           `;
         } else if (f.id === 'speed') {
           html += `
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+            <div class="min-w-0">
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1 truncate" title="${f.label}">
                 ${iconHtml} ${f.label} ${reqStar}
               </label>
               <input 
@@ -3594,8 +3594,8 @@
           `;
         } else if (f.type === 'select' && f.options && f.options.length > 0) {
           html += `
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+            <div class="min-w-0">
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1 truncate" title="${f.label}">
                 ${iconHtml} ${f.label} ${reqStar}
               </label>
               <select 
@@ -3608,11 +3608,41 @@
               </select>
             </div>
           `;
+        } else if (currentDept === 'LAB' && f.id === 'roll_no') {
+          // LAB Roll No with integrated Search button (ไม่ล้น ไม่ทับช่องอื่น)
+          html += `
+            <div class="min-w-0">
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1 truncate" title="${f.label}">
+                ${iconHtml} ${f.label} ${reqStar}
+              </label>
+              <div class="relative flex items-center">
+                <input 
+                  type="text" 
+                  id="entryHeaderField_roll_no" 
+                  value="${val}"
+                  oninput="appState.headerValues['roll_no'] = this.value;"
+                  onkeydown="if(event.key === 'Enter'){ event.preventDefault(); searchLabRollFromIqc(); }"
+                  placeholder="${f.placeholder || 'ระบุเลขม้วน...'}" 
+                  class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-3 pr-20 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-purple-500 font-mono transition"
+                >
+                <button 
+                  type="button" 
+                  onclick="searchLabRollFromIqc()" 
+                  id="btnSearchLabRoll"
+                  class="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 px-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 active:scale-95 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-md shadow-purple-900/40 z-10 transition cursor-pointer"
+                  title="กดเพื่อค้นหาข้อมูลม้วนจาก IQC"
+                >
+                  <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+                  <span>ค้นหา</span>
+                </button>
+              </div>
+            </div>
+          `;
         } else {
           // Standard custom text/number input
           html += `
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+            <div class="min-w-0">
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1 truncate" title="${f.label}">
                 ${iconHtml} ${f.label} ${reqStar}
               </label>
               <input 
@@ -3667,89 +3697,136 @@
       if (appState.selectedDept === 'IQC') {
         saveIqcHeaderMemory();
       } else if (appState.selectedDept === 'LAB') {
-        if (fieldId === 'roll_no') {
-          handleLabRollNoInput(value);
-        } else if (fieldId === 'paper_grade') {
+        // Do NOT trigger roll search on input anymore - require clicking 'ค้นหา' button
+        if (fieldId === 'paper_grade') {
           applyBasisWeightFromGrade(value);
         }
       }
     }
 
-    function handleLabRollNoInput(rollVal) {
+    async function searchLabRollFromIqc() {
+      if (appState.selectedDept !== 'LAB') return;
+      const rollInput = document.getElementById('entryHeaderField_roll_no');
+      const rollVal = rollInput ? rollInput.value.trim() : (appState.headerValues['roll_no'] || '').trim();
+      
+      if (!rollVal) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'กรุณากรอกเลขที่ม้วน',
+          text: 'กรุณากรอกเลขที่ม้วน / Roll No ให้ครบถ้วนก่อนกดค้นหา',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#8b5cf6'
+        });
+        if (rollInput) rollInput.focus();
+        return;
+      }
+
+      await handleLabRollNoInput(rollVal);
+    }
+
+    async function handleLabRollNoInput(rollVal) {
       if (appState.selectedDept !== 'LAB') return;
       const rollTrim = String(rollVal || '').trim().toLowerCase();
       if (!rollTrim) return;
 
-      // Search latest IQC log matching this roll number
-      const logs = appState.logs || [];
-      let match = null;
-      for (let i = 0; i < logs.length; i++) {
-        const l = logs[i];
-        if (l.dept === 'IQC') {
-          const r1 = String(l.roll_no || '').trim().toLowerCase();
-          const r2 = String(l['เลขที่ม้วน / Roll No'] || '').trim().toLowerCase();
-          const r3 = (l.custom_headers && (l.custom_headers['roll_no']?.value || l.custom_headers['Roll No'] || l.custom_headers['เลขที่ม้วน / Roll No'])) 
-            ? String(l.custom_headers['roll_no']?.value || l.custom_headers['Roll No'] || l.custom_headers['เลขที่ม้วน / Roll No']).trim().toLowerCase() : '';
-          if (r1 === rollTrim || r2 === rollTrim || r3 === rollTrim) {
-            match = l;
-            break;
+      // 1. Search in local logs
+      let logs = appState.logs || [];
+      let matchedSupplier = '';
+      let matchedOrderNo = '';
+      let matchedPaperGrade = '';
+      let foundMatch = false;
+
+      function findInLogs(logList) {
+        for (let i = 0; i < logList.length; i++) {
+          const l = logList[i];
+          if (l.dept === 'IQC') {
+            const r1 = String(l.roll_no || '').trim().toLowerCase();
+            const r2 = String(l['เลขที่ม้วน / Roll No'] || '').trim().toLowerCase();
+            const r3 = (l.custom_headers && (l.custom_headers['roll_no']?.value || l.custom_headers['Roll No'] || l.custom_headers['เลขที่ม้วน / Roll No'])) 
+              ? String(l.custom_headers['roll_no']?.value || l.custom_headers['Roll No'] || l.custom_headers['เลขที่ม้วน / Roll No']).trim().toLowerCase() : '';
+            if (r1 === rollTrim || r2 === rollTrim || r3 === rollTrim) {
+              foundMatch = true;
+              if (!matchedSupplier) {
+                matchedSupplier = l.supplier || l['ซัพพลายเออร์ / ผู้ผลิต'] || (l.custom_headers && (l.custom_headers['supplier']?.value || l.custom_headers['ซัพพลายเออร์ / ผู้ผลิต'])) || '';
+              }
+              if (!matchedOrderNo) {
+                matchedOrderNo = l.order_no || l['เลข PO / ใบรับสินค้า'] || (l.custom_headers && (l.custom_headers['order_no']?.value || l.custom_headers['เลข PO / ใบรับสินค้า'])) || '';
+              }
+              if (!matchedPaperGrade) {
+                matchedPaperGrade = l.paper_grade || l['เกรด / แกรม'] || (l.custom_headers && (l.custom_headers['paper_grade']?.value || l.custom_headers['เกรด / แกรม'])) || '';
+              }
+              if (matchedSupplier && matchedOrderNo && matchedPaperGrade) break;
+            }
           }
         }
       }
 
-      if (match) {
-        const supplier = match.supplier || match['ซัพพลายเออร์ / ผู้ผลิต'] || (match.custom_headers && (match.custom_headers['supplier']?.value || match.custom_headers['ซัพพลายเออร์ / ผู้ผลิต'])) || '';
-        const orderNo = match.order_no || match['เลข PO / ใบรับสินค้า'] || (match.custom_headers && (match.custom_headers['order_no']?.value || match.custom_headers['เลข PO / ใบรับสินค้า'])) || '';
-        const paperGrade = match.paper_grade || match['เกรด / แกรม'] || (match.custom_headers && (match.custom_headers['paper_grade']?.value || match.custom_headers['เกรด / แกรม'])) || '';
+      findInLogs(logs);
 
+
+
+      if (foundMatch) {
         // CRITICAL: "ยกเว้นชื่อผู้ตรวจ" (Do NOT overwrite inspector name in LAB!)
-        if (supplier) {
-          appState.headerValues['supplier'] = supplier;
-          const supEl = document.getElementById('entryHeaderField_supplier');
-          if (supEl) {
-            supEl.value = supplier;
-            supEl.classList.add('ring-2', 'ring-emerald-400');
-            setTimeout(() => supEl.classList.remove('ring-2', 'ring-emerald-400'), 1500);
-          }
+        appState.headerValues['supplier'] = matchedSupplier;
+        const supEl = document.getElementById('entryHeaderField_supplier');
+        if (supEl) {
+          supEl.value = matchedSupplier;
+          supEl.classList.add('ring-2', 'ring-emerald-400');
+          setTimeout(() => supEl.classList.remove('ring-2', 'ring-emerald-400'), 1500);
         }
-        if (orderNo) {
-          appState.headerValues['order_no'] = orderNo;
-          const ordEl = document.getElementById('entryHeaderField_order_no') || document.getElementById('entryOrderNoInput');
-          if (ordEl) {
-            ordEl.value = orderNo;
-            ordEl.classList.add('ring-2', 'ring-indigo-400');
-            setTimeout(() => ordEl.classList.remove('ring-2', 'ring-indigo-400'), 1500);
-          }
+
+        appState.headerValues['order_no'] = matchedOrderNo;
+        const ordEl = document.getElementById('entryHeaderField_order_no') || document.getElementById('entryOrderNoInput');
+        if (ordEl) {
+          ordEl.value = matchedOrderNo;
+          ordEl.classList.add('ring-2', 'ring-indigo-400');
+          setTimeout(() => ordEl.classList.remove('ring-2', 'ring-indigo-400'), 1500);
         }
-        if (paperGrade) {
-          appState.headerValues['paper_grade'] = paperGrade;
-          const grdEl = document.getElementById('entryHeaderField_paper_grade');
-          if (grdEl) {
-            grdEl.value = paperGrade;
-            grdEl.classList.add('ring-2', 'ring-amber-400');
-            setTimeout(() => grdEl.classList.remove('ring-2', 'ring-amber-400'), 1500);
-          }
-          applyBasisWeightFromGrade(paperGrade);
+
+        appState.headerValues['paper_grade'] = matchedPaperGrade;
+        const grdEl = document.getElementById('entryHeaderField_paper_grade');
+        if (grdEl) {
+          grdEl.value = matchedPaperGrade;
+          grdEl.classList.add('ring-2', 'ring-amber-400');
+          setTimeout(() => grdEl.classList.remove('ring-2', 'ring-amber-400'), 1500);
+        }
+        if (matchedPaperGrade) {
+          applyBasisWeightFromGrade(matchedPaperGrade);
         }
 
         Swal.fire({
           icon: 'success',
           title: 'ดึงข้อมูลจาก IQC สำเร็จครบถ้วน',
           html: `
-            <div class="text-left text-xs bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 font-sans">
-              <div><span class="text-slate-400">เลขที่ม้วน:</span> <b class="text-purple-400 font-mono">${rollVal}</b></div>
-              <div><span class="text-slate-400">ซัพพลายเออร์:</span> <b class="text-emerald-400">${supplier || '-'}</b></div>
-              <div><span class="text-slate-400">เลข PO / ใบรับสินค้า:</span> <b class="text-indigo-400 font-mono">${orderNo || '-'}</b></div>
-              <div><span class="text-slate-400">เกรด / แกรม:</span> <b class="text-amber-400 font-mono">${paperGrade || '-'}</b></div>
+            <div class="text-left text-xs bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2 font-sans">
+              <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                <span class="text-slate-400">เลขที่ม้วน (Roll No):</span>
+                <b class="text-purple-400 font-mono text-sm">${rollVal}</b>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">ซัพพลายเออร์:</span>
+                <b class="text-emerald-400">${matchedSupplier || '-'}</b>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">เลข PO / ใบรับสินค้า:</span>
+                <b class="text-indigo-400 font-mono">${matchedOrderNo || '-'}</b>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">เกรด / แกรม:</span>
+                <b class="text-amber-400 font-mono">${matchedPaperGrade || '-'}</b>
+              </div>
             </div>
-            <div class="text-[11px] text-slate-400 mt-2">คำนวณเกณฑ์ STD Basis Weight (±5%) เรียบร้อย</div>
+            <div class="text-xs text-emerald-400 mt-2.5 font-medium flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>ดึงข้อมูลมาครบแล้ว พร้อมคำนวณเกณฑ์ Basis Weight (±5%) เรียบร้อย</span>
+            </div>
           `,
           confirmButtonText: 'ตกลง',
-          confirmButtonColor: '#3b82f6',
+          confirmButtonColor: '#8b5cf6',
           timer: 3500
         });
       } else {
-        // STRICT REQUIREMENT: If not found, alert and DO NOT auto-fill any other fallback data!
+        // STRICT REQUIREMENT: "ถ้าใส่เลขม้วนแล้วยังไม่มีข้อมูลให้ขึ้นแจ้งเตื่อนด้วย ห้ามเอาข้อมูลอื่นมาใส่เด็ดขาด"
         appState.headerValues['supplier'] = '';
         appState.headerValues['order_no'] = '';
         appState.headerValues['paper_grade'] = '';
@@ -3763,7 +3840,7 @@
         Swal.fire({
           icon: 'warning',
           title: 'ไม่พบข้อมูลในระบบ IQC',
-          html: `ไม่พบประวัติการตรวจม้วน <b>${rollVal}</b> ในระบบ IQC<br><br><span class="text-xs text-rose-400 font-medium">กรุณาตรวจสอบเลขที่ม้วนให้ถูกต้อง หรือให้ฝ่าย IQC ตรวจรับม้วนนี้ก่อน (ห้ามนำข้อมูลอื่นมาใส่)</span>`,
+          html: `ไม่พบประวัติการตรวจม้วน <b>${rollVal}</b> ในระบบ IQC<br><br><span class="text-xs text-rose-400 font-medium">กรุณาตรวจสอบเลขที่ม้วนให้ถูกต้อง หรือให้ฝ่าย IQC ตรวจรับม้วนนี้ก่อน (ห้ามนำข้อมูลอื่นมาใส่เด็ดขาด)</span>`,
           confirmButtonText: 'เข้าใจแล้ว',
           confirmButtonColor: '#e11d48'
         });
@@ -5415,6 +5492,22 @@
         const rollEl = document.getElementById('entryHeaderField_roll_no');
         if (rollEl) rollEl.value = '';
         if (appState.headerValues) delete appState.headerValues['roll_no'];
+      } else if (appState.selectedDept === 'LAB') {
+        // In LAB: clear roll_no, supplier, order_no, paper_grade so next roll must be searched, but retain inspector!
+        const rollEl = document.getElementById('entryHeaderField_roll_no');
+        if (rollEl) rollEl.value = '';
+        const supEl = document.getElementById('entryHeaderField_supplier');
+        if (supEl) supEl.value = '';
+        const ordEl = document.getElementById('entryHeaderField_order_no') || document.getElementById('entryOrderNoInput');
+        if (ordEl) ordEl.value = '';
+        const grdEl = document.getElementById('entryHeaderField_paper_grade');
+        if (grdEl) grdEl.value = '';
+        if (appState.headerValues) {
+          delete appState.headerValues['roll_no'];
+          delete appState.headerValues['supplier'];
+          delete appState.headerValues['order_no'];
+          delete appState.headerValues['paper_grade'];
+        }
       } else {
         const ord = document.getElementById('entryOrderNoInput');
         if (ord) ord.value = '';
