@@ -816,6 +816,33 @@
       border-right: 2px solid #94a3b8 !important;
     }
 
+  
+      .entry-unit-pill {
+        background-color: rgba(30, 41, 59, 0.7);
+        color: #94a3b8;
+        border: 1px solid #334155;
+      }
+      html.light .entry-unit-pill {
+        background-color: #e2e8f0 !important;
+        color: #475569 !important;
+        border: 1px solid #cbd5e1 !important;
+        font-weight: 600 !important;
+      }
+      .dm-th-clickable {
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .dm-th-clickable:hover {
+        background-color: rgba(59, 130, 246, 0.18) !important;
+      }
+      html.light .dm-th-clickable:hover {
+        background-color: #dbeafe !important;
+      }
+      .spc-chart-paper {
+        background-color: #ffffff !important;
+        border: 1.5px solid #cbd5e1 !important;
+      }
+
   </style>
 </head>
 <body class="h-full light bg-slate-200 text-slate-900 flex flex-col antialiased selection:bg-blue-600 selection:text-white">
@@ -1657,8 +1684,35 @@
         <!-- Dynamically populated by renderDailyMatrixTab() -->
       </div>
 
-      <!-- SECTION 1: HORIZONTAL DAILY CHECKLIST MATRIX TABLE -->
-      <div class="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
+      <!-- VIEW MODE SWITCHER BAR: MATRIX TABLE vs SPC CONTROL CHART -->
+      <div class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="btnDmViewMatrix" onclick="switchDailyMatrixViewMode('matrix')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition bg-blue-600 text-white shadow-md">
+            <i class="fa-solid fa-table-cells-large"></i>
+            <span>ตารางแมทริกซ์รายวัน (Matrix Table)</span>
+          </button>
+          <button type="button" id="btnDmViewChart" onclick="switchDailyMatrixViewMode('chart')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700">
+            <i class="fa-solid fa-chart-line text-indigo-400"></i>
+            <span>กราฟคอนโทรล & แนวโน้มสเปค (SPC Control Chart)</span>
+          </button>
+          <button type="button" id="btnDmViewSplit" onclick="switchDailyMatrixViewMode('both')" class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700" title="แสดงทั้งตารางแมทริกซ์และกราฟคอนโทรลพร้อมกัน">
+            <i class="fa-solid fa-table-columns text-emerald-400"></i>
+            <span>แสดงคู่กัน (ตาราง + กราฟ)</span>
+          </button>
+        </div>
+        <div class="text-xs text-slate-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-hand-pointer text-blue-400"></i>
+          <span>คลิกที่ <b>หัวคอลัมน์ใดก็ได้ในตารางแมทริกซ์</b> เพื่อเปิดดูกราฟคอนโทรลของหัวข้อนั้นทันที</span>
+        </div>
+      </div>
+
+      <!-- SECTION 1A: INTERACTIVE SPC CONTROL CHART & TREND ANALYTICS -->
+      <div id="dmControlChartCard" class="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden hidden">
+        <!-- Dynamically populated by renderDmSpcControlChartSection() -->
+      </div>
+
+      <!-- SECTION 1B: HORIZONTAL DAILY CHECKLIST MATRIX TABLE -->
+      <div id="dmMatrixTableCard" class="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
         <div class="p-4 bg-slate-950/80 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div class="flex items-center gap-2 flex-wrap">
@@ -2963,7 +3017,7 @@
       return HARDCODED_GAS_URL;
     }
 
-    const DEFAULT_MASTER = [{"id": "STD_001", "dept": "PD", "machine": "General / All", "item": "PAPER TEMPERATURE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "Double MC BL/Spec 60-80 ℃", "spec_type": "range", "min_val": 60.0, "max_val": 80.0, "unit": "°C", "target": "60.0 - 80.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_002", "dept": "QC", "machine": "General / All", "item": "PAPER TEMPERATURE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "Double MC BL/Spec 60-80 ℃", "spec_type": "range", "min_val": 60.0, "max_val": 80.0, "unit": "°C", "target": "60.0 - 80.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_003", "dept": "PD", "machine": "YUELI", "item": "PAPER TEMPERATURE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "Double MC BL/Spec 60-90 ℃", "spec_type": "range", "min_val": 60.0, "max_val": 90.0, "unit": "°C", "target": "60.0 - 90.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_004", "dept": "QC", "machine": "YUELI", "item": "PAPER TEMPERATURE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "Double MC BL/Spec 60-90 ℃", "spec_type": "range", "min_val": 60.0, "max_val": 90.0, "unit": "°C", "target": "60.0 - 90.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_005", "dept": "PD", "machine": "General / All", "item": "Speed", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_006", "dept": "QC", "machine": "General / All", "item": "Speed", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_007", "dept": "PD", "machine": "General / All", "item": "Gap Glue", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "ตามแกรม", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามแกรม", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_008", "dept": "QC", "machine": "General / All", "item": "Gap Glue", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "ตามแกรม", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามแกรม", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_009", "dept": "PD", "machine": "YUELI", "item": "GAP GLUE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "ตามแกรม", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามแกรม", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_010", "dept": "QC", "machine": "YUELI", "item": "GAP GLUE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "ตามแกรม", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามแกรม", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_011", "dept": "PD", "machine": "General / All", "item": "Iodind tast A Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_012", "dept": "QC", "machine": "General / All", "item": "Iodind tast A Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_013", "dept": "PD", "machine": "General / All", "item": "Iodind tast B Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_014", "dept": "QC", "machine": "General / All", "item": "Iodind tast B Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_015", "dept": "PD", "machine": "General / All", "item": "Iodind tast C Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_016", "dept": "QC", "machine": "General / All", "item": "Iodind tast C Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_017", "dept": "PD", "machine": "General / All", "item": "Iodind tast A Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_018", "dept": "QC", "machine": "General / All", "item": "Iodind tast A Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_019", "dept": "PD", "machine": "General / All", "item": "Iodind tast B Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_020", "dept": "QC", "machine": "General / All", "item": "Iodind tast B Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_021", "dept": "PD", "machine": "General / All", "item": "Iodind tast C Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_022", "dept": "QC", "machine": "General / All", "item": "Iodind tast C Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_023", "dept": "PD", "machine": "General / All", "item": "Iodind tast A Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_024", "dept": "QC", "machine": "General / All", "item": "Iodind tast A Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_025", "dept": "PD", "machine": "General / All", "item": "Iodind tast B Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_026", "dept": "QC", "machine": "General / All", "item": "Iodind tast B Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_027", "dept": "PD", "machine": "General / All", "item": "Iodind tast C Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_028", "dept": "QC", "machine": "General / All", "item": "Iodind tast C Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_029", "dept": "PD", "machine": "General / All", "item": "Iodind tast A Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_030", "dept": "QC", "machine": "General / All", "item": "Iodind tast A Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_031", "dept": "PD", "machine": "General / All", "item": "Iodind tast B Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_032", "dept": "QC", "machine": "General / All", "item": "Iodind tast B Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_033", "dept": "PD", "machine": "General / All", "item": "Iodind tast C Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_034", "dept": "QC", "machine": "General / All", "item": "Iodind tast C Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_035", "dept": "PD", "machine": "General / All", "item": "TEMP HOT PLATE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "100-150 ℃", "spec_type": "range", "min_val": 100.0, "max_val": 150.0, "unit": "°C", "target": "100.0 - 150.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_036", "dept": "QC", "machine": "General / All", "item": "TEMP HOT PLATE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "100-150 ℃", "spec_type": "range", "min_val": 100.0, "max_val": 150.0, "unit": "°C", "target": "100.0 - 150.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_037", "dept": "PD", "machine": "General / All", "item": "TEMP GLUE Single C", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_038", "dept": "QC", "machine": "General / All", "item": "TEMP GLUE Single C", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_039", "dept": "PD", "machine": "General / All", "item": "TEMP GLUE Single B", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_040", "dept": "QC", "machine": "General / All", "item": "TEMP GLUE Single B", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_041", "dept": "PD", "machine": "General / All", "item": "TEMP GLUE Double", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_042", "dept": "QC", "machine": "General / All", "item": "TEMP GLUE Double", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_043", "dept": "PD", "machine": "General / All", "item": "Viscosity Single B", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_044", "dept": "QC", "machine": "General / All", "item": "Viscosity Single B", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_045", "dept": "PD", "machine": "General / All", "item": "Viscosity Single C", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_046", "dept": "QC", "machine": "General / All", "item": "Viscosity Single C", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_047", "dept": "PD", "machine": "General / All", "item": "Viscosity Double", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_048", "dept": "QC", "machine": "General / All", "item": "Viscosity Double", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_049", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Single C Liner", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_050", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Single C Liner", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_051", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Single C Medium", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_052", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Single C Medium", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_053", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Single B Liner", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_054", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Single B Liner", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_055", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Single B Medium", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_056", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Single B Medium", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_057", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Double", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_058", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Double", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_059", "dept": "PD", "machine": "General / All", "item": "ความถูกต้องของม้วนตามแผน", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "1", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "1", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_060", "dept": "QC", "machine": "General / All", "item": "ความถูกต้องของม้วนตามแผน", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "1", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "1", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_061", "dept": "GLUE", "machine": "General / All", "item": "Viscosity Single B", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_062", "dept": "GLUE", "machine": "General / All", "item": "Viscosity Single C", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_063", "dept": "GLUE", "machine": "General / All", "item": "Viscosity Double", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_064", "dept": "GLUE", "machine": "General / All", "item": "TEMP GLUE Single C", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_065", "dept": "GLUE", "machine": "General / All", "item": "TEMP GLUE Single B", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_066", "dept": "GLUE", "machine": "General / All", "item": "TEMP GLUE Double", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_067", "dept": "Boiler", "machine": "General / All", "item": "Pressure stream Gauge Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 8 Bar หรือ 175 องศา", "spec_type": "gte", "min_val": 8.0, "max_val": null, "unit": "Bar", "target": "≥ 8.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_068", "dept": "Boiler", "machine": "General / All", "item": "Pressure stream Gauge Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 8 Bar หรือ 175 องศา", "spec_type": "gte", "min_val": 8.0, "max_val": null, "unit": "Bar", "target": "≥ 8.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_069", "dept": "Boiler", "machine": "General / All", "item": "Pressure stream Gauge Double", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 8 Bar หรือ 175 องศา", "spec_type": "gte", "min_val": 8.0, "max_val": null, "unit": "Bar", "target": "≥ 8.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_070", "dept": "Boiler", "machine": "BHS", "item": "Steam Trap เข้า 19 จุด BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 140 อาศา", "spec_type": "gte", "min_val": 140.0, "max_val": null, "unit": "", "target": "≥ 140.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_071", "dept": "Boiler", "machine": "BHS", "item": "Steam Trap ออก 19 จุด BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 80 อาศา", "spec_type": "gte", "min_val": 80.0, "max_val": null, "unit": "", "target": "≥ 80.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_072", "dept": "Boiler", "machine": "General / All", "item": "Steam Trap เข้า 25 จุด ISWOA", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 140 อาศา", "spec_type": "gte", "min_val": 140.0, "max_val": null, "unit": "", "target": "≥ 140.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_073", "dept": "Boiler", "machine": "ISOWA", "item": "Steam Trap ออก 25 จุด ISOWA", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 80 อาศา", "spec_type": "gte", "min_val": 80.0, "max_val": null, "unit": "", "target": "≥ 80.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_074", "dept": "Boiler", "machine": "General / All", "item": "Steam Trap เข้า 18 จุด YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 140 อาศา", "spec_type": "gte", "min_val": 140.0, "max_val": null, "unit": "", "target": "≥ 140.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_075", "dept": "Boiler", "machine": "General / All", "item": "Steam Trap ออก 18 จุด YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 80 อาศา", "spec_type": "gte", "min_val": 80.0, "max_val": null, "unit": "", "target": "≥ 80.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_076", "dept": "Boiler", "machine": "BHS", "item": "Pressure ลมGauge ถังพักหลัง BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 7 Bar", "spec_type": "gte", "min_val": 7.0, "max_val": null, "unit": "Bar", "target": "≥ 7.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_077", "dept": "Boiler", "machine": "BHS", "item": "Pressure ลมGauge ถังพักหน้า BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 7 Bar", "spec_type": "gte", "min_val": 7.0, "max_val": null, "unit": "Bar", "target": "≥ 7.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_078", "dept": "Boiler", "machine": "General / All", "item": "Pressure ลมGauge ถังพัก YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 7 Bar", "spec_type": "gte", "min_val": 7.0, "max_val": null, "unit": "Bar", "target": "≥ 7.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_079", "dept": "Boiler", "machine": "BHS", "item": "Auto Drain ลมถังพักหลัง BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "ต้องไม่มีน้ำค้างในระบบ", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ต้องไม่มีน้ำค้างในระบบ", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_080", "dept": "Boiler", "machine": "BHS", "item": "Auto Drain ลมถังพักหน้า BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "ต้องไม่มีน้ำค้างในระบบ", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ต้องไม่มีน้ำค้างในระบบ", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_081", "dept": "Boiler", "machine": "General / All", "item": "Auto Drain ลมถังพัก YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "ต้องไม่มีน้ำค้างในระบบ", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ต้องไม่มีน้ำค้างในระบบ", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_082", "dept": "Boiler", "machine": "BHS", "item": "อัตราการไหล ลม BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_083", "dept": "Boiler", "machine": "General / All", "item": "อัตราการไหล ลม YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_084", "dept": "Boiler", "machine": "ISOWA", "item": "อัตราการไหล ลม ISOWA", "freq": "1 วัน (รายวัน)", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_085", "dept": "LAB", "machine": "General / All", "item": "กระดาษลูกฟูก", "freq": "ตามแผน", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_086", "dept": "LAB", "machine": "General / All", "item": "ม้วน", "freq": "ตามแผน", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_087", "dept": "LAB", "machine": "General / All", "item": "แป้ง ความหนืด แป้งมัน", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "5 นาที 25-29 Sec.10 นาที 30-34 Sec.15 นาที 35-40 Sec.", "spec_type": "range", "min_val": 25.0, "max_val": 29.0, "unit": "s", "target": "25.0 - 29.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_088", "dept": "LAB", "machine": "General / All", "item": "แป้ง ความหนืด สังเคราะห์", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "5 นาที 16-22 Sec.10 นาที 16-22 Sec.15 นาที 16-22 Sec.", "spec_type": "range", "min_val": 16.0, "max_val": 22.0, "unit": "s", "target": "16.0 - 22.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_089", "dept": "LAB", "machine": "General / All", "item": "แป้ง ทนด่าง", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "≤ 50 ml.", "spec_type": "lte", "min_val": null, "max_val": 50.0, "unit": "ml", "target": "≤ 50.0 ml", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_090", "dept": "LAB", "machine": "General / All", "item": "แป้ง PH", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "5.0-7.0", "spec_type": "range", "min_val": 5.0, "max_val": 7.0, "unit": "", "target": "5.0 - 7.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_091", "dept": "LAB", "machine": "General / All", "item": "ถ่านหิน ความชื้น เกรด 4200", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "35-40%", "spec_type": "range", "min_val": 35.0, "max_val": 40.0, "unit": "%", "target": "35.0 - 40.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_092", "dept": "LAB", "machine": "General / All", "item": "ถ่านหิน ความชื้น เกรด 3500", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "38-42%", "spec_type": "range", "min_val": 38.0, "max_val": 42.0, "unit": "%", "target": "38.0 - 42.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_093", "dept": "LAB", "machine": "General / All", "item": "โซดาไฟ", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "0.5", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "0.5", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_094", "dept": "LAB", "machine": "General / All", "item": "บอแรกซ์", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "COA", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "COA", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_095", "dept": "LAB", "machine": "General / All", "item": "Solid Single", "freq": "1 วัน (รายวัน)", "spec_raw": "20.5-22", "spec_type": "range", "min_val": 20.5, "max_val": 22.0, "unit": "", "target": "20.5 - 22.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_096", "dept": "LAB", "machine": "General / All", "item": "Solid Double", "freq": "1 วัน (รายวัน)", "spec_raw": "20.5-22", "spec_type": "range", "min_val": 20.5, "max_val": 22.0, "unit": "", "target": "20.5 - 22.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_097", "dept": "LAB", "machine": "General / All", "item": "Gel point Single", "freq": "1 วัน (รายวัน)", "spec_raw": "58-60 องศา", "spec_type": "range", "min_val": 58.0, "max_val": 60.0, "unit": "°C", "target": "58.0 - 60.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_098", "dept": "LAB", "machine": "General / All", "item": "Gel point Double", "freq": "1 วัน (รายวัน)", "spec_raw": "58-60 องศา", "spec_type": "range", "min_val": 58.0, "max_val": 60.0, "unit": "°C", "target": "58.0 - 60.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_099", "dept": "IQC", "machine": "General / All", "item": "สภาพทั่วไป", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "ต้องไม่ฉีกขาด ไม่กระแทก จุดดำ แกนไม่บี้", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ต้องไม่ฉีกขาด ไม่กระแทก จุดดำ แกนไม่บี้", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_100", "dept": "IQC", "machine": "General / All", "item": "ความชื้น", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_101", "dept": "IQC", "machine": "General / All", "item": "สี Liner", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "ตามข้อตกลง Upper Lower", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามข้อตกลง Upper Lower", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_102", "dept": "IQC", "machine": "General / All", "item": "หน้ากว้าง", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "+5 -0 mm.", "spec_type": "range", "min_val": 5.0, "max_val": 0.0, "unit": "mm", "target": "5.0 - 0.0 mm", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_103", "dept": "IQC", "machine": "General / All", "item": "น้ำหนัก", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "± 5%", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "± 5%", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_104", "dept": "LAB", "machine": "General / All", "item": "Basis Weight", "freq": "ตามรอบ / ตาม Lot", "spec_raw": "คำนวณตามเกรด ± 5%", "spec_type": "range", "min_val": 100.0, "max_val": 200.0, "unit": "g/m²", "target": "คำนวณตามเกรด ± 5%", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบม้วนกระดาษห้องแล็บ (Paper Roll Lab Test)"}, {"id": "STD_105", "dept": "LAB", "machine": "General / All", "item": "Bursting (TS)", "freq": "ตามรอบ / ตาม Lot", "spec_raw": "≥ 294", "spec_type": "gte", "min_val": 294.0, "max_val": null, "unit": "kPa", "target": "≥ 294 kPa", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบม้วนกระดาษห้องแล็บ (Paper Roll Lab Test)"}, {"id": "STD_106", "dept": "LAB", "machine": "General / All", "item": "Bursting (BS)", "freq": "ตามรอบ / ตาม Lot", "spec_raw": "≥ 294", "spec_type": "gte", "min_val": 294.0, "max_val": null, "unit": "kPa", "target": "≥ 294 kPa", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบม้วนกระดาษห้องแล็บ (Paper Roll Lab Test)"}, {"id": "STD_107", "dept": "LAB", "machine": "General / All", "item": "Ring Crush", "freq": "ตามรอบ / ตาม Lot", "spec_raw": "≥ 100", "spec_type": "gte", "min_val": 100.0, "max_val": null, "unit": "N", "target": "≥ 100 N", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบม้วนกระดาษห้องแล็บ (Paper Roll Lab Test)"}];
+    const DEFAULT_MASTER = [{"id": "STD_001", "dept": "PD", "machine": "General / All", "item": "PAPER TEMPERATURE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "Double MC BL/Spec 60-80 ℃", "spec_type": "range", "min_val": 60.0, "max_val": 80.0, "unit": "°C", "target": "60.0 - 80.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_002", "dept": "QC", "machine": "General / All", "item": "PAPER TEMPERATURE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "Double MC BL/Spec 60-80 ℃", "spec_type": "range", "min_val": 60.0, "max_val": 80.0, "unit": "°C", "target": "60.0 - 80.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_003", "dept": "PD", "machine": "YUELI", "item": "PAPER TEMPERATURE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "Double MC BL/Spec 60-90 ℃", "spec_type": "range", "min_val": 60.0, "max_val": 90.0, "unit": "°C", "target": "60.0 - 90.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_004", "dept": "QC", "machine": "YUELI", "item": "PAPER TEMPERATURE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "Double MC BL/Spec 60-90 ℃", "spec_type": "range", "min_val": 60.0, "max_val": 90.0, "unit": "°C", "target": "60.0 - 90.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_005", "dept": "PD", "machine": "General / All", "item": "Speed", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_006", "dept": "QC", "machine": "General / All", "item": "Speed", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_007", "dept": "PD", "machine": "General / All", "item": "Gap Glue", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "ตามแกรม", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามแกรม", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_008", "dept": "QC", "machine": "General / All", "item": "Gap Glue", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "ตามแกรม", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามแกรม", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_009", "dept": "PD", "machine": "YUELI", "item": "GAP GLUE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "ตามแกรม", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามแกรม", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_010", "dept": "QC", "machine": "YUELI", "item": "GAP GLUE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "ตามแกรม", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามแกรม", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_011", "dept": "PD", "machine": "General / All", "item": "Iodind tast A Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_012", "dept": "QC", "machine": "General / All", "item": "Iodind tast A Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_013", "dept": "PD", "machine": "General / All", "item": "Iodind tast B Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_014", "dept": "QC", "machine": "General / All", "item": "Iodind tast B Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_015", "dept": "PD", "machine": "General / All", "item": "Iodind tast C Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_016", "dept": "QC", "machine": "General / All", "item": "Iodind tast C Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_017", "dept": "PD", "machine": "General / All", "item": "Iodind tast A Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_018", "dept": "QC", "machine": "General / All", "item": "Iodind tast A Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_019", "dept": "PD", "machine": "General / All", "item": "Iodind tast B Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_020", "dept": "QC", "machine": "General / All", "item": "Iodind tast B Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_021", "dept": "PD", "machine": "General / All", "item": "Iodind tast C Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_022", "dept": "QC", "machine": "General / All", "item": "Iodind tast C Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_023", "dept": "PD", "machine": "General / All", "item": "Iodind tast A Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_024", "dept": "QC", "machine": "General / All", "item": "Iodind tast A Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_025", "dept": "PD", "machine": "General / All", "item": "Iodind tast B Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_026", "dept": "QC", "machine": "General / All", "item": "Iodind tast B Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_027", "dept": "PD", "machine": "General / All", "item": "Iodind tast C Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_028", "dept": "QC", "machine": "General / All", "item": "Iodind tast C Double C", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_029", "dept": "PD", "machine": "General / All", "item": "Iodind tast A Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_030", "dept": "QC", "machine": "General / All", "item": "Iodind tast A Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.2-1.6", "spec_type": "range", "min_val": 1.2, "max_val": 1.6, "unit": "", "target": "1.2 - 1.6", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_031", "dept": "PD", "machine": "General / All", "item": "Iodind tast B Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_032", "dept": "QC", "machine": "General / All", "item": "Iodind tast B Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "1.0-1.4", "spec_type": "range", "min_val": 1.0, "max_val": 1.4, "unit": "", "target": "1.0 - 1.4", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_033", "dept": "PD", "machine": "General / All", "item": "Iodind tast C Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_034", "dept": "QC", "machine": "General / All", "item": "Iodind tast C Double B", "freq": "1 วัน (รายวัน)", "spec_raw": "0.9-1.2", "spec_type": "range", "min_val": 0.9, "max_val": 1.2, "unit": "", "target": "0.9 - 1.2", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_035", "dept": "PD", "machine": "General / All", "item": "TEMP HOT PLATE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "100-150 ℃", "spec_type": "range", "min_val": 100.0, "max_val": 150.0, "unit": "°C", "target": "100.0 - 150.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_036", "dept": "QC", "machine": "General / All", "item": "TEMP HOT PLATE", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "100-150 ℃", "spec_type": "range", "min_val": 100.0, "max_val": 150.0, "unit": "°C", "target": "100.0 - 150.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_037", "dept": "PD", "machine": "General / All", "item": "TEMP GLUE Single C", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_038", "dept": "QC", "machine": "General / All", "item": "TEMP GLUE Single C", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_039", "dept": "PD", "machine": "General / All", "item": "TEMP GLUE Single B", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_040", "dept": "QC", "machine": "General / All", "item": "TEMP GLUE Single B", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_041", "dept": "PD", "machine": "General / All", "item": "TEMP GLUE Double", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_042", "dept": "QC", "machine": "General / All", "item": "TEMP GLUE Double", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_043", "dept": "PD", "machine": "General / All", "item": "Viscosity Single B", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_044", "dept": "QC", "machine": "General / All", "item": "Viscosity Single B", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_045", "dept": "PD", "machine": "General / All", "item": "Viscosity Single C", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_046", "dept": "QC", "machine": "General / All", "item": "Viscosity Single C", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_047", "dept": "PD", "machine": "General / All", "item": "Viscosity Double", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_048", "dept": "QC", "machine": "General / All", "item": "Viscosity Double", "freq": "ทุก 4 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_049", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Single C Liner", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_050", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Single C Liner", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_051", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Single C Medium", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_052", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Single C Medium", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_053", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Single B Liner", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_054", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Single B Liner", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_055", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Single B Medium", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_056", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Single B Medium", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_057", "dept": "PD", "machine": "General / All", "item": "ควาชื้นม้วน Double", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต PD"}, {"id": "STD_058", "dept": "QC", "machine": "General / All", "item": "ควาชื้นม้วน Double", "freq": "ทุก 1 ชั่วโมง", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Condition ระหว่างผลิต QC"}, {"id": "STD_059", "dept": "PD", "machine": "General / All", "item": "ความถูกต้องของม้วนตามแผน", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "1", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "1", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน PD"}, {"id": "STD_060", "dept": "QC", "machine": "General / All", "item": "ความถูกต้องของม้วนตามแผน", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "1", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "1", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Iodine Test & ความถูกต้องม้วน QC"}, {"id": "STD_061", "dept": "GLUE", "machine": "General / All", "item": "Viscosity Single B", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_062", "dept": "GLUE", "machine": "General / All", "item": "Viscosity Single C", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_063", "dept": "GLUE", "machine": "General / All", "item": "Viscosity Double", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "22-32 S", "spec_type": "range", "min_val": 22.0, "max_val": 32.0, "unit": "s", "target": "22.0 - 32.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_064", "dept": "GLUE", "machine": "General / All", "item": "TEMP GLUE Single C", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_065", "dept": "GLUE", "machine": "General / All", "item": "TEMP GLUE Single B", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_066", "dept": "GLUE", "machine": "General / All", "item": "TEMP GLUE Double", "freq": "ทุก 2 ชั่วโมง", "spec_raw": "Temp./Spec 35-45℃", "spec_type": "range", "min_val": 35.0, "max_val": 45.0, "unit": "°C", "target": "35.0 - 45.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจสอบคุณภาพกาวในกระบวนการผลิต"}, {"id": "STD_067", "dept": "Boiler", "machine": "General / All", "item": "Pressure stream Gauge Single B", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 8 Bar หรือ 175 องศา", "spec_type": "gte", "min_val": 8.0, "max_val": null, "unit": "Bar", "target": "≥ 8.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_068", "dept": "Boiler", "machine": "General / All", "item": "Pressure stream Gauge Single C", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 8 Bar หรือ 175 องศา", "spec_type": "gte", "min_val": 8.0, "max_val": null, "unit": "Bar", "target": "≥ 8.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_069", "dept": "Boiler", "machine": "General / All", "item": "Pressure stream Gauge Double", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 8 Bar หรือ 175 องศา", "spec_type": "gte", "min_val": 8.0, "max_val": null, "unit": "Bar", "target": "≥ 8.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_070", "dept": "Boiler", "machine": "BHS", "item": "Steam Trap เข้า 19 จุด BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "135 ~ 170 °C", "spec_type": "range", "min_val": 135.0, "max_val": 170.0, "unit": "°C", "target": "135.0 - 170.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_071", "dept": "Boiler", "machine": "BHS", "item": "Steam Trap ออก 19 จุด BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "80 ~ 120 °C", "spec_type": "range", "min_val": 80.0, "max_val": 120.0, "unit": "°C", "target": "80.0 - 120.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_072", "dept": "Boiler", "machine": "General / All", "item": "Steam Trap เข้า 25 จุด ISWOA", "freq": "1 วัน (รายวัน)", "spec_raw": "135 ~ 170 °C", "spec_type": "range", "min_val": 135.0, "max_val": 170.0, "unit": "°C", "target": "135.0 - 170.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_073", "dept": "Boiler", "machine": "ISOWA", "item": "Steam Trap ออก 25 จุด ISOWA", "freq": "1 วัน (รายวัน)", "spec_raw": "80 ~ 120 °C", "spec_type": "range", "min_val": 80.0, "max_val": 120.0, "unit": "°C", "target": "80.0 - 120.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_074", "dept": "Boiler", "machine": "General / All", "item": "Steam Trap เข้า 18 จุด YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "135 ~ 170 °C", "spec_type": "range", "min_val": 135.0, "max_val": 170.0, "unit": "°C", "target": "135.0 - 170.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_075", "dept": "Boiler", "machine": "General / All", "item": "Steam Trap ออก 18 จุด YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "80 ~ 120 °C", "spec_type": "range", "min_val": 80.0, "max_val": 120.0, "unit": "°C", "target": "80.0 - 120.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดอุณหภูมิสตีมแทร็ป (Steam Trap Record)"}, {"id": "STD_076", "dept": "Boiler", "machine": "BHS", "item": "Pressure ลมGauge ถังพักหลัง BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 7 Bar", "spec_type": "gte", "min_val": 7.0, "max_val": null, "unit": "Bar", "target": "≥ 7.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_077", "dept": "Boiler", "machine": "BHS", "item": "Pressure ลมGauge ถังพักหน้า BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 7 Bar", "spec_type": "gte", "min_val": 7.0, "max_val": null, "unit": "Bar", "target": "≥ 7.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_078", "dept": "Boiler", "machine": "General / All", "item": "Pressure ลมGauge ถังพัก YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "≥ 7 Bar", "spec_type": "gte", "min_val": 7.0, "max_val": null, "unit": "Bar", "target": "≥ 7.0 Bar", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_079", "dept": "Boiler", "machine": "BHS", "item": "Auto Drain ลมถังพักหลัง BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "ต้องไม่มีน้ำค้างในระบบ", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ต้องไม่มีน้ำค้างในระบบ", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_080", "dept": "Boiler", "machine": "BHS", "item": "Auto Drain ลมถังพักหน้า BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "ต้องไม่มีน้ำค้างในระบบ", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ต้องไม่มีน้ำค้างในระบบ", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_081", "dept": "Boiler", "machine": "General / All", "item": "Auto Drain ลมถังพัก YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "ต้องไม่มีน้ำค้างในระบบ", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ต้องไม่มีน้ำค้างในระบบ", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_082", "dept": "Boiler", "machine": "BHS", "item": "อัตราการไหล ลม BHS", "freq": "1 วัน (รายวัน)", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_083", "dept": "Boiler", "machine": "General / All", "item": "อัตราการไหล ลม YUELI", "freq": "1 วัน (รายวัน)", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_084", "dept": "Boiler", "machine": "ISOWA", "item": "อัตราการไหล ลม ISOWA", "freq": "1 วัน (รายวัน)", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจวัดแรงดันลมและระบบระบายน้ำ Auto Drain"}, {"id": "STD_085", "dept": "LAB", "machine": "General / All", "item": "กระดาษลูกฟูก", "freq": "ตามแผน", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_086", "dept": "LAB", "machine": "General / All", "item": "ม้วน", "freq": "ตามแผน", "spec_raw": "-", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "-", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_087", "dept": "LAB", "machine": "General / All", "item": "แป้ง ความหนืด แป้งมัน", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "5 นาที 25-29 Sec.10 นาที 30-34 Sec.15 นาที 35-40 Sec.", "spec_type": "range", "min_val": 25.0, "max_val": 29.0, "unit": "s", "target": "25.0 - 29.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_088", "dept": "LAB", "machine": "General / All", "item": "แป้ง ความหนืด สังเคราะห์", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "5 นาที 16-22 Sec.10 นาที 16-22 Sec.15 นาที 16-22 Sec.", "spec_type": "range", "min_val": 16.0, "max_val": 22.0, "unit": "s", "target": "16.0 - 22.0 s", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_089", "dept": "LAB", "machine": "General / All", "item": "แป้ง ทนด่าง", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "≤ 50 ml.", "spec_type": "lte", "min_val": null, "max_val": 50.0, "unit": "ml", "target": "≤ 50.0 ml", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_090", "dept": "LAB", "machine": "General / All", "item": "แป้ง PH", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "5.0-7.0", "spec_type": "range", "min_val": 5.0, "max_val": 7.0, "unit": "", "target": "5.0 - 7.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_091", "dept": "LAB", "machine": "General / All", "item": "ถ่านหิน ความชื้น เกรด 4200", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "35-40%", "spec_type": "range", "min_val": 35.0, "max_val": 40.0, "unit": "%", "target": "35.0 - 40.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_092", "dept": "LAB", "machine": "General / All", "item": "ถ่านหิน ความชื้น เกรด 3500", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "38-42%", "spec_type": "range", "min_val": 38.0, "max_val": 42.0, "unit": "%", "target": "38.0 - 42.0 %", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_093", "dept": "LAB", "machine": "General / All", "item": "โซดาไฟ", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "0.5", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "0.5", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_094", "dept": "LAB", "machine": "General / All", "item": "บอแรกซ์", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "COA", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "COA", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบวัตถุดิบรับเข้าห้องแล็บ (แป้ง/ถ่านหิน/สารเคมี)"}, {"id": "STD_095", "dept": "LAB", "machine": "General / All", "item": "Solid Single", "freq": "1 วัน (รายวัน)", "spec_raw": "20.5-22", "spec_type": "range", "min_val": 20.5, "max_val": 22.0, "unit": "", "target": "20.5 - 22.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_096", "dept": "LAB", "machine": "General / All", "item": "Solid Double", "freq": "1 วัน (รายวัน)", "spec_raw": "20.5-22", "spec_type": "range", "min_val": 20.5, "max_val": 22.0, "unit": "", "target": "20.5 - 22.0", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_097", "dept": "LAB", "machine": "General / All", "item": "Gel point Single", "freq": "1 วัน (รายวัน)", "spec_raw": "58-60 องศา", "spec_type": "range", "min_val": 58.0, "max_val": 60.0, "unit": "°C", "target": "58.0 - 60.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_098", "dept": "LAB", "machine": "General / All", "item": "Gel point Double", "freq": "1 วัน (รายวัน)", "spec_raw": "58-60 องศา", "spec_type": "range", "min_val": 58.0, "max_val": 60.0, "unit": "°C", "target": "58.0 - 60.0 °C", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดตรวจ Solid Content & Gel Point กาว"}, {"id": "STD_099", "dept": "IQC", "machine": "General / All", "item": "สภาพทั่วไป", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "ต้องไม่ฉีกขาด ไม่กระแทก จุดดำ แกนไม่บี้", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ต้องไม่ฉีกขาด ไม่กระแทก จุดดำ แกนไม่บี้", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_100", "dept": "IQC", "machine": "General / All", "item": "ความชื้น", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "6-9%", "spec_type": "range", "min_val": 6.0, "max_val": 9.0, "unit": "%", "target": "6.0 - 9.0 %", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_101", "dept": "IQC", "machine": "General / All", "item": "สี Liner", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "ตามข้อตกลง Upper Lower", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "ตามข้อตกลง Upper Lower", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_102", "dept": "IQC", "machine": "General / All", "item": "หน้ากว้าง", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "+5 -0 mm.", "spec_type": "range", "min_val": 5.0, "max_val": 0.0, "unit": "mm", "target": "5.0 - 0.0 mm", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_103", "dept": "IQC", "machine": "General / All", "item": "น้ำหนัก", "freq": "ทุกรอบรับเข้า / ตามรอบ", "spec_raw": "± 5%", "spec_type": "text", "min_val": null, "max_val": null, "unit": "", "target": "± 5%", "active": true, "require_val": true, "require_photo": true, "group_title": "ชุดบันทึกผลการตรวจรับม้วนกระดาษ (Incoming Paper Roll)"}, {"id": "STD_104", "dept": "LAB", "machine": "General / All", "item": "Basis Weight", "freq": "ตามรอบ / ตาม Lot", "spec_raw": "คำนวณตามเกรด ± 5%", "spec_type": "range", "min_val": 100.0, "max_val": 200.0, "unit": "g/m²", "target": "คำนวณตามเกรด ± 5%", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบม้วนกระดาษห้องแล็บ (Paper Roll Lab Test)"}, {"id": "STD_105", "dept": "LAB", "machine": "General / All", "item": "Bursting (TS)", "freq": "ตามรอบ / ตาม Lot", "spec_raw": "≥ 294", "spec_type": "gte", "min_val": 294.0, "max_val": null, "unit": "kPa", "target": "≥ 294 kPa", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบม้วนกระดาษห้องแล็บ (Paper Roll Lab Test)"}, {"id": "STD_106", "dept": "LAB", "machine": "General / All", "item": "Bursting (BS)", "freq": "ตามรอบ / ตาม Lot", "spec_raw": "≥ 294", "spec_type": "gte", "min_val": 294.0, "max_val": null, "unit": "kPa", "target": "≥ 294 kPa", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบม้วนกระดาษห้องแล็บ (Paper Roll Lab Test)"}, {"id": "STD_107", "dept": "LAB", "machine": "General / All", "item": "Ring Crush", "freq": "ตามรอบ / ตาม Lot", "spec_raw": "≥ 100", "spec_type": "gte", "min_val": 100.0, "max_val": null, "unit": "N", "target": "≥ 100 N", "active": true, "require_val": true, "require_photo": false, "group_title": "ชุดทดสอบม้วนกระดาษห้องแล็บ (Paper Roll Lab Test)"}];
     const DEFAULT_LOGS = [];
     const DEFAULT_DEPTS = [{"id": "dept_pd", "code": "PD", "name": "PD (ฝ่ายผลิต)", "icon": "fa-industry", "color": "blue", "desc": "สายการผลิตลูกฟูก BHS / YUELI / ISOWA"}, {"id": "dept_qc", "code": "QC", "name": "QC (ควบคุมคุณภาพ)", "icon": "fa-check-double", "color": "indigo", "desc": "ตรวจสอบคุณภาพระหว่างผลิตและแผ่นลูกฟูก"}, {"id": "dept_glue", "code": "GLUE", "name": "GLUE (หน่วยงานกาว)", "icon": "fa-flask-vial", "color": "amber", "desc": "การผสมกาว ความหนืด อุณหภูมิ และจุดเจล"}, {"id": "dept_boiler", "code": "Boiler", "name": "Boiler & Utility (หม้อต้ม/ลม)", "icon": "fa-fire-burner", "color": "rose", "desc": "สตีมแทร็ป แรงดันไอน้ำ และระบบลมอัด"}, {"id": "dept_lab", "code": "LAB", "name": "LAB (ห้องปฏิบัติการ)", "icon": "fa-microscope", "color": "teal", "desc": "Solid Content, ความชื้นถ่านหิน, แป้งและสารเคมี"}, {"id": "dept_iqc", "code": "IQC", "name": "IQC (ตรวจรับวัตถุดิบ/ม้วน)", "icon": "fa-truck-ramp-box", "color": "purple", "desc": "ตรวจสอบม้วนกระดาษรับเข้า หน้ากว้าง ความชื้น นน."}];
     const DEFAULT_USERS = [{"id": "usr_admin", "username": "admin", "password": "Panya1990", "name": "ผู้ดูแลระบบสูงสุด (Admin)", "role": "admin", "dept": "ALL", "allowed_tabs": ["inspection", "daily_matrix", "dashboard", "investigation", "history", "master", "qr_hub", "users_depts", "settings"], "active": true}, {"id": "usr_1791969629080", "username": "PD001", "password": "pd001", "name": "Production Leader", "role": "inspector", "dept": "PD", "allowed_tabs": ["inspection", "daily_matrix", "dashboard", "investigation", "master", "history", "qr_hub"], "active": true}, {"id": "usr_1791969738299", "username": "pd002", "password": "pd002", "name": "Production User", "role": "operator", "dept": "PD", "allowed_tabs": ["inspection", "daily_matrix", "dashboard"], "active": true}, {"id": "usr_1791969861196", "username": "qc001", "password": "qc001", "name": "Quality Control Leader", "role": "inspector", "dept": "QC", "allowed_tabs": ["inspection", "daily_matrix", "dashboard", "investigation", "master", "history", "qr_hub"], "active": true}, {"id": "usr_1791969991885", "username": "qc002", "password": "qc002", "name": "Quality Control User", "role": "operator", "dept": "QC", "allowed_tabs": ["inspection", "daily_matrix", "dashboard"], "active": true}, {"id": "usr_1791970190054", "username": "ut001", "password": "ut001", "name": "Utility Leader", "role": "inspector", "dept": "Boiler", "allowed_tabs": ["inspection", "daily_matrix", "dashboard", "investigation", "master", "history", "qr_hub"], "active": true}, {"id": "usr_1791970315411", "username": "ut002", "password": "ut001", "name": "Utility User Glue", "role": "operator", "dept": "GLUE", "allowed_tabs": ["inspection", "daily_matrix", "dashboard"], "active": true}, {"id": "usr_1791970360411", "username": "ut003", "password": "ut003", "name": "Utility User Boiler", "role": "operator", "dept": "Boiler", "allowed_tabs": ["inspection", "daily_matrix", "dashboard"], "active": true}, {"id": "usr_1791970481034", "username": "lab001", "password": "lab001", "name": "Lab Leader", "role": "inspector", "dept": "LAB", "allowed_tabs": ["inspection", "daily_matrix", "dashboard", "investigation", "master", "history", "qr_hub"], "active": true}, {"id": "usr_1791970515134", "username": "lab002", "password": "lab002", "name": "Lab Leader", "role": "operator", "dept": "LAB", "allowed_tabs": ["inspection", "daily_matrix", "dashboard"], "active": true}];
@@ -3683,42 +3737,57 @@
       }
     }
 
-    // Populate Department Dropdowns across system
+    // Populate Department Dropdowns across system (Strictly preserving active filter selections!)
     function populateDeptDropdowns() {
-      const depts = appState.depts;
-      
+      const depts = appState.depts || [];
+      const validCodes = new Set(depts.map(d => d.code));
+
       // Master filter dept
       const masterFilter = document.getElementById('masterFilterDept');
       if (masterFilter) {
+        const prevMaster = masterFilter.value || 'ALL';
         masterFilter.innerHTML = '<option value="ALL">ทุกแผนก (All Departments)</option>' + 
           depts.map(d => `<option value="${d.code}">${d.code} (${d.name})</option>`).join('');
+        masterFilter.value = (prevMaster === 'ALL' || validCodes.has(prevMaster)) ? prevMaster : 'ALL';
       }
 
       // Modal Dept Select
       const modalDept = document.getElementById('modalDeptSelect');
       if (modalDept) {
+        const prevModal = modalDept.value;
         modalDept.innerHTML = depts.map(d => `<option value="${d.code}">${d.code} - ${d.name}</option>`).join('');
+        if (prevModal && validCodes.has(prevModal)) modalDept.value = prevModal;
       }
 
-      // History Dept filter
+      // History Dept filter (Preserve user selection!)
       const histDept = document.getElementById('histDeptFilter');
       if (histDept) {
+        const savedHistDept = (appState.histFilters && appState.histFilters.dept) ? appState.histFilters.dept : (histDept.value || 'ALL');
         histDept.innerHTML = '<option value="ALL">ทุกแผนก</option>' + 
           depts.map(d => `<option value="${d.code}">${d.code}</option>`).join('');
+        if (savedHistDept === 'ALL' || validCodes.has(savedHistDept)) {
+          histDept.value = savedHistDept;
+        } else {
+          histDept.value = 'ALL';
+        }
       }
 
       // Matrix Dept select
       const matDept = document.getElementById('matrixDeptSelect');
       if (matDept) {
+        const prevMat = matDept.value || 'ALL';
         matDept.innerHTML = '<option value="ALL">ทุกแผนก (All Depts)</option>' + 
           depts.map(d => `<option value="${d.code}">${d.code}</option>`).join('');
+        matDept.value = (prevMat === 'ALL' || validCodes.has(prevMat)) ? prevMat : 'ALL';
       }
 
       // Investigation Dept select
       const invDept = document.getElementById('invDeptFilter');
       if (invDept) {
+        const prevInv = invDept.value || 'ALL';
         invDept.innerHTML = '<option value="ALL">ทุกแผนก</option>' + 
           depts.map(d => `<option value="${d.code}">${d.code}</option>`).join('');
+        invDept.value = (prevInv === 'ALL' || validCodes.has(prevInv)) ? prevInv : 'ALL';
       }
 
       // Dashboard Dept & Machine Dropdowns
@@ -5127,8 +5196,9 @@
             </div>
           `;
         } else if (activeSpec.spec_type === 'numeric') {
+          const cleanUnitNum = String(activeSpec.unit || it.unit || '').trim();
           inputControlHtml = `
-            <div class="relative w-full md:max-w-[160px] md:mx-auto flex items-center gap-1">
+            <div class="w-full md:max-w-[215px] md:mx-auto flex items-center justify-center gap-1">
               <input 
                 type="text" 
                 inputmode="decimal"
@@ -5136,10 +5206,10 @@
                 value="${val}" 
                 oninput="handleEntryValueChange('${it.id}', this.value)" 
                 placeholder="ตัวเลข หรือ -" 
-                class="w-full text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition ${inputBorderClass}"
+                class="w-full min-w-[92px] text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition ${inputBorderClass}"
               >
-              ${activeSpec.unit || it.unit ? `<span class="absolute right-9 top-2.5 md:top-2 text-[11px] text-slate-500 pointer-events-none font-mono">${activeSpec.unit || it.unit}</span>` : ''}
-              <button type="button" onclick="setRowSkipped('${it.id}')" title="ไม่ได้ตรวจรอบนี้ (ใส่ -)" class="px-1.5 py-2 md:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 text-[10px] font-mono transition shrink-0 active:scale-95">-</button>
+              ${cleanUnitNum ? `<span class="entry-unit-pill px-1.5 py-1.5 md:py-1 rounded-lg text-[10px] font-mono shrink-0 max-w-[58px] truncate select-none" title="หน่วย: ${cleanUnitNum}">${cleanUnitNum}</span>` : ''}
+              <button type="button" onclick="setRowSkipped('${it.id}')" title="ไม่ได้ตรวจรอบนี้ (ใส่ -)" class="px-2 py-2 md:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 text-[10px] font-mono transition shrink-0 active:scale-95">-</button>
             </div>
           `;
         } else if (activeSpec.spec_type === 'text') {
@@ -5172,8 +5242,9 @@
           `;
         } else {
           // Standard range / gte / lte
+          const cleanUnitStd = String(activeSpec.unit || it.unit || '').trim();
           inputControlHtml = `
-            <div class="relative w-full md:max-w-[160px] md:mx-auto flex items-center gap-1">
+            <div class="w-full md:max-w-[215px] md:mx-auto flex items-center justify-center gap-1">
               <input 
                 type="text" 
                 inputmode="decimal"
@@ -5181,10 +5252,10 @@
                 value="${val}" 
                 oninput="handleEntryValueChange('${it.id}', this.value)" 
                 placeholder="แตะกรอก หรือ -" 
-                class="w-full text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition ${inputBorderClass}"
+                class="w-full min-w-[92px] text-center border rounded-xl py-2 px-2 md:py-1.5 text-sm md:text-xs sm:text-sm font-mono font-bold focus:outline-none transition ${inputBorderClass}"
               >
-              ${activeSpec.unit || it.unit ? `<span class="absolute right-9 top-2.5 md:top-2 text-[11px] text-slate-500 pointer-events-none font-mono">${activeSpec.unit || it.unit}</span>` : ''}
-              <button type="button" onclick="setRowSkipped('${it.id}')" title="ไม่ได้ตรวจรอบนี้ (ใส่ -)" class="px-1.5 py-2 md:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 text-[10px] font-mono transition shrink-0 active:scale-95">-</button>
+              ${cleanUnitStd ? `<span class="entry-unit-pill px-1.5 py-1.5 md:py-1 rounded-lg text-[10px] font-mono shrink-0 max-w-[58px] truncate select-none" title="หน่วย: ${cleanUnitStd}">${cleanUnitStd}</span>` : ''}
+              <button type="button" onclick="setRowSkipped('${it.id}')" title="ไม่ได้ตรวจรอบนี้ (ใส่ -)" class="px-2 py-2 md:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 text-[10px] font-mono transition shrink-0 active:scale-95">-</button>
             </div>
           `;
         }
@@ -7781,20 +7852,35 @@
     }
 
     // ================= TAB 4: HISTORY & EXPORT =================
-    // Helper to populate Machine Filter Dropdown in History Tab
+    // Persistent History Filters State (prevents auto-reset on background sync or tab switch)
+    appState.histFilters = {
+      initialized: false,
+      startDate: '',
+      endDate: '',
+      dept: 'ALL',
+      machine: 'ALL',
+      status: 'ALL',
+      search: ''
+    };
+
+    // Helper to populate Machine Filter Dropdown in History Tab (Strictly preserving selection)
     function populateHistMachineDropdown() {
       const select = document.getElementById('histMachineFilter');
       if (!select) return;
-      const currentVal = select.value;
-      const currentDept = document.getElementById('histDeptFilter') ? document.getElementById('histDeptFilter').value : 'ALL';
+      const currentVal = (select.value && select.value !== 'ALL')
+        ? select.value
+        : ((appState.histFilters && appState.histFilters.machine) || 'ALL');
+      const currentDept = document.getElementById('histDeptFilter')
+        ? document.getElementById('histDeptFilter').value
+        : ((appState.histFilters && appState.histFilters.dept) || 'ALL');
       
       const machines = new Set();
-      appState.master.forEach(it => {
+      (appState.master || []).forEach(it => {
         if (it.machine && (currentDept === 'ALL' || it.dept === currentDept)) {
           machines.add(it.machine);
         }
       });
-      appState.logs.forEach(l => {
+      (appState.logs || []).forEach(l => {
         if (l.machine && (currentDept === 'ALL' || l.dept === currentDept)) {
           machines.add(l.machine);
         }
@@ -7802,14 +7888,20 @@
 
       const sorted = Array.from(machines).sort();
       select.innerHTML = '<option value="ALL">ทุกเครื่องจักร</option>' + sorted.map(m => `<option value="${m}">${m}</option>`).join('');
-      if (sorted.includes(currentVal)) {
+      if (currentVal !== 'ALL' && sorted.includes(currentVal)) {
         select.value = currentVal;
+        if (appState.histFilters) appState.histFilters.machine = currentVal;
       } else {
         select.value = 'ALL';
+        if (appState.histFilters) appState.histFilters.machine = 'ALL';
       }
     }
 
     function handleHistDeptChange() {
+      const deptEl = document.getElementById('histDeptFilter');
+      if (deptEl && appState.histFilters) {
+        appState.histFilters.dept = deptEl.value;
+      }
       populateHistMachineDropdown();
       renderHistoryTable();
     }
@@ -7955,12 +8047,17 @@
       ];
     }
 
-        function setHistoryDateToday() {
+    function setHistoryDateToday() {
       const today = getTodayDateString();
       const s = document.getElementById('histStartDate');
       const e = document.getElementById('histEndDate');
       if (s) { s.value = today; delete s.dataset.cleared; }
       if (e) { e.value = today; delete e.dataset.cleared; }
+      if (appState.histFilters) {
+        appState.histFilters.initialized = true;
+        appState.histFilters.startDate = today;
+        appState.histFilters.endDate = today;
+      }
       renderHistoryTable();
     }
 
@@ -7969,26 +8066,52 @@
       const e = document.getElementById('histEndDate');
       if (s) { s.value = ''; s.dataset.cleared = 'true'; }
       if (e) { e.value = ''; e.dataset.cleared = 'true'; }
+      if (appState.histFilters) {
+        appState.histFilters.initialized = true;
+        appState.histFilters.startDate = '';
+        appState.histFilters.endDate = '';
+      }
       renderHistoryTable();
     }
 
     function renderHistoryTable() {
       const thead = document.getElementById('historyTableHead');
       const tbody = document.getElementById('historyTableBody');
-      const dept = document.getElementById('histDeptFilter') ? document.getElementById('histDeptFilter').value : 'ALL';
-      const machine = document.getElementById('histMachineFilter') ? document.getElementById('histMachineFilter').value : 'ALL';
-      const status = document.getElementById('histStatusFilter') ? document.getElementById('histStatusFilter').value : 'ALL';
-      const search = document.getElementById('histSearchInput') ? document.getElementById('histSearchInput').value.trim().toLowerCase() : '';
+      if (!appState.histFilters) {
+        appState.histFilters = { initialized: false, startDate: '', endDate: '', dept: 'ALL', machine: 'ALL', status: 'ALL', search: '' };
+      }
 
-      // Initialize Date Inputs to Today by default if not set
       const sInput = document.getElementById('histStartDate');
       const eInput = document.getElementById('histEndDate');
-      const todayStr = getTodayDateString();
-      if (sInput && !sInput.value && !sInput.dataset.cleared) sInput.value = todayStr;
-      if (eInput && !eInput.value && !eInput.dataset.cleared) eInput.value = todayStr;
+      const deptEl = document.getElementById('histDeptFilter');
+      const machEl = document.getElementById('histMachineFilter');
+      const statusEl = document.getElementById('histStatusFilter');
+      const searchEl = document.getElementById('histSearchInput');
 
-      const startD = sInput ? sInput.value : '';
-      const endD = eInput ? eInput.value : '';
+      // Initialize Date Inputs to Today ONLY ONCE on very first load
+      if (!appState.histFilters.initialized) {
+        const todayStr = getTodayDateString();
+        appState.histFilters.initialized = true;
+        appState.histFilters.startDate = todayStr;
+        appState.histFilters.endDate = todayStr;
+        if (sInput) sInput.value = todayStr;
+        if (eInput) eInput.value = todayStr;
+      } else {
+        // Sync user's current input selections into appState.histFilters (never overwrite user choices!)
+        if (sInput) appState.histFilters.startDate = sInput.value;
+        if (eInput) appState.histFilters.endDate = eInput.value;
+        if (deptEl) appState.histFilters.dept = deptEl.value;
+        if (machEl) appState.histFilters.machine = machEl.value;
+        if (statusEl) appState.histFilters.status = statusEl.value;
+        if (searchEl) appState.histFilters.search = searchEl.value;
+      }
+
+      const dept = deptEl ? deptEl.value : appState.histFilters.dept;
+      const machine = machEl ? machEl.value : appState.histFilters.machine;
+      const status = statusEl ? statusEl.value : appState.histFilters.status;
+      const search = searchEl ? searchEl.value.trim().toLowerCase() : appState.histFilters.search.trim().toLowerCase();
+      const startD = sInput ? sInput.value : appState.histFilters.startDate;
+      const endD = eInput ? eInput.value : appState.histFilters.endDate;
 
       const cols = getHistoryColumns();
 
@@ -9320,8 +9443,8 @@
             renderDashboard();
             runDefectInvestigation();
             renderMasterView();
-            renderHistoryTable();
             populateDeptDropdowns();
+            renderHistoryTable();
             renderEntryDeptButtons();
             renderEntryFreqFilters();
             renderEntryForm();
@@ -11932,16 +12055,73 @@ function selectOfficialFormTemplate(formId) {
     // 3. Qualitative condition STD items (e.g., สภาพทั่วไป, สี Liner, Auto Drain)
     // 4. Fixed numeric range/gte/lte STD items
     function classifyMasterItemForMatrix(it) {
-      const rawSpec = String(it.spec_raw || it.target || '-').trim();
-      const specType = String(it.spec_type || 'range').trim();
+      let rawSpec = String(it.spec_raw || it.target || '-').trim();
+      let specType = String(it.spec_type || 'range').trim();
       const itemName = String(it.item || '').trim();
       const itemLower = itemName.toLowerCase();
-      const hasMinMax = (it.min_val !== null && it.min_val !== undefined) || (it.max_val !== null && it.max_val !== undefined);
+      const deptCode = String(it.dept || '').trim();
 
-      // Check if it is a reference-only parameter without a Pass/Fail STD
+      let minVal = (it.min_val !== null && it.min_val !== undefined && it.min_val !== '') ? parseFloat(it.min_val) : null;
+      let maxVal = (it.max_val !== null && it.max_val !== undefined && it.max_val !== '') ? parseFloat(it.max_val) : null;
+      if (isNaN(minVal)) minVal = null;
+      if (isNaN(maxVal)) maxVal = null;
+
+      // Parse range or threshold directly from rawSpec if minVal/maxVal are missing
+      if (!rawSpec.includes('+5 -0')) {
+        const rangeMatch = rawSpec.match(/(-?\d+(?:\.\d+)?)\s*(?:~|ถึง)\s*(-?\d+(?:\.\d+)?)/) ||
+                           rawSpec.match(/^(-?\d+(?:\.\d+)?)\s*-\s*(-?\d+(?:\.\d+)?)/);
+        if (rangeMatch) {
+          const parsedMin = parseFloat(rangeMatch[1]);
+          const parsedMax = parseFloat(rangeMatch[2]);
+          if (!isNaN(parsedMin) && !isNaN(parsedMax) && parsedMax >= parsedMin) {
+            minVal = parsedMin;
+            maxVal = parsedMax;
+            specType = 'range';
+          }
+        } else {
+          const gteMatch = rawSpec.match(/(?:>=|≥|>)\s*(-?\d+(?:\.\d+)?)/);
+          const lteMatch = rawSpec.match(/(?:<=|≤|<)\s*(-?\d+(?:\.\d+)?)/);
+          if (gteMatch && maxVal === null) {
+            minVal = parseFloat(gteMatch[1]);
+            specType = 'gte';
+          } else if (lteMatch && minVal === null) {
+            maxVal = parseFloat(lteMatch[1]);
+            specType = 'lte';
+          }
+        }
+      }
+
+      // Boiler Steam Trap Rule: Always Range (Min - Max, e.g., 135 ~ 170 °C) as specified by Plant Standard
+      const isBoilerSteamTrap = (
+        deptCode === 'Boiler' &&
+        (itemLower.includes('trap') || itemLower.includes('สตีมแทร็ป')) &&
+        !itemLower.includes('air main tank') &&
+        !itemLower.includes('pressure') &&
+        !itemLower.includes('drain')
+      );
+      if (isBoilerSteamTrap) {
+        specType = 'range';
+        if (minVal === null || maxVal === null || maxVal <= minVal) {
+          if (itemLower.includes('ออก')) {
+            minVal = 80.0;
+            maxVal = 120.0;
+            rawSpec = '80 ~ 120 °C';
+          } else {
+            minVal = 135.0;
+            maxVal = 170.0;
+            rawSpec = '135 ~ 170 °C';
+          }
+        }
+      }
+
+      const hasMinMax = (minVal !== null || maxVal !== null);
+
+      // 1. Check if it is a reference-only parameter without a Pass/Fail STD
       const isNoStdItemName = (
         itemLower === 'speed' ||
         itemLower.includes('gap glue') ||
+        itemLower.includes('gapกาว') ||
+        itemLower.includes('hot plate zone') ||
         itemLower.includes('อัตราการไหล') ||
         itemLower === 'กระดาษลูกฟูก' ||
         itemLower === 'ม้วน' ||
@@ -11950,46 +12130,139 @@ function selectOfficialFormTemplate(formId) {
       );
       const isNoStdSpec = (
         specType === 'numeric' ||
+        rawSpec.includes('ไม่ระบุเกณฑ์') ||
+        rawSpec.includes('ระบุตัวเลข') ||
+        (!hasMinMax && isNoStdItemName) ||
         (specType === 'text' && !hasMinMax && (rawSpec === '-' || rawSpec === '' || rawSpec === 'ตามแกรม' || rawSpec === 'ตามใบสั่ง' || rawSpec === 'บันทึกค่า' || isNoStdItemName))
       );
 
-      // Check if it is a dynamic / per-roll custom STD
-      const isDynamicStd = (
-        specType === 'custom_std' ||
-        itemLower.includes('หน้ากว้าง') ||
-        itemLower.includes('basis weight') ||
+      // 2. Check if it is Qualitative (Pass/Fail or Categorical Options)
+      const isQualitative = !isNoStdSpec && (
+        specType === 'pass_fail' ||
+        specType === 'custom_options' ||
+        rawSpec.includes('ผ่าน (Pass/Fail)') ||
+        rawSpec.includes('Upper,Lower') ||
+        rawSpec.includes('ต้องไม่ฉีกขาด') ||
+        rawSpec.includes('ตามข้อตกลง') ||
+        rawSpec.includes('ไม่มีน้ำค้าง') ||
+        itemLower.includes('สภาพทั่วไป') ||
+        itemLower.includes('สี liner') ||
+        itemLower.includes('ผลการเทียบสี') ||
+        itemLower.includes('สันนูน') ||
+        itemLower.includes('รอยกระแทก') ||
+        itemLower.includes('ฉีกขาด') ||
+        itemLower.includes('จุดดำ') ||
+        itemLower.includes('calender') ||
+        itemLower.includes('กระดาษยับ') ||
+        itemLower.includes('เยื่อไม่สม่ำเสมอ') ||
+        itemLower === 'อื่นๆ' ||
+        itemLower.includes('auto drain') ||
+        itemLower.includes('ความถูกต้องของม้วน')
+      );
+
+      // 3. Check if it is One-Sided Threshold (>= Min or <= Max)
+      // Includes Boiler Pressure ลมถัง / AIR MAIN TANK (>= 7), Pressure ไอน้ำ (>= 8), LAB Bursting (TS/BS), Ring Crush, แป้ง ทนด่าง (<= 50)
+      const isThresholdGteLte = !isNoStdSpec && !isQualitative && !isBoilerSteamTrap && (
+        specType === 'gte' ||
+        specType === 'lte' ||
         itemLower.includes('bursting') ||
         itemLower.includes('ring crush') ||
+        itemLower.includes('rct') ||
+        itemLower.includes('air main tank') ||
+        (deptCode === 'Boiler' && itemLower.includes('pressure')) ||
+        itemLower.includes('ทนด่าง')
+      );
+
+      // 4. Check if it is Dynamic Roll Range STD (หน้ากว้างวัดจริง MIN ~ MIN+5, น้ำหนัก ±5%, Basis Weight ±5%)
+      const isDynamicRollRange = !isNoStdSpec && !isQualitative && !isThresholdGteLte && (
+        itemLower.includes('หน้ากว้าง') ||
+        itemLower.includes('basis weight') ||
+        (deptCode === 'IQC' && itemLower.includes('น้ำหนัก')) ||
         rawSpec.includes('คำนวณตามเกรด') ||
         rawSpec.includes('+5 -0') ||
         rawSpec === '± 5%'
       );
 
+      const isDynamicStd = (
+        isDynamicRollRange ||
+        specType === 'custom_std' ||
+        itemLower.includes('bursting') ||
+        itemLower.includes('ring crush')
+      );
+
+      // Determine exact SPC Chart Category (1 of 5)
+      let chartCategory = 'RANGE';
+      let chartCategoryLabel = 'กราฟ SPC ช่วงสเปค (Min – Max)';
+      if (isNoStdSpec) {
+        chartCategory = 'NO_STD';
+        chartCategoryLabel = 'กราฟแนวโน้มค่าอ้างอิง (ไม่มี STD)';
+      } else if (isQualitative) {
+        chartCategory = 'QUALITATIVE';
+        chartCategoryLabel = 'แถบสถานะผ่าน/ไม่ผ่าน (Status Strip)';
+      } else if (isDynamicRollRange) {
+        chartCategory = 'DYNAMIC_ROLL';
+        chartCategoryLabel = 'กราฟสเปคแปรผันตามม้วน (Dynamic Roll)';
+      } else if (isThresholdGteLte) {
+        chartCategory = 'THRESHOLD';
+        chartCategoryLabel = (specType === 'lte' || itemLower.includes('ทนด่าง'))
+          ? 'กราฟเกณฑ์สูงสุดไม่เกิน (≤ Max)'
+          : 'กราฟเกณฑ์ขั้นต่ำ (≥ Min)';
+      } else {
+        chartCategory = 'RANGE';
+        chartCategoryLabel = 'กราฟ SPC ช่วงสเปค (Min – Max)';
+      }
+
       let stdBadgeLabel = rawSpec;
       if (isNoStdSpec) {
-        if (rawSpec === '-' || rawSpec === '') {
-          stdBadgeLabel = 'ไม่มี STD (บันทึกค่า)';
+        if (rawSpec === '-' || rawSpec === '' || rawSpec.includes('ไม่ระบุเกณฑ์')) {
+          stdBadgeLabel = 'ไม่มี STD (ค่าอ้างอิง)';
         } else {
-          stdBadgeLabel = `${rawSpec} (บันทึกค่า)`;
+          stdBadgeLabel = `${rawSpec} (ค่าอ้างอิง)`;
         }
-      } else if (itemLower.includes('หน้ากว้าง') && it.dept === 'IQC') {
+      } else if (itemLower.includes('หน้ากว้าง') && deptCode === 'IQC') {
         stdBadgeLabel = 'MIN ~ MIN+5 mm.';
+      } else if (itemLower.includes('basis weight')) {
+        stdBadgeLabel = 'ตามเกรด ± 5%';
+      } else if (itemLower.includes('bursting')) {
+        stdBadgeLabel = (minVal !== null) ? `≥ ${minVal}` : '≥ ค่า STD ตามเกรด';
+      } else if (itemLower.includes('ring crush')) {
+        stdBadgeLabel = (minVal !== null) ? `≥ ${minVal}` : '≥ ค่า STD ตามเกรด';
+      } else if (chartCategory === 'RANGE' && minVal !== null && maxVal !== null) {
+        stdBadgeLabel = `${minVal} ~ ${maxVal}`;
+      } else if (chartCategory === 'THRESHOLD') {
+        if (specType === 'lte' && maxVal !== null) stdBadgeLabel = `≤ ${maxVal}`;
+        else if (minVal !== null) stdBadgeLabel = `≥ ${minVal}`;
+      }
+
+      let resolvedUnit = (it.unit && !String(it.unit).includes('?')) ? String(it.unit).trim() : '';
+      if (!resolvedUnit) {
+        if (rawSpec.includes('℃') || rawSpec.includes('องศา') || rawSpec.includes('อาศา') || isBoilerSteamTrap || itemLower.includes('อุณหภูมิ') || itemLower.includes('temp') || itemLower.includes('gel point')) resolvedUnit = '°C';
+        else if (rawSpec.includes('Bar') || itemLower.includes('pressure') || itemLower.includes('air main tank')) resolvedUnit = 'Bar';
+        else if (rawSpec.includes('%') || itemLower.includes('ความชื้น') || itemLower.includes('ควาชื้น') || itemLower.includes('solid')) resolvedUnit = '%';
+        else if (itemLower.includes('ความหนืด') || itemLower.includes('viscosity')) resolvedUnit = 'S';
+        else if (itemLower.includes('หน้ากว้าง')) resolvedUnit = 'mm.';
+        else if (itemLower.includes('basis weight')) resolvedUnit = 'g/m²';
+        else if (itemLower.includes('bursting')) resolvedUnit = 'kPa';
+        else if (itemLower.includes('ring crush')) resolvedUnit = 'kgf';
       }
 
       return {
         id: it.id,
-        dept: it.dept,
+        dept: deptCode,
         machine: it.machine || 'General / All',
         group_title: it.group_title || '',
         name: itemName,
         freq: it.freq || '',
-        unit: (it.unit && !String(it.unit).includes('?')) ? it.unit : (rawSpec.includes('℃') || rawSpec.includes('องศา') || rawSpec.includes('อาศา') ? '°C' : ''),
+        unit: resolvedUnit,
         spec_raw: rawSpec,
         spec_type: specType,
-        min_val: it.min_val,
-        max_val: it.max_val,
+        min_val: minVal,
+        max_val: maxVal,
         isNoStd: isNoStdSpec,
+        isQualitative: isQualitative,
         isDynamicStd: isDynamicStd,
+        chartCategory: chartCategory,
+        chartCategoryLabel: chartCategoryLabel,
         stdBadgeLabel: stdBadgeLabel
       };
     }
@@ -12889,6 +13162,9 @@ function selectOfficialFormTemplate(formId) {
         }
       }
 
+      // 6B. Render Interactive SPC Control Chart Section
+      renderDmSpcControlChartSection(cols, rawRows, evalMatrix, isRollMode, deptMode, dateStr, machineFilter);
+
       // 7. Render Matrix Table HTML (Always render <thead> so filtered Checklist Group / Machine columns are always visible)
       const tableContainer = document.getElementById('dmTableContainer');
       if (tableContainer) {
@@ -12938,10 +13214,13 @@ function selectOfficialFormTemplate(formId) {
                   <th class="py-2.5 px-2.5 border-r border-slate-800 whitespace-nowrap">ซัพพลายเออร์</th>
                   <th class="py-2.5 px-2.5 text-center border-r border-slate-800 whitespace-nowrap">เกรด / แกรม</th>
                   ${cols.map(c => `
-                    <th class="py-2 px-2.5 text-center border-r border-slate-800 min-w-[125px]">
-                      <div class="font-bold text-white leading-snug">${c.name}</div>
+                    <th onclick="openDmControlChartForColumn('${c.id}')" title="คลิกเพื่อเปิดกราฟคอนโทรลของ ${c.name}" class="dm-th-clickable py-2 px-2.5 text-center border-r border-slate-800 min-w-[130px] group">
+                      <div class="font-bold text-white leading-snug group-hover:text-blue-500 transition">${c.name}</div>
                       <div class="mt-1 inline-block px-2 py-0.5 rounded-full ${c.isNoStd ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-blue-950 text-blue-300 border border-blue-800/60'} font-mono text-[10px]">
                         ${c.isNoStd ? c.stdBadgeLabel : `STD: ${c.stdBadgeLabel}`}
+                      </div>
+                      <div class="mt-1 text-[9.5px] text-indigo-400 font-semibold flex items-center justify-center gap-1 opacity-85 group-hover:opacity-100">
+                        <i class="fa-solid fa-chart-line"></i><span>คลิกดูกราฟ</span>
                       </div>
                     </th>
                   `).join('')}
@@ -13034,10 +13313,13 @@ function selectOfficialFormTemplate(formId) {
                   <th class="py-2.5 px-2.5 font-bold text-center border-r border-slate-800 whitespace-nowrap">เครื่องจักร</th>
                   <th class="py-2.5 px-2.5 font-bold border-r border-slate-800 whitespace-nowrap">Order / ลอน</th>
                   ${cols.map(c => `
-                    <th class="py-2 px-2.5 text-center border-r border-slate-800 min-w-[130px]">
-                      <div class="font-bold text-white leading-snug">${c.name}</div>
+                    <th onclick="openDmControlChartForColumn('${c.id}')" title="คลิกเพื่อเปิดกราฟคอนโทรลของ ${c.name}" class="dm-th-clickable py-2 px-2.5 text-center border-r border-slate-800 min-w-[135px] group">
+                      <div class="font-bold text-white leading-snug group-hover:text-blue-500 transition">${c.name}</div>
                       <div class="mt-1 inline-block px-2 py-0.5 rounded-full ${c.isNoStd ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-blue-950 text-blue-300 border border-blue-800/60'} font-mono text-[10px]">
                         ${c.isNoStd ? c.stdBadgeLabel : `STD: ${c.stdBadgeLabel}`}
+                      </div>
+                      <div class="mt-1 text-[9.5px] text-indigo-400 font-semibold flex items-center justify-center gap-1 opacity-85 group-hover:opacity-100">
+                        <i class="fa-solid fa-chart-line"></i><span>คลิกดูกราฟ</span>
                       </div>
                     </th>
                   `).join('')}
@@ -13241,6 +13523,959 @@ function selectOfficialFormTemplate(formId) {
           analyticsContainer.innerHTML = cardsHtml;
         }
       }
+    }
+
+
+    // =========================================================================
+    // SPC CONTROL CHART & TREND ANALYTICS ENGINE FOR DAILY MATRIX TAB
+    // =========================================================================
+    appState.dmViewMode = 'matrix'; // 'matrix' | 'chart' | 'both'
+    appState.dmChartLayout = 'single'; // 'single' | 'grid'
+    appState.dmChartSelectedColId = null;
+    appState.dmChartOverlayColId = 'AUTO'; // 'NONE' | 'AUTO' | col.id
+
+    function updateDmViewModeButtons() {
+      const mode = appState.dmViewMode || 'matrix';
+      const btnMatrix = document.getElementById('btnDmViewMatrix');
+      const btnChart = document.getElementById('btnDmViewChart');
+      const btnSplit = document.getElementById('btnDmViewSplit');
+      const matrixCard = document.getElementById('dmMatrixTableCard');
+      const chartCard = document.getElementById('dmControlChartCard');
+
+      const activeCls = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition bg-blue-600 text-white shadow-md';
+      const inactiveCls = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700';
+
+      if (btnMatrix) btnMatrix.className = (mode === 'matrix') ? activeCls : inactiveCls;
+      if (btnChart) btnChart.className = (mode === 'chart') ? activeCls : inactiveCls;
+      if (btnSplit) btnSplit.className = (mode === 'both') ? activeCls : inactiveCls;
+
+      if (matrixCard) {
+        if (mode === 'chart') matrixCard.classList.add('hidden');
+        else matrixCard.classList.remove('hidden');
+      }
+      if (chartCard) {
+        if (mode === 'matrix') chartCard.classList.add('hidden');
+        else chartCard.classList.remove('hidden');
+      }
+    }
+
+    function switchDailyMatrixViewMode(mode) {
+      appState.dmViewMode = mode || 'matrix';
+      updateDmViewModeButtons();
+      renderDailyMatrixTab();
+    }
+
+    function switchDmChartLayout(layout) {
+      appState.dmChartLayout = layout || 'single';
+      renderDailyMatrixTab();
+    }
+
+    function selectDmChartColumn(colId) {
+      appState.dmChartSelectedColId = colId;
+      appState.dmChartLayout = 'single';
+      renderDailyMatrixTab();
+    }
+
+    function setDmChartOverlayCol(colId) {
+      appState.dmChartOverlayColId = colId;
+      renderDailyMatrixTab();
+    }
+
+    function openDmControlChartForColumn(colId) {
+      appState.dmChartSelectedColId = colId;
+      appState.dmChartLayout = 'single';
+      if (appState.dmViewMode === 'matrix') {
+        appState.dmViewMode = 'chart';
+      }
+      updateDmViewModeButtons();
+      renderDailyMatrixTab();
+      const chartCard = document.getElementById('dmControlChartCard');
+      if (chartCard) {
+        setTimeout(() => {
+          chartCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+      }
+    }
+
+    // Parse dynamic per-roll range or threshold from cell.stdUsed or row metadata
+    function parseCellSpecBounds(col, cell, rowObj) {
+      let minB = col.min_val;
+      let maxB = col.max_val;
+      const stdStr = String((cell && cell.stdUsed) || col.spec_raw || '').trim();
+
+      if (stdStr && !stdStr.includes('+5 -0')) {
+        const rm = stdStr.match(/(-?\d+(?:\.\d+)?)\s*(?:~|ถึง|-)\s*(-?\d+(?:\.\d+)?)/);
+        if (rm) {
+          const a = parseFloat(rm[1]);
+          const b = parseFloat(rm[2]);
+          if (!isNaN(a) && !isNaN(b) && b >= a) {
+            minB = a;
+            maxB = b;
+          }
+        } else {
+          const gm = stdStr.match(/(?:>=|≥|>)\s*(-?\d+(?:\.\d+)?)/);
+          const lm = stdStr.match(/(?:<=|≤|<)\s*(-?\d+(?:\.\d+)?)/);
+          if (gm) minB = parseFloat(gm[1]);
+          if (lm) maxB = parseFloat(lm[1]);
+        }
+      }
+
+      // Fallback for Basis Weight if paper_grade has numeric gram (e.g. KA125 -> 125 ± 5%)
+      if (col.chartCategory === 'DYNAMIC_ROLL' && col.name.toLowerCase().includes('basis weight') && (minB === null || maxB === null || (minB === 100 && maxB === 200))) {
+        const gradeStr = String((rowObj && rowObj.paper_grade) || '');
+        const gm = gradeStr.match(/(\d{2,3})/);
+        if (gm) {
+          const gsm = parseFloat(gm[1]);
+          if (gsm >= 80 && gsm <= 400) {
+            minB = Number((gsm * 0.95).toFixed(2));
+            maxB = Number((gsm * 1.05).toFixed(2));
+          }
+        }
+      }
+
+      // Fallback for Actual Width if measured value is around e.g. 1182 and no minB was stored
+      if (col.chartCategory === 'DYNAMIC_ROLL' && col.name.toLowerCase().includes('หน้ากว้าง') && (minB === null || maxB === null || maxB <= minB)) {
+        const numVal = cell ? parseFloat(cell.valDisplay) : NaN;
+        if (!isNaN(numVal) && numVal > 500) {
+          const baseWidth = Math.floor(numVal / 10) * 10;
+          minB = baseWidth;
+          maxB = baseWidth + 5;
+        } else {
+          minB = 1180;
+          maxB = 1185;
+        }
+      }
+
+      // Fallback for Bursting / Ring Crush if threshold not specified in cell
+      if (col.chartCategory === 'THRESHOLD' && minB === null && maxB === null) {
+        if (col.name.toLowerCase().includes('bursting')) minB = 294;
+        else if (col.name.toLowerCase().includes('ring crush')) minB = 100;
+      }
+
+      return { minB, maxB };
+    }
+
+    // Build SVG for a Single Detailed SPC Control Chart (supports all 5 categories)
+    function buildSingleSpcChartHtml(col, cols, rawRows, evalMatrix, isRollMode, deptMode) {
+      const cat = col.chartCategory || 'RANGE';
+      const unit = col.unit || '';
+
+      // Collect data points across rawRows
+      const points = [];
+      rawRows.forEach((r, rIdx) => {
+        const cell = evalMatrix[rIdx] ? evalMatrix[rIdx][col.id] : null;
+        if (!cell || !cell.hasValue || cell.isSkipped) return;
+        const labelX = isRollMode ? (r.roll_no || `ม้วน#${rIdx + 1}`) : `${r.time} น.`;
+        const subLabelX = isRollMode ? (r.paper_grade && r.paper_grade !== '-' ? r.paper_grade : r.time) : (r.machine && r.machine !== 'General' ? r.machine : '');
+        const numVal = parseFloat(cell.valDisplay);
+        const { minB, maxB } = parseCellSpecBounds(col, cell, r);
+        points.push({
+          rIdx,
+          rowObj: r,
+          cell,
+          labelX,
+          subLabelX,
+          valStr: cell.valDisplay,
+          numVal: isNaN(numVal) ? null : numVal,
+          isPass: cell.isPass,
+          minB,
+          maxB
+        });
+      });
+
+      if (points.length === 0) {
+        return `
+          <div class="p-8 text-center spc-chart-paper rounded-2xl">
+            <div class="text-sm font-bold text-slate-700">
+              <i class="fa-solid fa-chart-line text-blue-600 mr-1.5"></i>ยังไม่มีข้อมูลตัวเลขของหัวข้อ "${col.name}" ในวันที่เลือก
+            </div>
+            <p class="text-xs text-slate-500 mt-1">สามารถกดปุ่ม <b>"จำลองข้อมูลตัวอย่าง (Demo)"</b> ด้านบน หรือเลือกวันที่มีบันทึกผลเพื่อดูกราฟคอนโทรล</p>
+          </div>
+        `;
+      }
+
+      // =======================================================================
+      // CATEGORY 5: QUALITATIVE PASS/FAIL TIMELINE STRIP
+      // =======================================================================
+      if (cat === 'QUALITATIVE') {
+        const passCnt = points.filter(p => p.isPass).length;
+        const failCnt = points.length - passCnt;
+        const passRate = ((passCnt / points.length) * 100).toFixed(1);
+        return `
+          <div class="spc-chart-paper rounded-2xl p-5 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+              <div>
+                <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  กราฟที่ 5: แถบไทม์ไลน์สถานะคุณภาพ (Qualitative Status Timeline Strip)
+                </span>
+                <h4 class="text-sm font-bold text-slate-900 mt-1">${col.name} — เกณฑ์: ${col.stdBadgeLabel}</h4>
+              </div>
+              <div class="text-xs font-bold ${failCnt === 0 ? 'text-emerald-700' : 'text-rose-700'}">
+                ผ่านเกณฑ์ ${passRate}% (ผ่าน ${passCnt} / ไม่ผ่าน ${failCnt} จาก ${points.length} รอบตรวจ)
+              </div>
+            </div>
+
+            <!-- Progress Compliance Bar -->
+            <div class="w-full h-4 rounded-full bg-rose-200 overflow-hidden flex border border-slate-300">
+              <div style="width: ${passRate}%" class="bg-emerald-500 h-full transition-all"></div>
+            </div>
+
+            <!-- Timeline Blocks -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2.5 pt-1">
+              ${points.map(p => `
+                <div class="p-3 rounded-xl border-2 text-center ${p.isPass ? 'bg-emerald-50 border-emerald-400 text-emerald-900' : 'bg-rose-50 border-rose-500 text-rose-900 shadow-sm'}">
+                  <div class="font-mono font-bold text-xs">${p.labelX}</div>
+                  ${p.subLabelX ? `<div class="text-[10px] text-slate-600 font-mono">${p.subLabelX}</div>` : ''}
+                  <div class="mt-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold inline-block ${p.isPass ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}">
+                    ${p.isPass ? '✔ ' : '✖ '}${p.valStr}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      // Filter numeric points for Categories 1, 2, 3, 4
+      const numPoints = points.filter(p => p.numVal !== null);
+      if (numPoints.length === 0) {
+        return `<div class="p-6 text-center spc-chart-paper rounded-2xl text-xs text-slate-600">ข้อมูลของหัวข้อนี้เป็นข้อความ (${points.map(p => p.valStr).join(', ')})</div>`;
+      }
+
+      // =======================================================================
+      // CATEGORY 3: DYNAMIC ROLL SPEC CHART (Deviation Control Chart + Roll Spec Table)
+      // =======================================================================
+      if (cat === 'DYNAMIC_ROLL') {
+        const isWidth = col.name.toLowerCase().includes('หน้ากว้าง');
+        // Compute deviation for each point:
+        // For Actual Width: delta = measured - minB (Spec is 0 to +5 mm)
+        // For Basis Weight / Weight: pctDelta = ((measured - target) / target) * 100 (Spec is -5% to +5%)
+        const devPoints = numPoints.map(p => {
+          const minB = p.minB !== null ? p.minB : 1180;
+          const maxB = p.maxB !== null ? p.maxB : (isWidth ? minB + 5 : minB * 1.05);
+          if (isWidth) {
+            const dev = Number((p.numVal - minB).toFixed(2));
+            return { ...p, minB, maxB, plotVal: dev, usl: 5, lsl: 0, cl: 2.5, plotUnit: 'mm', stdLabel: `${minB} ~ ${maxB} mm.` };
+          } else {
+            const mid = (minB + maxB) / 2 || 125;
+            const pct = Number((((p.numVal - mid) / mid) * 100).toFixed(2));
+            return { ...p, minB, maxB, plotVal: pct, usl: 5, lsl: -5, cl: 0, plotUnit: '%', stdLabel: `${minB} ~ ${maxB} ${unit}` };
+          }
+        });
+
+        const usl = devPoints[0].usl;
+        const lsl = devPoints[0].lsl;
+        const cl = devPoints[0].cl;
+        const allPlotVals = devPoints.map(d => d.plotVal);
+        const yMin = Math.min(lsl - (isWidth ? 3 : 4), ...allPlotVals) - 1;
+        const yMax = Math.max(usl + (isWidth ? 3 : 4), ...allPlotVals) + 1;
+        const ySpan = Math.max(1, yMax - yMin);
+        const chartLeft = 75, chartRight = 850, chartTop = 38, chartBot = 255;
+        const chartW = chartRight - chartLeft;
+        const chartH = chartBot - chartTop;
+        const toY = (v) => Math.round((chartBot - ((v - yMin) / ySpan) * chartH) * 10) / 10;
+        const toX = (i) => devPoints.length === 1 ? (chartLeft + chartW / 2) : Math.round(chartLeft + 40 + (i / (devPoints.length - 1)) * (chartW - 80));
+
+        const yUsl = toY(usl);
+        const yLsl = toY(lsl);
+        const yCl = toY(cl);
+        const polyPts = devPoints.map((d, i) => `${toX(i)},${toY(d.plotVal)}`).join(' ');
+
+        return `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div class="lg:col-span-8 spc-chart-paper rounded-2xl p-4 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
+                <div>
+                  <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-purple-100 text-purple-900 border border-purple-300">
+                    กราฟที่ 3: Dynamic Roll Spec Control Chart (กราฟควบคุมค่าส่วนต่างตามสเปครายม้วน)
+                  </span>
+                  <h4 class="text-sm font-bold text-slate-900 mt-1">
+                    ${col.name} — ${isWidth ? 'แสดงค่าส่วนต่างจากหน้ากว้าง MIN ของแต่ละม้วน (เกณฑ์: 0 ถึง +5 mm.)' : 'แสดง % ความคลาดเคลื่อนจากค่ากลางของแต่ละม้วน (เกณฑ์: -5% ถึง +5%)'}
+                  </h4>
+                </div>
+              </div>
+
+              <svg viewBox="0 0 900 310" class="w-full h-[290px]">
+                <!-- Out of spec top -->
+                <rect x="${chartLeft}" y="${chartTop}" width="${chartW}" height="${Math.max(0, yUsl - chartTop)}" fill="rgba(244, 63, 94, 0.08)" />
+                <!-- In-spec green band -->
+                <rect x="${chartLeft}" y="${yUsl}" width="${chartW}" height="${Math.max(0, yLsl - yUsl)}" fill="rgba(16, 185, 129, 0.14)" />
+                <!-- Out of spec bottom -->
+                <rect x="${chartLeft}" y="${yLsl}" width="${chartW}" height="${Math.max(0, chartBot - yLsl)}" fill="rgba(244, 63, 94, 0.08)" />
+
+                <!-- USL Line -->
+                <line x1="${chartLeft}" y1="${yUsl}" x2="${chartRight}" y2="${yUsl}" stroke="#e11d48" stroke-width="2" stroke-dasharray="7,5" />
+                <text x="${chartLeft + 8}" y="${yUsl - 6}" fill="#9f1239" font-size="10.5" font-weight="bold">USL ขอบบน = +${usl} ${devPoints[0].plotUnit}</text>
+
+                <!-- Target CL Line -->
+                <line x1="${chartLeft}" y1="${yCl}" x2="${chartRight}" y2="${yCl}" stroke="#059669" stroke-width="1.5" stroke-dasharray="4,4" />
+                <text x="${chartLeft + 8}" y="${yCl - 5}" fill="#065f46" font-size="10" font-weight="bold">Target ค่ากลาง = ${cl >= 0 ? '+' + cl : cl} ${devPoints[0].plotUnit}</text>
+
+                <!-- LSL Line -->
+                <line x1="${chartLeft}" y1="${yLsl}" x2="${chartRight}" y2="${yLsl}" stroke="#e11d48" stroke-width="2" stroke-dasharray="7,5" />
+                <text x="${chartLeft + 8}" y="${yLsl + 14}" fill="#9f1239" font-size="10.5" font-weight="bold">LSL ขอบล่าง = ${lsl} ${devPoints[0].plotUnit}</text>
+
+                <!-- Y Axis Labels -->
+                <text x="${chartLeft - 8}" y="${yUsl + 4}" fill="#be123c" font-size="11" font-weight="bold" text-anchor="end">+${usl}${devPoints[0].plotUnit}</text>
+                <text x="${chartLeft - 8}" y="${yCl + 4}" fill="#047857" font-size="11" font-weight="bold" text-anchor="end">${cl >= 0 ? '+' + cl : cl}${devPoints[0].plotUnit}</text>
+                <text x="${chartLeft - 8}" y="${yLsl + 4}" fill="#be123c" font-size="11" font-weight="bold" text-anchor="end">${lsl}${devPoints[0].plotUnit}</text>
+
+                <!-- Trend Line -->
+                <polyline fill="none" stroke="#6d28d9" stroke-width="3" points="${polyPts}" />
+
+                <!-- Points & Roll Labels -->
+                ${devPoints.map((d, i) => {
+                  const cx = toX(i);
+                  const cy = toY(d.plotVal);
+                  const pass = d.plotVal >= lsl && d.plotVal <= usl && d.isPass;
+                  const ptFill = pass ? '#10b981' : '#e11d48';
+                  const ptStroke = pass ? '#065f46' : '#881337';
+                  const signStr = d.plotVal >= 0 ? `+${d.plotVal}` : `${d.plotVal}`;
+                  return `
+                    <g>
+                      <circle cx="${cx}" cy="${cy}" r="${pass ? 6 : 7.5}" fill="${ptFill}" stroke="${ptStroke}" stroke-width="2" />
+                      <text x="${cx}" y="${cy - 11}" fill="${pass ? '#065f46' : '#be123c'}" font-size="10.5" font-weight="bold" text-anchor="middle">${d.numVal} (${signStr}${devPoints[0].plotUnit})</text>
+                      <text x="${cx}" y="${chartBot + 20}" fill="${pass ? '#1e293b' : '#be123c'}" font-size="10.5" font-weight="bold" text-anchor="middle">${d.labelX}</text>
+                      <text x="${cx}" y="${chartBot + 34}" fill="#475569" font-size="9.5" text-anchor="middle">(${d.stdLabel})</text>
+                    </g>
+                  `;
+                }).join('')}
+              </svg>
+            </div>
+
+            <!-- Per-Roll Spec Comparison Table -->
+            <div class="lg:col-span-4 spc-chart-paper rounded-2xl p-4 space-y-2.5">
+              <div class="text-xs font-bold text-slate-900 flex items-center gap-1.5 border-b border-slate-200 pb-2">
+                <i class="fa-solid fa-table-list text-purple-700"></i>
+                <span>ตารางเทียบค่าวัดจริงกับ STD ของแต่ละม้วน</span>
+              </div>
+              <div class="overflow-x-auto max-h-[260px]">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="border-b border-slate-300 text-[10.5px]">
+                      <th class="py-1.5 px-2">ม้วน / เวลา</th>
+                      <th class="py-1.5 px-2">STD เฉพาะม้วน</th>
+                      <th class="py-1.5 px-2">วัดจริง</th>
+                      <th class="py-1.5 px-2">ส่วนต่าง</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-200">
+                    ${devPoints.map(d => {
+                      const pass = d.plotVal >= lsl && d.plotVal <= usl && d.isPass;
+                      const signStr = d.plotVal >= 0 ? `+${d.plotVal}` : `${d.plotVal}`;
+                      return `
+                        <tr class="${pass ? '' : 'bg-rose-50'}">
+                          <td class="py-1.5 px-2 font-mono font-bold">${d.labelX}</td>
+                          <td class="py-1.5 px-2 font-mono text-[11px]">${d.stdLabel}</td>
+                          <td class="py-1.5 px-2 font-mono font-bold ${pass ? 'text-emerald-700' : 'text-rose-700'}">${d.numVal} ${unit}</td>
+                          <td class="py-1.5 px-2 font-mono font-bold ${pass ? 'text-emerald-700' : 'text-rose-700'}">${signStr}${devPoints[0].plotUnit} (${pass ? 'ผ่าน' : 'NG'})</td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // =======================================================================
+      // CATEGORIES 1 (RANGE), 2 (THRESHOLD), AND 4 (NO_STD REFERENCE)
+      // =======================================================================
+      const vals = numPoints.map(p => p.numVal);
+      const minMeasured = Math.min(...vals);
+      const maxMeasured = Math.max(...vals);
+      const avgMeasured = vals.reduce((a, b) => a + b, 0) / vals.length;
+      const variance = vals.reduce((acc, v) => acc + Math.pow(v - avgMeasured, 2), 0) / vals.length;
+      const sdMeasured = Math.sqrt(variance);
+
+      // Determine Spec Bounds for the Chart
+      let usl = col.max_val;
+      let lsl = col.min_val;
+      if (usl === null && numPoints[0].maxB !== null) usl = numPoints[0].maxB;
+      if (lsl === null && numPoints[0].minB !== null) lsl = numPoints[0].minB;
+
+      // Determine Y-Axis scale
+      const boundCandidates = [...vals];
+      if (cat === 'RANGE') {
+        if (usl !== null) boundCandidates.push(usl);
+        if (lsl !== null) boundCandidates.push(lsl);
+      } else if (cat === 'THRESHOLD') {
+        if (lsl !== null) boundCandidates.push(lsl);
+        if (usl !== null) boundCandidates.push(usl);
+      }
+      const rawMinY = Math.min(...boundCandidates);
+      const rawMaxY = Math.max(...boundCandidates);
+      const rawSpan = Math.max(rawMaxY - rawMinY, Math.abs(rawMaxY) * 0.12, 2);
+      const yMin = rawMinY - rawSpan * 0.22;
+      const yMax = rawMaxY + rawSpan * 0.22;
+      const ySpan = Math.max(0.001, yMax - yMin);
+
+      const chartLeft = 78, chartRight = 845, chartTop = 40, chartBot = 265;
+      const chartW = chartRight - chartLeft;
+      const chartH = chartBot - chartTop;
+      const toY = (v) => Math.max(chartTop - 10, Math.min(chartBot + 10, Math.round((chartBot - ((v - yMin) / ySpan) * chartH) * 10) / 10));
+      const toX = (i) => numPoints.length === 1 ? (chartLeft + chartW / 2) : Math.round(chartLeft + 42 + (i / (numPoints.length - 1)) * (chartW - 84));
+
+      // Check for Secondary Y-Axis Reference Overlay (e.g. Speed / Gap Glue) when viewing RANGE or THRESHOLD
+      const refCols = cols.filter(c => c.chartCategory === 'NO_STD' && c.id !== col.id);
+      let activeOverlayCol = null;
+      if (cat !== 'NO_STD' && refCols.length > 0 && appState.dmChartOverlayColId !== 'NONE') {
+        if (appState.dmChartOverlayColId === 'AUTO') {
+          activeOverlayCol = refCols.find(rc => rc.name.toLowerCase().includes('speed')) || refCols[0];
+        } else {
+          activeOverlayCol = refCols.find(rc => rc.id === appState.dmChartOverlayColId) || null;
+        }
+      }
+
+      let overlaySvg = '';
+      if (activeOverlayCol) {
+        const refPts = [];
+        numPoints.forEach((p, idx) => {
+          const rCell = evalMatrix[p.rIdx] ? evalMatrix[p.rIdx][activeOverlayCol.id] : null;
+          const rNum = rCell && rCell.hasValue && !rCell.isSkipped ? parseFloat(rCell.valDisplay) : NaN;
+          if (!isNaN(rNum)) {
+            refPts.push({ idx, val: rNum, x: toX(idx) });
+          }
+        });
+        if (refPts.length >= 2) {
+          const rVals = refPts.map(rp => rp.val);
+          const rMin = Math.min(...rVals);
+          const rMax = Math.max(...rVals);
+          const rSpan = Math.max(rMax - rMin, 10);
+          const ryMin = rMin - rSpan * 0.25;
+          const ryMax = rMax + rSpan * 0.25;
+          const toRY = (v) => Math.round((chartBot - ((v - ryMin) / (ryMax - ryMin)) * chartH) * 10) / 10;
+          const rPoly = refPts.map(rp => `${rp.x},${toRY(rp.val)}`).join(' ');
+          overlaySvg = `
+            <polyline fill="none" stroke="#0284c7" stroke-width="2" stroke-dasharray="4,4" points="${rPoly}" />
+            ${refPts.map(rp => `
+              <circle cx="${rp.x}" cy="${toRY(rp.val)}" r="3.5" fill="#0284c7" />
+              <text x="${rp.x}" y="${toRY(rp.val) - 7}" fill="#0369a1" font-size="9.5" font-weight="bold" text-anchor="middle">${rp.val}</text>
+            `).join('')}
+            <text x="${chartRight + 10}" y="${chartTop + 12}" fill="#0369a1" font-size="10" font-weight="bold">${activeOverlayCol.name}</text>
+            <text x="${chartRight + 10}" y="${chartTop + 26}" fill="#0284c7" font-size="9.5">Max: ${rMax}</text>
+            <text x="${chartRight + 10}" y="${chartBot}" fill="#0284c7" font-size="9.5">Min: ${rMin}</text>
+          `;
+        }
+      }
+
+      // Build background zones and spec lines based on Category
+      let zonesAndLinesSvg = '';
+      if (cat === 'RANGE' && lsl !== null && usl !== null) {
+        const cl = Number(((lsl + usl) / 2).toFixed(2));
+        const warnMargin = (usl - lsl) * 0.10;
+        const yUsl = toY(usl);
+        const yLsl = toY(lsl);
+        const yCl = toY(cl);
+        const yWarnTop = toY(usl - warnMargin);
+        const yWarnBot = toY(lsl + warnMargin);
+
+        zonesAndLinesSvg = `
+          <!-- Out-of-spec Top Red Zone -->
+          <rect x="${chartLeft}" y="${chartTop}" width="${chartW}" height="${Math.max(0, yUsl - chartTop)}" fill="rgba(244, 63, 94, 0.08)" />
+          <!-- Warning Top Amber Zone -->
+          <rect x="${chartLeft}" y="${yUsl}" width="${chartW}" height="${Math.max(0, yWarnTop - yUsl)}" fill="rgba(245, 158, 11, 0.14)" />
+          <!-- In-Spec Green Zone -->
+          <rect x="${chartLeft}" y="${yUsl}" width="${chartW}" height="${Math.max(0, yLsl - yUsl)}" fill="rgba(16, 185, 129, 0.12)" />
+          <!-- Warning Bottom Amber Zone -->
+          <rect x="${chartLeft}" y="${yWarnBot}" width="${chartW}" height="${Math.max(0, yLsl - yWarnBot)}" fill="rgba(245, 158, 11, 0.14)" />
+          <!-- Out-of-spec Bottom Red Zone -->
+          <rect x="${chartLeft}" y="${yLsl}" width="${chartW}" height="${Math.max(0, chartBot - yLsl)}" fill="rgba(244, 63, 94, 0.08)" />
+
+          <!-- USL Line -->
+          <line x1="${chartLeft}" y1="${yUsl}" x2="${chartRight}" y2="${yUsl}" stroke="#e11d48" stroke-width="2.2" stroke-dasharray="7,5" />
+          <rect x="${chartLeft + 8}" y="${yUsl - 18}" width="142" height="16" rx="4" fill="#ffe4e6" stroke="#fda4af" stroke-width="1" />
+          <text x="${chartLeft + 14}" y="${yUsl - 7}" fill="#9f1239" font-size="10" font-weight="bold">USL ขอบบน = ${usl} ${unit}</text>
+
+          <!-- Target CL Line -->
+          <line x1="${chartLeft}" y1="${yCl}" x2="${chartRight}" y2="${yCl}" stroke="#059669" stroke-width="1.5" stroke-dasharray="4,4" />
+          <rect x="${chartLeft + 8}" y="${yCl - 16}" width="148" height="15" rx="4" fill="#d1fae5" stroke="#6ee7b7" stroke-width="1" />
+          <text x="${chartLeft + 14}" y="${yCl - 5}" fill="#065f46" font-size="9.5" font-weight="bold">Target ค่ากลาง = ${cl} ${unit}</text>
+
+          <!-- LSL Line -->
+          <line x1="${chartLeft}" y1="${yLsl}" x2="${chartRight}" y2="${yLsl}" stroke="#e11d48" stroke-width="2.2" stroke-dasharray="7,5" />
+          <rect x="${chartLeft + 8}" y="${yLsl + 3}" width="142" height="16" rx="4" fill="#ffe4e6" stroke="#fda4af" stroke-width="1" />
+          <text x="${chartLeft + 14}" y="${yLsl + 14}" fill="#9f1239" font-size="10" font-weight="bold">LSL ขอบล่าง = ${lsl} ${unit}</text>
+
+          <!-- Left Axis Spec Labels -->
+          <text x="${chartLeft - 8}" y="${yUsl + 4}" fill="#be123c" font-size="11" font-weight="bold" text-anchor="end">${usl}${unit}</text>
+          <text x="${chartLeft - 8}" y="${yCl + 4}" fill="#047857" font-size="11" font-weight="bold" text-anchor="end">${cl}${unit}</text>
+          <text x="${chartLeft - 8}" y="${yLsl + 4}" fill="#be123c" font-size="11" font-weight="bold" text-anchor="end">${lsl}${unit}</text>
+        `;
+      } else if (cat === 'THRESHOLD') {
+        const isLte = (col.spec_type === 'lte' || (usl !== null && lsl === null));
+        const limitVal = isLte ? usl : lsl;
+        if (limitVal !== null) {
+          const yLim = toY(limitVal);
+          zonesAndLinesSvg = isLte ? `
+            <!-- Fail Above USL -->
+            <rect x="${chartLeft}" y="${chartTop}" width="${chartW}" height="${Math.max(0, yLim - chartTop)}" fill="rgba(244, 63, 94, 0.09)" />
+            <!-- Pass Below USL -->
+            <rect x="${chartLeft}" y="${yLim}" width="${chartW}" height="${Math.max(0, chartBot - yLim)}" fill="rgba(16, 185, 129, 0.12)" />
+            <line x1="${chartLeft}" y1="${yLim}" x2="${chartRight}" y2="${yLim}" stroke="#e11d48" stroke-width="2.4" stroke-dasharray="8,5" />
+            <rect x="${chartLeft + 8}" y="${yLim - 19}" width="185" height="17" rx="4" fill="#ffe4e6" stroke="#fda4af" stroke-width="1" />
+            <text x="${chartLeft + 14}" y="${yLim - 7}" fill="#9f1239" font-size="10.5" font-weight="bold">เกณฑ์สูงสุดไม่เกิน (≤ ${limitVal} ${unit})</text>
+            <text x="${chartLeft - 8}" y="${yLim + 4}" fill="#be123c" font-size="11" font-weight="bold" text-anchor="end">≤ ${limitVal}${unit}</text>
+          ` : `
+            <!-- Pass Above LSL -->
+            <rect x="${chartLeft}" y="${chartTop}" width="${chartW}" height="${Math.max(0, yLim - chartTop)}" fill="rgba(16, 185, 129, 0.12)" />
+            <!-- Fail Below LSL -->
+            <rect x="${chartLeft}" y="${yLim}" width="${chartW}" height="${Math.max(0, chartBot - yLim)}" fill="rgba(244, 63, 94, 0.09)" />
+            <line x1="${chartLeft}" y1="${yLim}" x2="${chartRight}" y2="${yLim}" stroke="#e11d48" stroke-width="2.4" stroke-dasharray="8,5" />
+            <rect x="${chartLeft + 8}" y="${yLim + 4}" width="185" height="17" rx="4" fill="#ffe4e6" stroke="#fda4af" stroke-width="1" />
+            <text x="${chartLeft + 14}" y="${yLim + 16}" fill="#9f1239" font-size="10.5" font-weight="bold">เกณฑ์ขั้นต่ำ (≥ ${limitVal} ${unit})</text>
+            <text x="${chartLeft - 8}" y="${yLim + 4}" fill="#be123c" font-size="11" font-weight="bold" text-anchor="end">≥ ${limitVal}${unit}</text>
+          `;
+        }
+      } else if (cat === 'NO_STD') {
+        const yAvg = toY(avgMeasured);
+        zonesAndLinesSvg = `
+          <rect x="${chartLeft}" y="${chartTop}" width="${chartW}" height="${chartH}" fill="rgba(56, 189, 248, 0.07)" />
+          <line x1="${chartLeft}" y1="${yAvg}" x2="${chartRight}" y2="${yAvg}" stroke="#0284c7" stroke-width="1.8" stroke-dasharray="5,5" />
+          <rect x="${chartLeft + 8}" y="${yAvg - 17}" width="190" height="16" rx="4" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1" />
+          <text x="${chartLeft + 14}" y="${yAvg - 6}" fill="#0369a1" font-size="10" font-weight="bold">ค่าเฉลี่ยการเดินเครื่อง (X̄) = ${avgMeasured.toFixed(1)} ${unit}</text>
+          <text x="${chartLeft - 8}" y="${yAvg + 4}" fill="#0369a1" font-size="11" font-weight="bold" text-anchor="end">${avgMeasured.toFixed(1)}</text>
+        `;
+      }
+
+      const mainPolyPoints = numPoints.map((p, i) => `${toX(i)},${toY(p.numVal)}`).join(' ');
+      const lineStroke = (cat === 'NO_STD') ? '#0284c7' : '#2563eb';
+
+      // Analyze Trends & Risks for Side Panel
+      const outPoints = numPoints.filter(p => !p.isPass && cat !== 'NO_STD');
+      const nearLimitPoints = numPoints.filter(p => {
+        if (!p.isPass || cat === 'NO_STD') return false;
+        if (cat === 'RANGE' && lsl !== null && usl !== null) {
+          const m = (usl - lsl) * 0.10;
+          return (p.numVal <= lsl + m) || (p.numVal >= usl - m);
+        }
+        if (cat === 'THRESHOLD' && lsl !== null) {
+          return p.numVal <= lsl * 1.05;
+        }
+        return false;
+      });
+
+      // Detect continuous upward or downward drift (3+ consecutive steps in same direction)
+      let driftText = 'ค่าแกว่งตัวอยู่ในเกณฑ์ปกติ ไม่พบการดิ่งลงหรือพุ่งขึ้นต่อเนื่องผิดปกติ';
+      let driftColor = 'emerald';
+      if (numPoints.length >= 3) {
+        let upRun = 1, downRun = 1, maxUp = 1, maxDown = 1;
+        for (let i = 1; i < numPoints.length; i++) {
+          if (numPoints[i].numVal > numPoints[i - 1].numVal) { upRun++; downRun = 1; if (upRun > maxUp) maxUp = upRun; }
+          else if (numPoints[i].numVal < numPoints[i - 1].numVal) { downRun++; upRun = 1; if (downRun > maxDown) maxDown = downRun; }
+          else { upRun = 1; downRun = 1; }
+        }
+        if (maxDown >= 3) {
+          driftText = `พบแนวโน้มค่าลดลงต่อเนื่อง ${maxDown} รอบตรวจติดต่อกัน — ควรเฝ้าระวังไม่ให้ดิ่งลงหลุดขอบล่าง`;
+          driftColor = 'amber';
+        } else if (maxUp >= 3) {
+          driftText = `พบแนวโน้มค่าไต่ระดับสูงขึ้นต่อเนื่อง ${maxUp} รอบตรวจติดต่อกัน — ควรเฝ้าระวังไม่ให้พุ่งทะลุขอบบน`;
+          driftColor = 'amber';
+        }
+      }
+
+      const passPointsCnt = numPoints.filter(p => p.isPass).length;
+      const inSpecPct = cat === 'NO_STD' ? 'ค่าอ้างอิง' : `${((passPointsCnt / numPoints.length) * 100).toFixed(1)}%`;
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <!-- Left 9 Cols: Main SPC Control Chart -->
+          <div class="lg:col-span-9 spc-chart-paper rounded-2xl p-4 sm:p-5 space-y-3.5">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-300">
+                    ${col.chartCategoryLabel}
+                  </span>
+                  <h4 class="text-base font-bold text-slate-900">${col.name}</h4>
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono ${col.isNoStd ? 'bg-sky-100 text-sky-900 border border-sky-300' : 'bg-emerald-100 text-emerald-900 border border-emerald-300'}">
+                    ${col.isNoStd ? col.stdBadgeLabel : `STD: ${col.stdBadgeLabel} ${unit}`}
+                  </span>
+                </div>
+                <p class="text-xs text-slate-600 mt-1">
+                  ${cat === 'RANGE'
+                    ? `แสดงแนวโน้มค่าที่วัดได้เทียบกับขอบบน <b>USL (${usl} ${unit})</b>, ค่ากลาง <b>Target (${((lsl + usl) / 2).toFixed(1)} ${unit})</b> และขอบล่าง <b>LSL (${lsl} ${unit})</b>`
+                    : cat === 'THRESHOLD'
+                      ? `แสดงแนวโน้มค่าที่วัดได้เทียบกับเส้นเกณฑ์ควบคุม <b>${col.stdBadgeLabel} ${unit}</b> พร้อมพื้นที่ระยะปลอดภัย (Safety Margin)`
+                      : `แสดงแนวโน้มการเดินเครื่อง (รายการนี้เป็นค่าอ้างอิง ไม่มีเกณฑ์ STD ผ่าน/ไม่ผ่าน)`
+                  }
+                </p>
+              </div>
+
+              ${refCols.length > 0 && cat !== 'NO_STD' ? `
+                <div class="flex items-center gap-1.5 text-xs">
+                  <span class="text-slate-600 font-semibold"><i class="fa-solid fa-layer-group text-sky-600 mr-1"></i>ซ้อนกราฟอ้างอิง (แกนขวา):</span>
+                  <select onchange="setDmChartOverlayCol(this.value)" class="rounded-lg px-2 py-1 text-xs font-semibold border border-slate-300">
+                    <option value="AUTO" ${appState.dmChartOverlayColId === 'AUTO' ? 'selected' : ''}>อัตโนมัติ (${activeOverlayCol ? activeOverlayCol.name : refCols[0].name})</option>
+                    <option value="NONE" ${appState.dmChartOverlayColId === 'NONE' ? 'selected' : ''}>ไม่ซ้อนกราฟอ้างอิง</option>
+                    ${refCols.map(rc => `<option value="${rc.id}" ${appState.dmChartOverlayColId === rc.id ? 'selected' : ''}>${rc.name}</option>`).join('')}
+                  </select>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Legend Strip -->
+            <div class="flex flex-wrap items-center justify-between gap-2 text-xs bg-slate-100 px-3 py-2 rounded-xl border border-slate-300 text-slate-700">
+              <div class="flex flex-wrap items-center gap-4">
+                ${cat !== 'NO_STD' ? `
+                  <span class="inline-flex items-center gap-1.5"><span class="w-4 h-0.5 bg-rose-600 inline-block border-b-2 border-dashed border-rose-600"></span> <b>เส้นขอบสเปค (USL / LSL)</b></span>
+                  <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-500/25 border border-emerald-600 inline-block"></span> <b>โซนอยู่ในสเปค (In-Spec)</b></span>
+                  <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> <b>ใกล้ขอบสเปค (Warning)</b></span>
+                  <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-600 inline-block"></span> <b>จุดตกสเปค (Out of Spec)</b></span>
+                ` : `
+                  <span class="inline-flex items-center gap-1.5"><span class="w-4 h-0.5 bg-sky-600 inline-block"></span> <b>แนวโน้มค่าอ้างอิง (${col.name})</b></span>
+                  <span class="inline-flex items-center gap-1.5"><span class="w-4 h-0.5 bg-sky-600 inline-block border-b-2 border-dashed border-sky-600"></span> <b>ค่าเฉลี่ยการเดินเครื่อง (X̄)</b></span>
+                `}
+                ${activeOverlayCol ? `<span class="inline-flex items-center gap-1.5 text-sky-700"><span class="w-4 h-0.5 bg-sky-600 inline-block border-b-2 border-dotted border-sky-600"></span> <b>แกนขวา: ${activeOverlayCol.name}</b></span>` : ''}
+              </div>
+              <span class="font-mono text-[11px] text-slate-600">แกน X: ${isRollMode ? 'เรียงตามเลขที่ม้วน (Roll No.)' : 'เรียงตามเวลาตรวจเช็ค (Time)'} (${numPoints.length} จุด)</span>
+            </div>
+
+            <!-- SVG Chart -->
+            <div class="overflow-x-auto">
+              <svg viewBox="0 0 920 315" class="w-full min-w-[680px] h-[300px]">
+                <!-- Horizontal Grid Lines -->
+                <line x1="${chartLeft}" y1="${chartTop}" x2="${chartRight}" y2="${chartTop}" stroke="#e2e8f0" stroke-width="1" />
+                <line x1="${chartLeft}" y1="${Math.round((chartTop + chartBot) / 2)}" x2="${chartRight}" y2="${Math.round((chartTop + chartBot) / 2)}" stroke="#e2e8f0" stroke-width="1" />
+                <line x1="${chartLeft}" y1="${chartBot}" x2="${chartRight}" y2="${chartBot}" stroke="#cbd5e1" stroke-width="1.5" />
+
+                ${zonesAndLinesSvg}
+                ${overlaySvg}
+
+                <!-- Primary Trend Polyline -->
+                <polyline fill="none" stroke="${lineStroke}" stroke-width="3" points="${mainPolyPoints}" />
+
+                <!-- Data Points & Labels -->
+                ${numPoints.map((p, i) => {
+                  const cx = toX(i);
+                  const cy = toY(p.numVal);
+                  const isWarn = nearLimitPoints.includes(p);
+                  let ptFill = '#10b981';
+                  let ptStroke = '#065f46';
+                  let textFill = '#065f46';
+                  if (cat === 'NO_STD') {
+                    ptFill = '#0284c7';
+                    ptStroke = '#0c4a6e';
+                    textFill = '#0369a1';
+                  } else if (!p.isPass) {
+                    ptFill = '#e11d48';
+                    ptStroke = '#881337';
+                    textFill = '#be123c';
+                  } else if (isWarn) {
+                    ptFill = '#f59e0b';
+                    ptStroke = '#78350f';
+                    textFill = '#b45309';
+                  }
+                  return `
+                    <g>
+                      <circle cx="${cx}" cy="${cy}" r="${!p.isPass && cat !== 'NO_STD' ? 7.5 : 5.5}" fill="${ptFill}" stroke="${ptStroke}" stroke-width="2" />
+                      <text x="${cx}" y="${cy - 10}" fill="${textFill}" font-size="11" font-weight="bold" text-anchor="middle">${p.numVal}${unit}</text>
+                      <text x="${cx}" y="${chartBot + 20}" fill="${!p.isPass && cat !== 'NO_STD' ? '#be123c' : '#1e293b'}" font-size="10.5" font-weight="bold" text-anchor="middle">${p.labelX}</text>
+                      ${p.subLabelX ? `<text x="${cx}" y="${chartBot + 34}" fill="#475569" font-size="9.5" text-anchor="middle">${p.subLabelX}</text>` : ''}
+                    </g>
+                  `;
+                }).join('')}
+              </svg>
+            </div>
+
+            <!-- Statistical Summary Strip (5 Mini Cards) -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
+              <div class="p-2.5 rounded-xl bg-slate-100 border border-slate-300">
+                <div class="text-[11px] text-slate-600">ค่าเฉลี่ย (Average X̄)</div>
+                <div class="text-sm sm:text-base font-bold font-mono text-slate-900 mt-0.5">${avgMeasured.toFixed(2)} ${unit}</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-100 border border-slate-300">
+                <div class="text-[11px] text-slate-600">ต่ำสุด / สูงสุด (Min / Max)</div>
+                <div class="text-sm sm:text-base font-bold font-mono text-slate-900 mt-0.5">${minMeasured} / ${maxMeasured} ${unit}</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-100 border border-slate-300">
+                <div class="text-[11px] text-slate-600">การแกว่งตัว (Std Dev)</div>
+                <div class="text-sm sm:text-base font-bold font-mono text-slate-900 mt-0.5">± ${sdMeasured.toFixed(2)} ${unit}</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-100 border border-slate-300">
+                <div class="text-[11px] text-slate-600">อัตราอยู่ในสเปค (In-Spec)</div>
+                <div class="text-sm sm:text-base font-bold font-mono ${outPoints.length > 0 ? 'text-rose-700' : 'text-emerald-700'} mt-0.5">${inSpecPct}</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-100 border border-slate-300">
+                <div class="text-[11px] text-slate-600">จำนวนจุดที่หลุดสเปค</div>
+                <div class="text-sm sm:text-base font-bold font-mono ${outPoints.length > 0 ? 'text-rose-700' : 'text-emerald-700'} mt-0.5">
+                  ${cat === 'NO_STD' ? 'ไม่มีเกณฑ์ STD' : (outPoints.length > 0 ? `ตกสเปค ${outPoints.length} จุด` : 'ผ่านครบทุกจุด')}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right 3 Cols: Automated SPC Trend & Process Diagnostic Panel -->
+          <div class="lg:col-span-3 spc-chart-paper rounded-2xl p-4 space-y-3">
+            <div class="flex items-center gap-2 border-b border-slate-200 pb-2.5">
+              <i class="fa-solid fa-wand-magic-sparkles text-indigo-700"></i>
+              <h4 class="text-sm font-bold text-slate-900">วิเคราะห์แนวโน้มจากกราฟ</h4>
+            </div>
+
+            ${cat === 'NO_STD' ? `
+              <div class="p-3 rounded-xl bg-sky-50 border border-sky-300 text-xs text-slate-800 space-y-1.5">
+                <div class="font-bold text-sky-900"><i class="fa-solid fa-circle-info mr-1"></i>พารามิเตอร์อ้างอิงการเดินเครื่อง</div>
+                <p class="leading-relaxed">
+                  หัวข้อ <b>${col.name}</b> เป็นการบันทึกค่าอ้างอิง (ไม่มีเกณฑ์ตกสเปค) ค่าเฉลี่ยอยู่ที่ <b>${avgMeasured.toFixed(1)} ${unit}</b> (ช่วง ${minMeasured} – ${maxMeasured} ${unit})
+                </p>
+              </div>
+            ` : outPoints.length > 0 ? `
+              <div class="p-3 rounded-xl bg-rose-50 border border-rose-300 text-xs text-slate-800 space-y-1.5">
+                <div class="font-bold text-rose-800"><i class="fa-solid fa-triangle-exclamation mr-1"></i>พบจุดหลุดสเปค ${outPoints.length} รอบ</div>
+                <p class="leading-relaxed">
+                  หลุดสเปคที่: <b>${outPoints.map(p => `${p.labelX} (${p.numVal}${unit})`).join(', ')}</b>
+                </p>
+                <div class="pt-1 text-[11px] text-rose-900 font-medium">
+                  ${getSmartProcessRiskAdvisory(col, outPoints[0].cell, outPoints[0].rowObj, deptMode).action}
+                </div>
+              </div>
+            ` : `
+              <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-slate-800 space-y-1">
+                <div class="font-bold text-emerald-900"><i class="fa-solid fa-circle-check mr-1"></i>อยู่ในเกณฑ์มาตรฐาน 100%</div>
+                <p class="leading-relaxed">
+                  ทุกจุดที่ตรวจวัดอยู่ในกรอบมาตรฐาน (${col.stdBadgeLabel} ${unit}) อย่างสม่ำเสมอ
+                </p>
+              </div>
+            `}
+
+            ${nearLimitPoints.length > 0 ? `
+              <div class="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs text-slate-800 space-y-1">
+                <div class="font-bold text-amber-900"><i class="fa-solid fa-bell mr-1"></i>เฝ้าระวังค่าเข้าใกล้ขอบสเปค (${nearLimitPoints.length} จุด)</div>
+                <p class="leading-relaxed">
+                  ที่เวลา/ม้วน: <b>${nearLimitPoints.map(p => `${p.labelX} (${p.numVal}${unit})`).join(', ')}</b> เข้าใกล้ขอบเขตมาตรฐาน ควรปรับตั้งเครื่องจักรก่อนหลุดสเปค
+                </p>
+              </div>
+            ` : ''}
+
+            <div class="p-3 rounded-xl bg-slate-100 border border-slate-300 text-xs text-slate-800 space-y-1">
+              <div class="font-bold text-slate-900"><i class="fa-solid fa-arrow-trend-up text-indigo-700 mr-1"></i>พฤติกรรมแนวโน้ม (Trend Drift)</div>
+              <p class="leading-relaxed">${driftText}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Build Multi-Item Small Multiples Grid View (all items in the selected checklist at once)
+    function buildMultiGridSpcChartsHtml(cols, rawRows, evalMatrix, isRollMode) {
+      return `
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          ${cols.map(col => {
+            const cat = col.chartCategory || 'RANGE';
+            const unit = col.unit || '';
+            const pts = [];
+            rawRows.forEach((r, rIdx) => {
+              const cell = evalMatrix[rIdx] ? evalMatrix[rIdx][col.id] : null;
+              if (!cell || !cell.hasValue || cell.isSkipped) return;
+              const numVal = parseFloat(cell.valDisplay);
+              const { minB, maxB } = parseCellSpecBounds(col, cell, r);
+              pts.push({
+                labelX: isRollMode ? (r.roll_no || `#${rIdx + 1}`) : r.time,
+                valStr: cell.valDisplay,
+                numVal: isNaN(numVal) ? null : numVal,
+                isPass: cell.isPass,
+                minB,
+                maxB
+              });
+            });
+
+            const failCnt = pts.filter(p => !p.isPass && !col.isNoStd).length;
+            const statusBadge = col.isNoStd
+              ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-900 border border-sky-300">ค่าอ้างอิง</span>`
+              : failCnt > 0
+                ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-600 text-white">ไม่ผ่าน ${failCnt} จุด</span>`
+                : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">ปกติ 100%</span>`;
+
+            let miniChartBody = '';
+            if (pts.length === 0) {
+              miniChartBody = `<div class="h-[115px] flex items-center justify-center text-xs text-slate-400">ยังไม่มีข้อมูล</div>`;
+            } else if (cat === 'QUALITATIVE') {
+              miniChartBody = `
+                <div class="h-[115px] flex flex-col justify-center gap-2 px-2">
+                  <div class="flex flex-wrap gap-1.5">
+                    ${pts.slice(0, 10).map(p => `
+                      <span class="px-2 py-1 rounded text-[10px] font-mono font-bold ${p.isPass ? 'bg-emerald-100 text-emerald-900 border border-emerald-400' : 'bg-rose-600 text-white'}">
+                        ${p.labelX}: ${p.valStr}
+                      </span>
+                    `).join('')}
+                  </div>
+                </div>
+              `;
+            } else {
+              const numPts = pts.filter(p => p.numVal !== null);
+              if (numPts.length === 0) {
+                miniChartBody = `<div class="h-[115px] flex items-center justify-center text-xs text-slate-500">${pts.map(p => p.valStr).join(', ')}</div>`;
+              } else {
+                const vals = numPts.map(p => p.numVal);
+                const lsl = col.min_val !== null ? col.min_val : numPts[0].minB;
+                const usl = col.max_val !== null ? col.max_val : numPts[0].maxB;
+                const cands = [...vals];
+                if (lsl !== null) cands.push(lsl);
+                if (usl !== null) cands.push(usl);
+                const minY = Math.min(...cands);
+                const maxY = Math.max(...cands);
+                const span = Math.max(maxY - minY, 2);
+                const y0 = minY - span * 0.2;
+                const y1 = maxY + span * 0.2;
+                const toMY = (v) => Math.round(102 - ((v - y0) / (y1 - y0)) * 84);
+                const toMX = (i) => numPts.length === 1 ? 155 : Math.round(25 + (i / (numPts.length - 1)) * 260);
+                const poly = numPts.map((p, i) => `${toMX(i)},${toMY(p.numVal)}`).join(' ');
+
+                let specSvg = '';
+                if (cat === 'RANGE' && lsl !== null && usl !== null) {
+                  const yU = toMY(usl);
+                  const yL = toMY(lsl);
+                  specSvg = `
+                    <rect x="20" y="${yU}" width="270" height="${Math.max(2, yL - yU)}" fill="rgba(16,185,129,0.14)" />
+                    <line x1="20" y1="${yU}" x2="290" y2="${yU}" stroke="#e11d48" stroke-width="1.3" stroke-dasharray="4,3" />
+                    <line x1="20" y1="${yL}" x2="290" y2="${yL}" stroke="#e11d48" stroke-width="1.3" stroke-dasharray="4,3" />
+                  `;
+                } else if (cat === 'THRESHOLD' && (lsl !== null || usl !== null)) {
+                  const lim = lsl !== null ? lsl : usl;
+                  const yLim = toMY(lim);
+                  specSvg = `<line x1="20" y1="${yLim}" x2="290" y2="${yLim}" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="5,3" />`;
+                }
+
+                miniChartBody = `
+                  <svg viewBox="0 0 310 115" class="w-full h-[115px]">
+                    ${specSvg}
+                    <polyline fill="none" stroke="${col.isNoStd ? '#0284c7' : '#2563eb'}" stroke-width="2.4" points="${poly}" />
+                    ${numPts.map((p, i) => `
+                      <circle cx="${toMX(i)}" cy="${toMY(p.numVal)}" r="${!p.isPass && !col.isNoStd ? 5 : 3.5}" fill="${col.isNoStd ? '#0284c7' : (p.isPass ? '#10b981' : '#e11d48')}" />
+                    `).join('')}
+                  </svg>
+                `;
+              }
+            }
+
+            return `
+              <div onclick="selectDmChartColumn('${col.id}')" class="spc-chart-paper rounded-2xl p-3.5 space-y-2 cursor-pointer hover:ring-2 hover:ring-blue-500 transition shadow-sm">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0">
+                    <div class="text-xs font-bold text-slate-900 truncate" title="${col.name}">${col.name}</div>
+                    <div class="text-[10.5px] text-slate-600 font-mono">
+                      ${col.isNoStd ? col.stdBadgeLabel : `STD: ${col.stdBadgeLabel} ${unit}`} • <span class="text-indigo-700 font-sans font-semibold">${col.chartCategoryLabel}</span>
+                    </div>
+                  </div>
+                  ${statusBadge}
+                </div>
+                <div class="rounded-xl bg-slate-50 border border-slate-200 overflow-hidden">
+                  ${miniChartBody}
+                </div>
+                <div class="flex items-center justify-between text-[10.5px] text-slate-500 pt-0.5">
+                  <span>ตรวจแล้ว ${pts.length} รอบ</span>
+                  <span class="text-blue-600 font-semibold"><i class="fa-solid fa-magnifying-glass-plus mr-1"></i>คลิกขยายกราฟใหญ่</span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderDmSpcControlChartSection(cols, rawRows, evalMatrix, isRollMode, deptMode, dateStr, machineFilter) {
+      const chartCard = document.getElementById('dmControlChartCard');
+      if (!chartCard) return;
+
+      updateDmViewModeButtons();
+      if (cols.length === 0) {
+        chartCard.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">ไม่มีหัวข้อเช็คลิสต์ในตัวกรองที่เลือก</div>`;
+        return;
+      }
+
+      // Ensure selected column ID is valid for current cols
+      let selectedCol = cols.find(c => c.id === appState.dmChartSelectedColId);
+      if (!selectedCol) {
+        // Default to first column that has Range or Threshold STD, or first column
+        selectedCol = cols.find(c => !c.isNoStd) || cols[0];
+        appState.dmChartSelectedColId = selectedCol.id;
+      }
+
+      const layout = appState.dmChartLayout || 'single';
+
+      // Build Item Selector Pills with live pass/fail badge
+      const pillsHtml = cols.map(c => {
+        const isSel = (layout === 'single' && c.id === selectedCol.id);
+        let passCnt = 0, failCnt = 0;
+        rawRows.forEach((_, rIdx) => {
+          const cell = evalMatrix[rIdx] ? evalMatrix[rIdx][c.id] : null;
+          if (cell && cell.hasValue && !cell.isSkipped) {
+            if (c.isNoStd || cell.isPass) passCnt++;
+            else failCnt++;
+          }
+        });
+
+        let statusPill = '';
+        if (c.isNoStd) {
+          statusPill = `<span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">อ้างอิง</span>`;
+        } else if (failCnt > 0) {
+          statusPill = `<span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-600 text-white">NG ${failCnt}</span>`;
+        } else if (passCnt > 0) {
+          statusPill = `<span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">✔ ${passCnt}</span>`;
+        }
+
+        return `
+          <button type="button" onclick="selectDmChartColumn('${c.id}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${isSel ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-400' : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'}">
+            <span>${c.name}</span>
+            <span class="text-[10px] opacity-80 font-mono">(${c.stdBadgeLabel})</span>
+            ${statusPill}
+          </button>
+        `;
+      }).join('');
+
+      const bodyHtml = (layout === 'grid')
+        ? buildMultiGridSpcChartsHtml(cols, rawRows, evalMatrix, isRollMode)
+        : buildSingleSpcChartHtml(selectedCol, cols, rawRows, evalMatrix, isRollMode, deptMode);
+
+      chartCard.innerHTML = `
+        <div class="p-4 sm:p-5 space-y-4">
+          <!-- Header & Layout Toggle -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">
+                  <i class="fa-solid fa-chart-line mr-1"></i>SPC CONTROL & TREND CHART
+                </span>
+                <h3 class="text-sm sm:text-base font-bold text-white">
+                  ระบบกราฟควบคุมสเปค & ดูแนวโน้มรายหัวข้อเช็คลิสต์ — แผนก ${deptMode} (${dateStr})
+                </h3>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">
+                เลือกคลิกดูทีละหัวข้อเช็คลิสต์ด้านล่าง หรือสลับเป็นโหมดดูหลายกราฟพร้อมกัน (ปรับชนิดกราฟอัตโนมัติตามเกณฑ์ STD จริงของแต่ละหัวข้อ)
+              </p>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <button type="button" onclick="switchDmChartLayout('single')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition ${layout === 'single' ? 'bg-indigo-600 text-white shadow' : 'bg-slate-800 text-slate-300 border border-slate-700'}">
+                <i class="fa-solid fa-chart-area"></i>
+                <span>ดูกราฟเดี่ยวเจาะลึก</span>
+              </button>
+              <button type="button" onclick="switchDmChartLayout('grid')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition ${layout === 'grid' ? 'bg-indigo-600 text-white shadow' : 'bg-slate-800 text-slate-300 border border-slate-700'}">
+                <i class="fa-solid fa-grip"></i>
+                <span>ดูหลายกราฟพร้อมกัน (${cols.length} หัวข้อ)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Interactive Checklist Item Selector Pills -->
+          <div class="space-y-1.5">
+            <div class="text-xs font-bold text-slate-300 flex items-center justify-between">
+              <span><i class="fa-solid fa-hand-pointer text-amber-400 mr-1"></i>คลิกเลือกหัวข้อเช็คลิสต์ที่ต้องการดูกราฟ (${cols.length} รายการ):</span>
+              <span class="text-[11px] text-slate-400 font-normal">หมวดกราฟที่กำลังดู: <b>${selectedCol.chartCategoryLabel}</b></span>
+            </div>
+            <div class="flex flex-wrap gap-1.5 max-h-[135px] overflow-y-auto p-1">
+              ${pillsHtml}
+            </div>
+          </div>
+
+          <!-- Main Chart Body -->
+          <div>
+            ${bodyHtml}
+          </div>
+        </div>
+      `;
     }
 
     function exportDailyMatrixExcel() {
