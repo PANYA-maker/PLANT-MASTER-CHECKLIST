@@ -1599,24 +1599,28 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-          <!-- 1. Date -->
-          <div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+          <!-- 1. Date Range (วันที่เริ่มต้น ถึง วันที่สิ้นสุด - ค่าเริ่มต้นเป็นวันปัจจุบัน) -->
+          <div class="sm:col-span-2 lg:col-span-4">
             <label class="block text-[11px] font-semibold text-slate-400 mb-1">
-              <i class="fa-regular fa-calendar text-blue-400 mr-1"></i> วันที่ตรวจสอบ
+              <i class="fa-regular fa-calendar text-blue-400 mr-1"></i> ช่วงวันที่ตรวจสอบ (เริ่มต้น ถึง สิ้นสุด)
             </label>
-            <div class="flex items-center gap-1.5">
-              <input type="date" id="dmFilterDate" onchange="handleDmDateChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white font-mono focus:outline-none focus:border-blue-500">
-              <button type="button" onclick="setDmDateToday()" class="px-2.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold shrink-0 transition" title="เลือกวันนี้">วันนี้</button>
+            <div class="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
+              <input type="hidden" id="dmFilterDate">
+              <input type="date" id="dmFilterStartDate" onchange="handleDmDateRangeChange('start')" class="w-full min-w-[115px] bg-slate-950 border border-slate-700 rounded-xl px-2 py-2 text-xs text-white font-mono focus:outline-none focus:border-blue-500" title="วันที่เริ่มต้น">
+              <span class="text-xs text-slate-400 font-semibold shrink-0">ถึง</span>
+              <input type="date" id="dmFilterEndDate" onchange="handleDmDateRangeChange('end')" class="w-full min-w-[115px] bg-slate-950 border border-slate-700 rounded-xl px-2 py-2 text-xs text-white font-mono focus:outline-none focus:border-blue-500" title="วันที่สิ้นสุด">
+              <button type="button" onclick="setDmDateToday()" class="px-2.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold shrink-0 transition" title="เลือกเฉพาะวันนี้">วันนี้</button>
+              <button type="button" onclick="setDmDateAll()" class="px-2 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] font-semibold shrink-0 transition" title="ดูทุกช่วงวันที่">ทั้งหมด</button>
             </div>
           </div>
 
           <!-- 2. Department / Mode -->
-          <div>
+          <div class="lg:col-span-2">
             <label class="block text-[11px] font-semibold text-slate-400 mb-1">
               <i class="fa-solid fa-industry text-indigo-400 mr-1"></i> แผนก / โหมดตาราง
             </label>
-            <select id="dmFilterDept" onchange="handleDmDeptSelectChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-semibold focus:outline-none focus:border-blue-500">
+            <select id="dmFilterDept" onchange="handleDmDeptSelectChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white font-semibold focus:outline-none focus:border-blue-500">
               <option value="IQC_LAB">📜 IQC & LAB (ตรวจม้วนกระดาษ - เรียงเลขม้วน)</option>
               <option value="PD">⚙️ PD - ฝ่ายผลิต (เรียงตามเวลา)</option>
               <option value="GLUE">🧪 GLUE - ห้องกาว (เรียงตามเวลา)</option>
@@ -1627,31 +1631,31 @@
           </div>
 
           <!-- 3. Checklist Group (Sub-checklist) -->
-          <div>
+          <div class="lg:col-span-2">
             <label class="block text-[11px] font-semibold text-slate-400 mb-1">
               <i class="fa-solid fa-layer-group text-purple-400 mr-1"></i> ชุดเช็คลิสต์ (Checklist Group)
             </label>
-            <select id="dmFilterGroup" onchange="handleDmGroupChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-semibold focus:outline-none focus:border-blue-500">
+            <select id="dmFilterGroup" onchange="handleDmGroupChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white font-semibold focus:outline-none focus:border-blue-500">
               <option value="ALL">ทุกชุดเช็คลิสต์ในแผนก</option>
             </select>
           </div>
 
           <!-- 4. Machine Filter -->
-          <div>
+          <div class="lg:col-span-1">
             <label class="block text-[11px] font-semibold text-slate-400 mb-1">
-              <i class="fa-solid fa-gear text-amber-400 mr-1"></i> เครื่องจักร (Machine)
+              <i class="fa-solid fa-gear text-amber-400 mr-1"></i> เครื่องจักร
             </label>
-            <select id="dmFilterMachine" onchange="handleDmMachineChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-semibold focus:outline-none focus:border-blue-500">
+            <select id="dmFilterMachine" onchange="handleDmMachineChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2 py-2 text-xs text-white font-semibold focus:outline-none focus:border-blue-500">
               <option value="ALL">ทุกเครื่องจักร (All Machines)</option>
             </select>
           </div>
 
           <!-- 5. Row Status Filter -->
-          <div>
+          <div class="lg:col-span-1">
             <label class="block text-[11px] font-semibold text-slate-400 mb-1">
-              <i class="fa-solid fa-filter text-rose-400 mr-1"></i> กรองสถานะแถว
+              <i class="fa-solid fa-filter text-rose-400 mr-1"></i> สถานะแถว
             </label>
-            <select id="dmFilterStatus" onchange="renderDailyMatrixTab()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-semibold focus:outline-none focus:border-blue-500">
+            <select id="dmFilterStatus" onchange="renderDailyMatrixTab()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2 py-2 text-xs text-white font-semibold focus:outline-none focus:border-blue-500">
               <option value="ALL">แสดงทุกเวลา / ทุกม้วน (ทั้งหมด)</option>
               <option value="DEFECT_ONLY">⚠️ เฉพาะที่มีค่าไม่ผ่าน (Out-of-Spec)</option>
               <option value="STREAK_ONLY">🔥 เฉพาะที่ตกสเปคต่อเนื่อง (≥ 2 รอบ)</option>
@@ -1659,11 +1663,11 @@
           </div>
 
           <!-- 6. Keyword Search -->
-          <div>
+          <div class="lg:col-span-2">
             <label class="block text-[11px] font-semibold text-slate-400 mb-1">
               <i class="fa-solid fa-magnifying-glass text-cyan-400 mr-1"></i> ค้นหาเลขม้วน / เวลา / Order
             </label>
-            <input type="text" id="dmFilterSearch" oninput="renderDailyMatrixTab()" placeholder="เช่น R-001, 09:00, KA125..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+            <input type="text" id="dmFilterSearch" oninput="debouncedRenderDailyMatrix()" placeholder="เช่น R-001, 09:00, KA125..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
           </div>
         </div>
 
@@ -1838,7 +1842,7 @@
             <input 
               type="text" 
               id="invKeywordSearch" 
-              oninput="runDefectInvestigation()" 
+              oninput="debouncedRunDefectInvestigation()" 
               placeholder="พิมพ์ค้นหา เช่น PDR1234, ม้วนที่ 4, BHS, อุณหภูมิ, 150..." 
               class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-24 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-medium transition"
             >
@@ -1970,7 +1974,7 @@
             <option value="ALL">ทุกความถี่ (All Frequencies)</option>
           </select>
           <div class="relative flex-1 sm:w-64">
-            <input type="text" id="masterSearchInput" oninput="renderMasterView()" placeholder="ค้นหารายการ..." class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none">
+            <input type="text" id="masterSearchInput" oninput="debouncedRenderMasterView()" placeholder="ค้นหารายการ..." class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none">
             <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-500 text-xs"></i>
           </div>
         </div>
@@ -2041,7 +2045,7 @@
               <option value="SKIPPED">งดตรวจ / ไม่ได้ตรวจ (-)</option>
               <option value="OUT-OF-SPEC">เฉพาะหลุดสเป็ค (Out-of-Spec)</option>
             </select>
-            <input type="text" id="histSearchInput" oninput="renderHistoryTable()" placeholder="ค้นหาทุกคอลัมน์..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-xs text-white focus:outline-none w-48 font-sans">
+            <input type="text" id="histSearchInput" oninput="debouncedRenderHistoryTable()" placeholder="ค้นหาทุกคอลัมน์..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-xs text-white focus:outline-none w-48 font-sans">
           </div>
           <span class="text-xs text-slate-400 font-mono" id="histTotalCountBadge">รวม 0 รายการ</span>
         </div>
@@ -3374,7 +3378,55 @@
         item['แกรม'] = gradeVal;
       }
 
+      // Performance Pre-Indexing: precompute normalized YYYY-MM-DD, comparable timestamp, and roll key once
+      item._ymd = (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) ? d : '';
+      item._ts = parseToComparableTimestamp(d, t);
+      item._rollKey = rollVal ? String(rollVal).trim().replace(/\s+/g, ' ').toUpperCase() : '';
+
       return item;
+    }
+
+    // Performance helper: lightweight debounce for search inputs
+    function createDebounce(fn, waitMs) {
+      let timer = null;
+      return function(...args) {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), waitMs);
+      };
+    }
+    const debouncedRenderDailyMatrix = createDebounce(() => { if (typeof renderDailyMatrixTab === 'function') renderDailyMatrixTab(); }, 150);
+    const debouncedRenderHistoryTable = createDebounce(() => { if (typeof renderHistoryTable === 'function') renderHistoryTable(); }, 150);
+    const debouncedRenderMasterView = createDebounce(() => { if (typeof renderMasterView === 'function') renderMasterView(); }, 150);
+    const debouncedRunDefectInvestigation = createDebounce(() => { if (typeof runDefectInvestigation === 'function') runDefectInvestigation(); }, 180);
+
+    // Performance helper: Render ONLY the currently active visible tab instead of all 9 tabs at once
+    function renderActiveTabOnly() {
+      const cur = appState.currentTab || 'inspection';
+      populateDeptDropdowns();
+      if (cur === 'inspection') {
+        renderEntryDeptButtons();
+        renderEntryFreqFilters();
+        populateEntryMachineDropdown();
+        renderEntryForm();
+        updateInspectionDueBanner();
+      } else if (cur === 'daily_matrix') {
+        if (typeof renderDailyMatrixTab === 'function') renderDailyMatrixTab();
+      } else if (cur === 'dashboard') {
+        populateDashDeptDropdown();
+        populateDashMachineDropdown();
+        renderDashboard();
+      } else if (cur === 'investigation') {
+        runDefectInvestigation();
+      } else if (cur === 'master') {
+        renderMasterView();
+      } else if (cur === 'history') {
+        renderHistoryTable();
+      } else if (cur === 'qr_hub') {
+        renderQrHub();
+      } else if (cur === 'users_depts') {
+        renderUsersTable();
+        renderDepartmentsTable();
+      }
     }
 
     // Helper: Safely cache recent logs in localStorage without exceeding the 5MB browser quota
@@ -3494,20 +3546,17 @@
       if (invStart) invStart.value = today;
       if (invEnd) invEnd.value = today;
 
-      // Render First Page: Inspection Checklist Entry
-      renderEntryDeptButtons();
-      renderEntryFreqFilters();
+      // Set Today as default in Daily Matrix Date Range inputs
+      const dmStart = document.getElementById('dmFilterStartDate');
+      const dmEnd = document.getElementById('dmFilterEndDate');
+      const dmSingle = document.getElementById('dmFilterDate');
+      if (dmStart) dmStart.value = today;
+      if (dmEnd) dmEnd.value = today;
+      if (dmSingle) dmSingle.value = today;
+
+      // Render First Page: Inspection Checklist Entry (Lazy-render other tabs on switchTab for fast initial load)
       renderEntryHeader();
-      renderEntryForm();
-      updateInspectionDueBanner();
-      
-      renderDashboard();
-      runDefectInvestigation();
-      renderMasterView();
-      renderHistoryTable();
-      renderQrHub();
-      renderUsersTable();
-      renderDepartmentsTable();
+      renderActiveTabOnly();
 
       // Silent sync with Google Sheets on start to get latest master STD and logs
       if (appState.gasUrl) {
@@ -3717,12 +3766,18 @@
         populateEntryMachineDropdown();
         renderEntryForm();
       }
+      if (tabId === 'daily_matrix') {
+        if (typeof renderDailyMatrixTab === 'function') renderDailyMatrixTab();
+      }
       if (tabId === 'dashboard') {
         populateDashDeptDropdown();
         populateDashMachineDropdown();
         renderDashboard();
-        runDefectInvestigation();
         if (appState.gasUrl) syncWithGoogleSheets(true);
+      }
+      if (tabId === 'investigation') {
+        populateDeptDropdowns();
+        runDefectInvestigation();
       }
       if (tabId === 'master') renderMasterView();
       if (tabId === 'history') {
@@ -9440,20 +9495,7 @@
 
           if (updated) {
             saveState();
-            renderDashboard();
-            runDefectInvestigation();
-            renderMasterView();
-            populateDeptDropdowns();
-            renderHistoryTable();
-            renderEntryDeptButtons();
-            renderEntryFreqFilters();
-            renderEntryForm();
-            if (typeof renderOfficialForms === 'function' && document.getElementById('tab-official_forms') && !document.getElementById('tab-official_forms').classList.contains('hidden')) {
-              renderOfficialForms();
-            }
-            if (typeof renderDailyMatrixTab === 'function' && document.getElementById('tab-daily_matrix') && !document.getElementById('tab-daily_matrix').classList.contains('hidden')) {
-              renderDailyMatrixTab();
-            }
+            renderActiveTabOnly();
           }
 
           if (syncText) {
@@ -10347,7 +10389,7 @@
     function matchesDateFilter(log, targetYMD) {
       if (!targetYMD) return true;
       if (!log) return false;
-      const logYMD = normalizeDateToYMD(log.date || log.timestamp || '');
+      const logYMD = (log._ymd && log._ymd.length === 10) ? log._ymd : normalizeDateToYMD(log.date || log.timestamp || '');
       if (logYMD && logYMD === targetYMD) return true;
       if (log.date && String(log.date).includes(targetYMD)) return true;
       if (log.timestamp && String(log.timestamp).includes(targetYMD)) return true;
@@ -11821,6 +11863,8 @@ function selectOfficialFormTemplate(formId) {
     // =========================================================================
     appState.dmFilters = {
       date: getTodayDateString(),
+      startDate: getTodayDateString(),
+      endDate: getTodayDateString(),
       dept: 'PD',
       group: 'ALL',
       machine: 'ALL',
@@ -11846,23 +11890,143 @@ function selectOfficialFormTemplate(formId) {
     }
 
     function setDmDateToday() {
-      appState.dmFilters.date = getTodayDateString();
+      const today = getTodayDateString();
+      appState.dmFilters.date = today;
+      appState.dmFilters.startDate = today;
+      appState.dmFilters.endDate = today;
+      const startEl = document.getElementById('dmFilterStartDate');
+      const endEl = document.getElementById('dmFilterEndDate');
       const dateEl = document.getElementById('dmFilterDate');
-      if (dateEl) dateEl.value = appState.dmFilters.date;
+      if (startEl) startEl.value = today;
+      if (endEl) endEl.value = today;
+      if (dateEl) dateEl.value = today;
+      renderDailyMatrixTab();
+    }
+
+    function setDmDateAll() {
+      appState.dmFilters.date = '';
+      appState.dmFilters.startDate = '';
+      appState.dmFilters.endDate = '';
+      const startEl = document.getElementById('dmFilterStartDate');
+      const endEl = document.getElementById('dmFilterEndDate');
+      const dateEl = document.getElementById('dmFilterDate');
+      if (startEl) startEl.value = '';
+      if (endEl) endEl.value = '';
+      if (dateEl) dateEl.value = '';
+      appState.dmSampleMode = false;
       renderDailyMatrixTab();
     }
 
     function setDmDate(ymd) {
       appState.dmFilters.date = ymd;
+      appState.dmFilters.startDate = ymd;
+      appState.dmFilters.endDate = ymd;
+      const startEl = document.getElementById('dmFilterStartDate');
+      const endEl = document.getElementById('dmFilterEndDate');
       const dateEl = document.getElementById('dmFilterDate');
+      if (startEl) startEl.value = ymd;
+      if (endEl) endEl.value = ymd;
       if (dateEl) dateEl.value = ymd;
       appState.dmSampleMode = false;
       renderDailyMatrixTab();
     }
 
-    function handleDmDateChange(val) {
-      if (val) appState.dmFilters.date = val;
+    function handleDmDateRangeChange(changedBound) {
+      const startEl = document.getElementById('dmFilterStartDate');
+      const endEl = document.getElementById('dmFilterEndDate');
+      const dateEl = document.getElementById('dmFilterDate');
+      let sVal = startEl ? startEl.value : appState.dmFilters.startDate;
+      let eVal = endEl ? endEl.value : appState.dmFilters.endDate;
+
+      if (sVal && eVal && sVal > eVal) {
+        if (changedBound === 'start') {
+          eVal = sVal;
+          if (endEl) endEl.value = eVal;
+        } else {
+          sVal = eVal;
+          if (startEl) startEl.value = sVal;
+        }
+      }
+      appState.dmFilters.startDate = sVal || '';
+      appState.dmFilters.endDate = eVal || '';
+      appState.dmFilters.date = sVal || eVal || '';
+      if (dateEl) dateEl.value = appState.dmFilters.date;
+      appState.dmSampleMode = false;
       renderDailyMatrixTab();
+    }
+
+    function handleDmDateChange(val) {
+      if (val) {
+        setDmDate(val);
+      } else {
+        renderDailyMatrixTab();
+      }
+    }
+
+    function matchesDmDateRange(log, startYMD, endYMD) {
+      if (!log) return false;
+      const s = normalizeDateToYMD(startYMD);
+      const e = normalizeDateToYMD(endYMD);
+      if (!s && !e) return true;
+      const logYMD = (log._ymd && log._ymd.length === 10) ? log._ymd : normalizeDateToYMD(log.date || log.timestamp || '');
+      if (!logYMD) return false;
+      if (s && e) {
+        const minD = s <= e ? s : e;
+        const maxD = s <= e ? e : s;
+        return logYMD >= minD && logYMD <= maxD;
+      }
+      if (s) return logYMD >= s;
+      if (e) return logYMD <= e;
+      return true;
+    }
+
+    function formatDmDateRangeLabel(startYMD, endYMD) {
+      const s = normalizeDateToYMD(startYMD);
+      const e = normalizeDateToYMD(endYMD);
+      if (!s && !e) return 'ทุกช่วงเวลา (ทั้งหมด)';
+      if (s && e) {
+        if (s === e) return s;
+        return `${s} ถึง ${e}`;
+      }
+      return s || e;
+    }
+
+    function formatShortDateDM(ymdStr) {
+      const ymd = normalizeDateToYMD(ymdStr);
+      if (!ymd || ymd.length < 10) return ymdStr || '';
+      const parts = ymd.split('-');
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+      return ymd;
+    }
+
+    function extractRollNoFromLog(l) {
+      if (!l || typeof l !== 'object') return '';
+      const candidates = [
+        l.roll_no,
+        l['เลขที่ม้วน / Roll No'],
+        l['เลขที่ม้วน / Roll'],
+        l['เลขที่ม้วน'],
+        l.custom_headers && l.custom_headers.roll_no && (l.custom_headers.roll_no.value || l.custom_headers.roll_no),
+        l.custom_headers && l.custom_headers['Roll No'],
+        l.custom_headers && l.custom_headers['เลขที่ม้วน / Roll No'],
+        l.custom_headers && l.custom_headers['เลขที่ม้วน'],
+        findKeyCaseInsensitive(l, ['roll', 'ม้วน']),
+        findKeyCaseInsensitive(l.custom_headers, ['roll', 'ม้วน'])
+      ];
+      for (const c of candidates) {
+        if (c !== undefined && c !== null) {
+          const str = (typeof c === 'object' && c.value !== undefined) ? String(c.value).trim() : String(c).trim();
+          if (str !== '' && str !== '-') return str;
+        }
+      }
+      return '';
+    }
+
+    function normalizeRollKey(rNo) {
+      if (!rNo) return '';
+      const s = String(rNo).trim().replace(/\s+/g, ' ').toUpperCase();
+      if (!s || s === '-' || s === 'ไม่ระบุเลขม้วน') return '';
+      return s;
     }
 
     function selectDmDeptPill(deptKey) {
@@ -12279,8 +12443,14 @@ function selectOfficialFormTemplate(formId) {
           ...iqcItems.map(it => ({ ...classifyMasterItemForMatrix(it), section: 'IQC' })),
           ...labRollItems.map(it => ({ ...classifyMasterItemForMatrix(it), section: 'LAB' }))
         ];
+        // Note: In IQC_LAB mode ("บันทึกผลการตรวจสอบม้วนกระดาษ IQC & LAB"), IQC and LAB roll columns
+        // are always displayed together side-by-side so LAB results for the same roll appear next to IQC.
         if (groupFilter && groupFilter !== 'ALL') {
-          rawItems = rawItems.filter(c => (c.group_title || '').trim() === groupFilter);
+          const gfLower = groupFilter.toLowerCase();
+          const isPaperRollGroup = gfLower.includes('ม้วน') || gfLower.includes('roll');
+          if (!isPaperRollGroup) {
+            rawItems = rawItems.filter(c => (c.group_title || '').trim() === groupFilter);
+          }
         }
         if (machineFilter && machineFilter !== 'ALL') {
           rawItems = rawItems.filter(c => doesMasterItemMatchMachineFilter({ machine: c.machine, group_title: c.group_title, item: c.name }, machineFilter));
@@ -12556,12 +12726,14 @@ function selectOfficialFormTemplate(formId) {
 
     function getDailyMatrixRealRows(deptMode, dateStr, machineFilter, cols, groupFilter) {
       if (!cols || cols.length === 0) return [];
-      const targetYMD = normalizeDateToYMD(dateStr);
+      const startYMD = normalizeDateToYMD(appState.dmFilters.startDate !== undefined ? appState.dmFilters.startDate : dateStr);
+      const endYMD = normalizeDateToYMD(appState.dmFilters.endDate !== undefined ? appState.dmFilters.endDate : dateStr);
+      const isMultiDay = (!startYMD && !endYMD) || (startYMD !== endYMD);
       const allLogs = appState.logs || [];
 
       if (deptMode === 'IQC_LAB') {
-        const rollLogs = allLogs.filter(l => {
-          if (!matchesDateFilter(l, targetYMD)) return false;
+        // Step 1: Identify all candidate IQC and LAB paper-roll logs across the entire log history
+        const allCandidateRollLogs = allLogs.filter(l => {
           if (machineFilter && machineFilter !== 'ALL') {
             if (!isDmLogMachineMatch(l.machine, machineFilter)) return false;
           }
@@ -12569,44 +12741,85 @@ function selectOfficialFormTemplate(formId) {
             return cols.some(col => col.dept === 'IQC' && isStrictMatrixItemMatch(l.item, col.name));
           }
           if (l.dept === 'LAB') {
-            const hasRoll = Boolean(l.roll_no || l['เลขที่ม้วน / Roll No'] || l['เลขที่ม้วน']);
-            if (!hasRoll && !isLabPaperRollItem(l)) return false;
+            const rStr = extractRollNoFromLog(l);
+            if (!rStr && !isLabPaperRollItem(l)) return false;
             return cols.some(col => col.dept === 'LAB' && isStrictMatrixItemMatch(l.item, col.name));
           }
           return false;
         });
 
+        // Step 2: Find which Roll Numbers (normRollKey) have an IQC or LAB entry within the selected Date Range [startYMD, endYMD]
+        const targetRollKeys = new Set();
+        allCandidateRollLogs.forEach(l => {
+          if (matchesDmDateRange(l, startYMD, endYMD)) {
+            const normRoll = normalizeRollKey(extractRollNoFromLog(l));
+            if (normRoll) {
+              targetRollKeys.add(normRoll);
+            }
+          }
+        });
+
+        // Step 3: Pull ALL IQC & LAB logs that share the same Roll Number (even if recorded on a different date or time!)
+        // Also keep logs within the date range that didn't specify a roll number.
+        const rollLogs = allCandidateRollLogs.filter(l => {
+          const normRoll = normalizeRollKey(extractRollNoFromLog(l));
+          if (normRoll && targetRollKeys.has(normRoll)) {
+            return true; // Cross-date & cross-time match by Roll No!
+          }
+          return matchesDmDateRange(l, startYMD, endYMD);
+        });
+
         // Sort chronologically (oldest first so Roll 1 -> Roll N goes top to bottom)
         const sorted = [...rollLogs].sort((a, b) => {
-          return parseToComparableTimestamp(a.date, a.time) - parseToComparableTimestamp(b.date, b.time);
+          const tsA = a._ts !== undefined ? a._ts : parseToComparableTimestamp(a.date, a.time);
+          const tsB = b._ts !== undefined ? b._ts : parseToComparableTimestamp(b.date, b.time);
+          return tsA - tsB;
         });
 
         const rollMap = new Map();
         sorted.forEach(l => {
-          let rNo = l.roll_no || l['เลขที่ม้วน / Roll No'] || l['เลขที่ม้วน'] || (l.custom_headers && l.custom_headers.roll_no && l.custom_headers.roll_no.value) || l.order_no || 'ไม่ระบุเลขม้วน';
-          rNo = String(rNo).trim();
+          const rawRoll = extractRollNoFromLog(l) || l.order_no || 'ไม่ระบุเลขม้วน';
+          const dispRoll = String(rawRoll).trim();
+          const mapKey = normalizeRollKey(dispRoll) || `NO_ROLL_${l._ymd || l.date || ''}_${l.time || ''}`;
+          const logYMD = (l._ymd && l._ymd.length === 10) ? l._ymd : normalizeDateToYMD(l.date || l.timestamp || '');
+          const logTime = normalizeTimeStr(l.time || '08:00');
 
-          if (!rollMap.has(rNo)) {
-            rollMap.set(rNo, {
-              rowKey: rNo,
-              roll_no: rNo,
-              time: l.time || '08:00',
-              supplier: l.supplier || l['ซัพพลายเออร์ / ผู้ผลิต'] || (l.custom_headers && l.custom_headers.supplier && l.custom_headers.supplier.value) || '-',
-              order_no: l.order_no || '-',
-              paper_grade: l.paper_grade || l['เกรด / แกรม'] || (l.custom_headers && l.custom_headers.paper_grade && l.custom_headers.paper_grade.value) || '-',
+          if (!rollMap.has(mapKey)) {
+            rollMap.set(mapKey, {
+              rowKey: dispRoll,
+              roll_no: dispRoll,
+              time: logTime,
+              iqcDate: '',
+              iqcTime: '',
+              labDate: '',
+              labTime: '',
+              supplier: l.supplier || l['ซัพพลายเออร์ / ผู้ผลิต'] || (l.custom_headers && l.custom_headers.supplier && (l.custom_headers.supplier.value || l.custom_headers.supplier)) || '-',
+              order_no: l.order_no || l['เลข PO / ใบรับสินค้า'] || (l.custom_headers && l.custom_headers.order_no && (l.custom_headers.order_no.value || l.custom_headers.order_no)) || '-',
+              paper_grade: l.paper_grade || l['เกรด / แกรม'] || (l.custom_headers && l.custom_headers.paper_grade && (l.custom_headers.paper_grade.value || l.custom_headers.paper_grade)) || '-',
               machine: l.machine || 'General / All',
               inspectors: new Set(),
               cellLogs: {}
             });
           }
 
-          const entry = rollMap.get(rNo);
-          if (l.inspector && l.inspector !== '-') entry.inspectors.add(l.inspector);
-          if (entry.supplier === '-' && l.supplier) entry.supplier = l.supplier;
-          if (entry.paper_grade === '-' && l.paper_grade) entry.paper_grade = l.paper_grade;
-          if (entry.order_no === '-' && l.order_no) entry.order_no = l.order_no;
+          const entry = rollMap.get(mapKey);
+          if (l.dept === 'IQC') {
+            entry.iqcDate = logYMD || entry.iqcDate;
+            entry.iqcTime = logTime || entry.iqcTime;
+          } else if (l.dept === 'LAB') {
+            entry.labDate = logYMD || entry.labDate;
+            entry.labTime = logTime || entry.labTime;
+          }
 
-          // Match log item to columns
+          if (l.inspector && l.inspector !== '-') entry.inspectors.add(l.inspector);
+          const sup = l.supplier || l['ซัพพลายเออร์ / ผู้ผลิต'] || (l.custom_headers && l.custom_headers.supplier && (l.custom_headers.supplier.value || l.custom_headers.supplier));
+          const grd = l.paper_grade || l['เกรด / แกรม'] || (l.custom_headers && l.custom_headers.paper_grade && (l.custom_headers.paper_grade.value || l.custom_headers.paper_grade));
+          const ord = l.order_no || l['เลข PO / ใบรับสินค้า'] || (l.custom_headers && l.custom_headers.order_no && (l.custom_headers.order_no.value || l.custom_headers.order_no));
+          if ((entry.supplier === '-' || !entry.supplier) && sup) entry.supplier = sup;
+          if ((entry.paper_grade === '-' || !entry.paper_grade) && grd) entry.paper_grade = grd;
+          if ((entry.order_no === '-' || !entry.order_no) && ord) entry.order_no = ord;
+
+          // Match log item to columns (IQC logs fill IQC cols, LAB logs fill LAB cols on the exact same row)
           cols.forEach(col => {
             if (col.dept === l.dept && isStrictMatrixItemMatch(l.item, col.name)) {
               entry.cellLogs[col.id] = l;
@@ -12616,10 +12829,30 @@ function selectOfficialFormTemplate(formId) {
 
         return Array.from(rollMap.values())
           .filter(r => Object.keys(r.cellLogs).length > 0)
-          .map(r => ({
-            ...r,
-            inspector: Array.from(r.inspectors).join(' / ') || '-'
-          }));
+          .map(r => {
+            let formattedTime = r.time;
+            if (r.iqcTime && r.labTime) {
+              if (r.iqcDate === r.labDate) {
+                if (r.iqcTime === r.labTime) {
+                  formattedTime = isMultiDay ? `${formatShortDateDM(r.iqcDate)} ${r.iqcTime}` : r.iqcTime;
+                } else {
+                  const dPrefix = isMultiDay ? `${formatShortDateDM(r.iqcDate)} ` : '';
+                  formattedTime = `${dPrefix}IQC ${r.iqcTime} | LAB ${r.labTime}`;
+                }
+              } else {
+                formattedTime = `IQC ${formatShortDateDM(r.iqcDate)} ${r.iqcTime} | LAB ${formatShortDateDM(r.labDate)} ${r.labTime}`;
+              }
+            } else if (r.iqcTime) {
+              formattedTime = isMultiDay ? `${formatShortDateDM(r.iqcDate)} ${r.iqcTime}` : r.iqcTime;
+            } else if (r.labTime) {
+              formattedTime = isMultiDay ? `${formatShortDateDM(r.labDate)} ${r.labTime}` : r.labTime;
+            }
+            return {
+              ...r,
+              time: formattedTime,
+              inspector: Array.from(r.inspectors).join(' / ') || '-'
+            };
+          });
       }
 
       // Mode 2: Time-based rows for PD, GLUE, QC, Boiler, LAB
@@ -12627,7 +12860,7 @@ function selectOfficialFormTemplate(formId) {
       const groupTargetMach = (groupFilter && groupFilter !== 'ALL') ? detectSpecificProductionMachine(groupFilter) : null;
 
       const matchingLogs = allLogs.filter(l => {
-        if (!matchesDateFilter(l, targetYMD)) return false;
+        if (!matchesDmDateRange(l, startYMD, endYMD)) return false;
         if (deptMode === 'LAB') {
           if (!isDeptMatch(l.dept, 'LAB') || isLabPaperRollItem(l)) return false;
         } else {
@@ -12656,20 +12889,25 @@ function selectOfficialFormTemplate(formId) {
 
       // Sort chronologically ascending (08:00 -> 09:00 -> 10:00...)
       const sorted = [...matchingLogs].sort((a, b) => {
-        return parseToComparableTimestamp(a.date, a.time) - parseToComparableTimestamp(b.date, b.time);
+        const tsA = a._ts !== undefined ? a._ts : parseToComparableTimestamp(a.date, a.time);
+        const tsB = b._ts !== undefined ? b._ts : parseToComparableTimestamp(b.date, b.time);
+        return tsA - tsB;
       });
 
-      // Group logs into time-round rows (by time HH:mm + machine)
+      // Group logs into time-round rows (by date + time HH:mm + machine when multi-day)
       const timeMap = new Map();
       sorted.forEach(l => {
         const tm = normalizeTimeStr(l.time || '08:00');
+        const logYMD = (l._ymd && l._ymd.length === 10) ? l._ymd : normalizeDateToYMD(l.date || l.timestamp || '');
         const mach = l.machine || 'General';
-        const rowKey = `${tm}_${mach}`;
+        const rowKey = isMultiDay ? `${logYMD}_${tm}_${mach}` : `${tm}_${mach}`;
+        const dispTime = isMultiDay && logYMD ? `${formatShortDateDM(logYMD)} ${tm}` : tm;
 
         if (!timeMap.has(rowKey)) {
           timeMap.set(rowKey, {
             rowKey: rowKey,
-            time: tm,
+            dateYMD: logYMD,
+            time: dispTime,
             actual_time: tm,
             machine: mach,
             order_no: l.order_no || '-',
@@ -12845,7 +13083,7 @@ function selectOfficialFormTemplate(formId) {
       if (!bar) return;
       const datesSet = new Set();
       (appState.logs || []).forEach(l => {
-        const ymd = normalizeDateToYMD(l.date || l.timestamp || '');
+        const ymd = (l._ymd && l._ymd.length === 10) ? l._ymd : normalizeDateToYMD(l.date || l.timestamp || '');
         if (ymd && ymd.length === 10) datesSet.add(ymd);
       });
       const sortedDates = Array.from(datesSet).sort().reverse().slice(0, 6);
@@ -12854,7 +13092,7 @@ function selectOfficialFormTemplate(formId) {
       }
       let html = '<span class="text-slate-400 font-semibold text-[11px]"><i class="fa-regular fa-calendar-check mr-1 text-blue-400"></i>วันที่มีบันทึกผล:</span>';
       sortedDates.forEach(d => {
-        const isActive = (!appState.dmSampleMode && appState.dmFilters.date === d);
+        const isActive = (!appState.dmSampleMode && appState.dmFilters.startDate === d && appState.dmFilters.endDate === d);
         const cls = isActive
           ? 'bg-blue-600 text-white font-bold border-blue-500 shadow-sm'
           : 'bg-slate-950 text-slate-300 border-slate-700 hover:bg-slate-800 hover:text-white';
@@ -12869,8 +13107,17 @@ function selectOfficialFormTemplate(formId) {
       if (!pane) return;
 
       // Sync filter state from DOM inputs BEFORE rebuilding dropdown options
+      const startInput = document.getElementById('dmFilterStartDate');
+      const endInput = document.getElementById('dmFilterEndDate');
       const dateInput = document.getElementById('dmFilterDate');
-      if (dateInput) {
+      if (startInput && endInput) {
+        if (appState.dmFilters.startDate === undefined) appState.dmFilters.startDate = getTodayDateString();
+        if (appState.dmFilters.endDate === undefined) appState.dmFilters.endDate = getTodayDateString();
+        if (startInput.value !== appState.dmFilters.startDate) startInput.value = appState.dmFilters.startDate;
+        if (endInput.value !== appState.dmFilters.endDate) endInput.value = appState.dmFilters.endDate;
+        appState.dmFilters.date = appState.dmFilters.startDate || appState.dmFilters.endDate || '';
+        if (dateInput) dateInput.value = appState.dmFilters.date;
+      } else if (dateInput) {
         if (!dateInput.value) dateInput.value = appState.dmFilters.date || getTodayDateString();
         appState.dmFilters.date = dateInput.value;
       }
@@ -12922,7 +13169,7 @@ function selectOfficialFormTemplate(formId) {
       const machineFilter = appState.dmFilters.machine;
       const statusFilter = appState.dmFilters.status;
       const keyword = appState.dmFilters.search.toLowerCase();
-      const dateStr = appState.dmFilters.date;
+      const dateStr = formatDmDateRangeLabel(appState.dmFilters.startDate, appState.dmFilters.endDate);
       const isRollMode = (deptMode === 'IQC_LAB');
 
       // 1. Get Columns from Real Master Checklist
